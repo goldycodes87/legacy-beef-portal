@@ -2,34 +2,96 @@ import { supabaseAdmin } from '@/lib/supabase';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
 const slotTypeLabel = (type: string) => {
   switch (type) {
-    case 'whole': return 'Whole Beef';
+    case 'whole':  return 'Whole Beef';
     case 'half_a': return 'Half Beef (Side A)';
     case 'half_b': return 'Half Beef (Side B)';
-    default: return type;
+    default:       return type;
   }
 };
 
-const statusLabel = (status: string) => {
+type StatusInfo = {
+  label: string;
+  badgeClass: string;
+};
+
+const statusInfo = (status: string): StatusInfo => {
   switch (status) {
-    case 'draft': return { label: 'Order Received', color: 'bg-blue-100 text-blue-700' };
-    case 'in_progress': return { label: 'Cut Sheet In Progress', color: 'bg-yellow-100 text-yellow-700' };
-    case 'complete': return { label: 'Cut Sheet Complete', color: 'bg-green-100 text-green-700' };
-    case 'locked': return { label: 'Locked & Sent to Butcher', color: 'bg-purple-100 text-purple-700' };
-    case 'processing': return { label: 'Being Processed', color: 'bg-orange-100 text-orange-700' };
-    case 'beef_ready': return { label: 'Your Beef is Ready!', color: 'bg-green-100 text-green-800' };
-    default: return { label: status, color: 'bg-gray-100 text-gray-700' };
+    case 'draft':       return { label: 'Not started',           badgeClass: 'bg-gray-100 text-gray-600' };
+    case 'in_progress': return { label: 'Cut sheet in progress', badgeClass: 'bg-blue-100 text-blue-700' };
+    case 'complete':    return { label: 'Cut sheet complete',    badgeClass: 'bg-green-100 text-green-700' };
+    case 'locked':      return { label: 'Submitted ✓',          badgeClass: 'bg-green-100 text-green-700' };
+    case 'processing':  return { label: 'At the butcher',        badgeClass: 'bg-amber-100 text-amber-700' };
+    case 'beef_ready':  return { label: 'Ready for pickup!',     badgeClass: 'bg-green-100 text-green-800' };
+    default:            return { label: status,                  badgeClass: 'bg-gray-100 text-gray-600' };
   }
 };
 
 const formatDate = (dateStr: string) => {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   });
 };
+
+// ─── CTA Button ─────────────────────────────────────────────────────────────
+
+function SessionCTA({ status, uuid }: { status: string; uuid: string }) {
+  switch (status) {
+    case 'draft':
+    case 'in_progress':
+      return (
+        <Link
+          href={`/session/${uuid}/cuts`}
+          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+        >
+          Continue your cut sheet →
+        </Link>
+      );
+    case 'complete':
+      return (
+        <Link
+          href={`/session/${uuid}/review`}
+          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+        >
+          Review your choices →
+        </Link>
+      );
+    case 'locked':
+      return (
+        <Link
+          href={`/session/${uuid}/review`}
+          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+        >
+          View your order →
+        </Link>
+      );
+    case 'processing':
+      return (
+        <p className="text-center text-gray-500 text-sm py-2">
+          🥩 Your beef is being processed
+        </p>
+      );
+    case 'beef_ready':
+      return (
+        <Link
+          href={`/session/${uuid}/status`}
+          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+        >
+          Schedule your pickup →
+        </Link>
+      );
+    default:
+      return null;
+  }
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 interface PageProps {
   params: Promise<{ uuid: string }>;
@@ -38,7 +100,6 @@ interface PageProps {
 export default async function SessionPage({ params }: PageProps) {
   const { uuid } = await params;
 
-  // Load session with related data
   const { data: session, error } = await supabaseAdmin
     .from('sessions')
     .select(`
@@ -54,109 +115,118 @@ export default async function SessionPage({ params }: PageProps) {
     notFound();
   }
 
-  const statusInfo = statusLabel(session.status);
+  const info = statusInfo(session.status);
+  const firstName = session.customer?.name?.split(' ')[0] ?? 'there';
 
   return (
-    <main className="min-h-screen px-4 py-12">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/" className="text-sm text-brand-green hover:underline mb-4 inline-block">
-            ← Legacy Land & Cattle
-          </Link>
-          <h1 className="text-3xl font-serif font-bold text-brand-green">
-            Your Beef Order
-          </h1>
-        </div>
+    <main className="min-h-screen px-4 py-12 bg-[#F5F0E8]">
+      <div className="max-w-lg mx-auto">
 
-        {/* Welcome Banner — only shown for draft */}
-        {session.status === 'draft' && (
-          <div className="bg-brand-green/5 border border-brand-green/20 rounded-xl p-5 mb-6">
-            <h2 className="text-lg font-semibold text-brand-green mb-1">
-              🎉 Welcome, {session.customer?.name?.split(' ')[0]}!
-            </h2>
-            <p className="text-gray-700 text-sm leading-relaxed">
-              You&apos;ve successfully reserved your beef order. Next, you&apos;ll create your{' '}
-              <strong>cut sheet</strong> to specify exactly how you want your meat butchered —
-              steaks, roasts, ground beef, and more. We&apos;ll walk you through every choice.
+        {/* Brand wordmark */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-block">
+            <h1 className="text-2xl font-serif font-bold text-[#2D5016]">
+              Legacy Land &amp; Cattle
+            </h1>
+            <p className="text-xs text-[#8B6914] uppercase tracking-widest mt-0.5">
+              Customer Portal
             </p>
-          </div>
-        )}
+          </Link>
+        </div>
 
-        {/* Customer Card */}
-        <div className="card mb-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-0.5">Customer</p>
-              <p className="text-lg font-semibold text-gray-900">{session.customer?.name}</p>
-              <p className="text-sm text-gray-600">{session.customer?.email}</p>
-              <p className="text-sm text-gray-600">{session.customer?.phone}</p>
+        {/* Welcome */}
+        <p className="text-gray-600 text-center mb-6 text-sm">
+          Welcome back, <span className="font-semibold text-gray-900">{firstName}</span>
+        </p>
+
+        {/* Order Card */}
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-4">
+          {/* Animal Name Header */}
+          <div className="bg-[#2D5016] px-6 py-5">
+            <p className="text-[#C4A46B] text-xs uppercase tracking-widest mb-1">Your Beef Order</p>
+            <h2 className="text-white text-2xl font-serif font-bold">
+              {session.animal?.name ?? 'Your Animal'}
+            </h2>
+          </div>
+
+          {/* Details */}
+          <div className="px-6 py-5 space-y-3">
+            <DetailRow
+              label="Animal"
+              value={session.animal?.name ?? '—'}
+            />
+            <DetailRow
+              label="Type"
+              value={session.slot ? slotTypeLabel(session.slot.slot_type) : session.purchase_type ?? '—'}
+            />
+            <DetailRow
+              label="Butcher Date"
+              value={session.animal?.butcher_date ? formatDate(session.animal.butcher_date) : '—'}
+            />
+            <DetailRow
+              label="Est. Ready"
+              value={session.animal?.estimated_ready_date ? formatDate(session.animal.estimated_ready_date) : '—'}
+            />
+            <DetailRow
+              label="Price"
+              value={session.animal?.price_per_lb ? `$${session.animal.price_per_lb.toFixed(2)}/lb hanging weight` : '—'}
+              highlight
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-100 mx-6" />
+
+          {/* Status + CTA */}
+          <div className="px-6 py-5">
+            {/* Status Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm text-gray-500 font-medium">Status:</span>
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${info.badgeClass}`}>
+                {info.label}
+              </span>
             </div>
-            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusInfo.color}`}>
-              {statusInfo.label}
-            </span>
+
+            {/* Action Button */}
+            <SessionCTA status={session.status} uuid={session.id} />
           </div>
         </div>
 
-        {/* Order Details Card */}
-        <div className="card mb-4">
-          <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-3">Order Details</p>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center py-1 border-b border-gray-50">
-              <span className="text-sm text-gray-600">Animal</span>
-              <span className="font-semibold text-gray-900">{session.animal?.name}</span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-gray-50">
-              <span className="text-sm text-gray-600">Order Type</span>
-              <span className="font-semibold text-gray-900">
-                {session.slot ? slotTypeLabel(session.slot.slot_type) : session.purchase_type}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-gray-50">
-              <span className="text-sm text-gray-600">Butcher Date</span>
-              <span className="font-semibold text-gray-900">
-                {session.animal?.butcher_date ? formatDate(session.animal.butcher_date) : '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-gray-50">
-              <span className="text-sm text-gray-600">Est. Ready Date</span>
-              <span className="font-semibold text-gray-900">
-                {session.animal?.estimated_ready_date ? formatDate(session.animal.estimated_ready_date) : '—'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1 border-b border-gray-50">
-              <span className="text-sm text-gray-600">Hanging Weight</span>
-              <span className="font-semibold text-gray-900">
-                ~{session.animal?.hanging_weight_lbs} lbs
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-1">
-              <span className="text-sm text-gray-600">Price per lb</span>
-              <span className="font-semibold text-brand-green text-lg">
-                ${session.animal?.price_per_lb?.toFixed(2)}/lb
-              </span>
-            </div>
-          </div>
+        {/* Order reference */}
+        <div className="bg-white/60 rounded-xl px-4 py-2.5 flex items-center justify-between mb-6">
+          <span className="text-xs text-gray-400 font-medium">Order ref</span>
+          <span className="text-xs font-mono text-gray-500">{session.id}</span>
         </div>
 
-        {/* Order ID */}
-        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-6 flex items-center justify-between">
-          <span className="text-xs text-gray-500 font-medium">Order Reference</span>
-          <span className="text-xs font-mono text-gray-700">{session.id}</span>
-        </div>
-
-        {/* CTA — Cut Sheet */}
-        <Link
-          href={`/session/${session.id}/cuts`}
-          className="btn-primary w-full text-center block text-base"
-        >
-          Start Your Cut Sheet →
-        </Link>
-
-        <p className="text-center text-xs text-gray-400 mt-4">
-          Questions? Contact Legacy Land & Cattle directly.
+        <p className="text-center text-xs text-gray-400">
+          Questions? Contact Legacy Land &amp; Cattle directly.
         </p>
       </div>
     </main>
+  );
+}
+
+// ─── Detail Row Component ─────────────────────────────────────────────────
+
+function DetailRow({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-1 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-500 shrink-0">{label}</span>
+      <span
+        className={`text-sm text-right font-semibold ${
+          highlight ? 'text-[#2D5016] text-base' : 'text-gray-900'
+        }`}
+      >
+        {value}
+      </span>
+    </div>
   );
 }
