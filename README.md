@@ -38,7 +38,7 @@ Grass-fed beef ordering portal for Legacy Land & Cattle customers.
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://rmolayrkbkcmtoahsiqj.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJtb2xheXJrYmtjbXRvYWhzaXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NTY1NDIsImV4cCI6MjA4OTUzMjU0Mn0.GEimTCxrXSEELiYoaKN6tlGqD7TZPpCZY2f2SuH_bVE
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=REDACTED_SERVICE_KEY
 RESEND_API_KEY=re_YOUR_RESEND_KEY_HERE
 NEXT_PUBLIC_APP_URL=https://legacylandandcattleco.com
