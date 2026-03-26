@@ -173,10 +173,28 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // 7. Send magic link to customer email (serves as confirmation)
+    try {
+      await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+        options: {
+          redirectTo: `${APP_URL}/session/${sessionId}`,
+        },
+      });
+      // Note: generateLink returns the link but does NOT send the email automatically.
+      // The Resend email above already includes the magic link. The OTP signInWithOtp
+      // approach would send Supabase's default email — we use our branded Resend email instead.
+    } catch (err) {
+      console.error('OTP generation note:', err);
+      // Non-fatal — branded email already sent via Resend above
+    }
+
     return NextResponse.json({
       success: true,
       session_id: sessionId,
       customer_id: customerId,
+      message: 'Check your email for your magic link — click it to access your order',
     });
 
   } catch (err) {

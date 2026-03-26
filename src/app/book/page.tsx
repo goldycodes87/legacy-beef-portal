@@ -113,15 +113,15 @@ export default function BookPage() {
             Order Confirmed!
           </h1>
           <p className="text-gray-600 mb-6">
-            Thank you, <strong>{form.name}</strong>! Your beef order has been reserved.
-            We&apos;ve sent a confirmation email to <strong>{form.email}</strong> with a link
-            to your order page.
+            Thank you, <strong>{form.name}</strong>! Check your email for your magic link
+            — click it to access your order. We sent it to{' '}
+            <strong>{form.email}</strong>.
           </p>
           <Link href={`/session/${sessionId}`} className="btn-primary w-full text-center">
             View Your Order →
           </Link>
           <p className="mt-4 text-sm text-gray-500">
-            A confirmation email is on its way — check your inbox.
+            Check your email for your magic link — click it to access your order.
           </p>
         </div>
       </main>
