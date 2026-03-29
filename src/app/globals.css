@@ -4,28 +4,28 @@
 
 @layer base {
   body {
-    @apply bg-brand-cream text-brand-dark;
+    @apply bg-white text-brand-dark;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-brand-green text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-green-light transition-colors duration-200 inline-block;
+    @apply bg-brand-orange text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-orange-hover transition-colors duration-200 inline-block;
   }
   
   .btn-secondary {
-    @apply border-2 border-brand-green text-brand-green px-6 py-3 rounded-lg font-semibold hover:bg-brand-green hover:text-white transition-colors duration-200 inline-block;
+    @apply border-2 border-brand-green text-brand-green px-6 py-3 rounded-xl font-semibold hover:bg-brand-green hover:text-white transition-colors duration-200 inline-block;
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-md p-6 border border-gray-100;
+    @apply bg-white rounded-xl shadow-md p-6 border border-brand-gray-light;
   }
   
   .form-input {
-    @apply w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent bg-white;
+    @apply w-full border border-brand-gray-light rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent bg-white;
   }
   
   .form-label {
-    @apply block text-sm font-semibold text-gray-700 mb-1;
+    @apply block text-sm font-semibold text-brand-dark mb-1;
   }
 }
