@@ -7,7 +7,7 @@ export default function HomePage() {
       {/* Dark Header */}
       <header className="bg-brand-dark px-4 py-4 flex items-center">
         <Image
-          src="/images/logo-white.svg"
+          src="/images/LLC_Logo.svg"
           alt="Legacy Land & Cattle"
           width={140}
           height={60}
@@ -36,7 +36,7 @@ export default function HomePage() {
           {/* Centered Logo */}
           <div className="mb-8">
             <Image
-              src="/images/logo-white.svg"
+              src="/images/LLC_Logo.svg"
               alt="Legacy Land & Cattle"
               width={200}
               height={90}

@@ -54,7 +54,7 @@ export default function WagyuWaitlistPage() {
       <div className="min-h-screen bg-white">
         <header className="bg-brand-dark px-4 py-4 flex items-center">
           <Image
-            src="/images/logo-white.svg"
+            src="/images/LLC_Logo.svg"
             alt="Legacy Land & Cattle"
             width={140}
             height={60}
@@ -86,7 +86,7 @@ export default function WagyuWaitlistPage() {
       {/* Dark Header */}
       <header className="bg-brand-dark px-4 py-4 flex items-center">
         <Image
-          src="/images/logo-white.svg"
+          src="/images/LLC_Logo.svg"
           alt="Legacy Land & Cattle"
           width={140}
           height={60}
