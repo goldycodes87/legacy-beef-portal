@@ -10,16 +10,17 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          green: "#2D5016",
-          "green-light": "#4A7A2A",
-          tan: "#C4A46B",
-          cream: "#F5F0E8",
-          brown: "#6B3D1E",
-          dark: "#1A1A1A",
+          orange: '#E85D24',
+          'orange-hover': '#D14E1A',
+          green: '#1A3D2B',
+          'green-light': '#2D5E42',
+          dark: '#0F0F0F',
+          gray: '#6B7280',
+          'gray-light': '#E5E7EB',
         },
       },
       fontFamily: {
-        serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
+        serif: ["Playfair Display", "Georgia", "Cambria", "Times New Roman", "serif"],
         sans: ["Inter", "system-ui", "sans-serif"],
       },
     },
