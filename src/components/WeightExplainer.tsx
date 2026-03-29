@@ -6,7 +6,7 @@ export default function WeightExplainer() {
   const [liveWeight, setLiveWeight] = useState(1300);
 
   const hangingWeight = Math.round(liveWeight * 0.60);
-  const finishedCuts = Math.round(hangingWeight * 0.65);
+  const finishedCuts = Math.round(hangingWeight * 0.52);
   const halfCostBase = Math.round(finishedCuts * 0.5 * 8.25);
   const halfCostLow = Math.round(halfCostBase * 0.9);
   const halfCostHigh = Math.round(halfCostBase * 1.1);
@@ -52,7 +52,7 @@ export default function WeightExplainer() {
           <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 12H28M28 12L18 4M28 12L18 20" stroke="#E85D24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="text-[10px] text-brand-orange font-semibold mt-1">65%</span>
+          <span className="text-[10px] text-brand-orange font-semibold mt-1">52%</span>
         </div>
 
         {/* Finished Cuts */}
@@ -123,18 +123,18 @@ export default function WeightExplainer() {
             className="text-2xl font-bold text-brand-green"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            65%
+            52%
           </div>
-          <div className="text-xs text-brand-gray mt-1 leading-tight">Hanging to cuts yield</div>
+          <div className="text-xs text-brand-gray mt-1 leading-tight">After butchering, trimming, and 21-24 days of dry aging</div>
         </div>
         <div className="bg-white border border-brand-gray-light rounded-xl p-4 text-center">
           <div
             className="text-2xl font-bold text-brand-green"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            ~425
+            ~400
           </div>
-          <div className="text-xs text-brand-gray mt-1 leading-tight">Avg whole beef (lbs)</div>
+          <div className="text-xs text-brand-gray mt-1 leading-tight">average finished cuts per whole beef</div>
         </div>
       </div>
     </div>

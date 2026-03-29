@@ -105,6 +105,12 @@ export default function WeightExplainerPage() {
                   A chest freezer (7 cu ft) holds a quarter beef. A half needs ~14 cu ft.
                 </span>
               </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange"></span>
+                <span className="text-sm leading-relaxed opacity-90">
+                  Your beef is dry aged 21-24 days for maximum tenderness and flavor — this process reduces yield slightly but dramatically improves quality.
+                </span>
+              </li>
             </ul>
           </div>
         </section>
