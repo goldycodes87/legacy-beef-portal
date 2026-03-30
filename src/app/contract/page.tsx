@@ -119,25 +119,23 @@ export default function ContractPage() {
       const animal: Animal = data.animals;
 
       // 3. Must have customer
+      console.log('DIAG [customer check] - !customer:', !customer);
+      console.log('DIAG [customer check] - typeof customer:', typeof customer);
+      console.log('DIAG [customer check] - customer value:', customer);
+      console.log('DIAG [customer check] - data.customers:', data.customers);
+      console.log('DIAG [customer check] - data.customer (wrong key):', data.customer);
       if (!customer) {
-        console.log('About to set error state. Conditions:');
-        console.log('res.ok:', res.ok);
-        console.log('data.customer:', data.customer);
-        console.log('data.customers:', data.customers);
-        console.log('depositAmount:', depositAmount);
-        console.log('data.animal:', data.animal);
         setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
         return;
       }
 
       // 4. Must have animal
+      console.log('DIAG [animal check] - !animal:', !animal);
+      console.log('DIAG [animal check] - typeof animal:', typeof animal);
+      console.log('DIAG [animal check] - animal value:', animal);
+      console.log('DIAG [animal check] - data.animals:', data.animals);
+      console.log('DIAG [animal check] - data.animal (wrong key):', data.animal);
       if (!animal) {
-        console.log('About to set error state. Conditions:');
-        console.log('res.ok:', res.ok);
-        console.log('data.customer:', data.customer);
-        console.log('depositAmount:', depositAmount);
-        console.log('data.animal:', data.animal);
-        console.log('data.animals:', data.animals);
         setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
         return;
       }
