@@ -102,13 +102,12 @@ export default function BookPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const explainerDone = sessionStorage.getItem('weightExplainerComplete') === 'true';
     const size = sessionStorage.getItem('selectedSize') || '';
     const aType = sessionStorage.getItem('animalTypePreference') || 'no_preference';
 
-    if (!explainerDone || !size) {
+    if (!size) {
       // Redirect back to start of funnel
-      router.replace('/weight-explainer');
+      router.replace('/select-size');
       return;
     }
 
@@ -206,7 +205,6 @@ export default function BookPage() {
       if (!res.ok) throw new Error(data.error || 'Booking failed. Please try again.');
 
       // Clear sessionStorage funnel data
-      sessionStorage.removeItem('weightExplainerComplete');
       sessionStorage.removeItem('selectedSize');
       sessionStorage.removeItem('animalTypePreference');
       sessionStorage.removeItem('isSplitting');

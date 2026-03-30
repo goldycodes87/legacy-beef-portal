@@ -176,7 +176,7 @@ export default function SelectSizePage() {
       sessionStorage.setItem('group_id', groupId);
     }
 
-    router.push('/book');
+    router.push('/select-animal');
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
