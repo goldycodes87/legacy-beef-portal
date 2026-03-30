@@ -109,7 +109,6 @@ export default function BookPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [successSessionId, setSuccessSessionId] = useState<string | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -219,50 +218,22 @@ export default function BookPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Booking failed. Please try again.');
 
-      // Clear sessionStorage funnel data
+      // Save session_id for contract + payment pages
+      sessionStorage.setItem('session_id', data.session_id);
+
+      // Clear funnel selection data
       sessionStorage.removeItem('selectedSize');
       sessionStorage.removeItem('animalTypePreference');
       sessionStorage.removeItem('isSplitting');
       sessionStorage.removeItem('partnerEmails');
 
-      setSuccessSessionId(data.session_id);
+      // Redirect to contract page (NOT order confirmed)
+      router.push('/contract');
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
     }
-  }
-
-  // ── Success screen ─────────────────────────────────────────────────────────
-  if (successSessionId) {
-    return (
-      <div className="min-h-screen bg-white">
-        <header className="bg-brand-dark px-4 py-4 flex items-center">
-          <Image src="/images/LLC_Logo.svg" alt="Legacy Land &amp; Cattle" width={140} height={60} className="h-10 w-auto object-contain" />
-        </header>
-        <main className="max-w-lg mx-auto px-4 py-16 text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-3xl font-bold text-brand-dark mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-            Order Confirmed!
-          </h1>
-          <p className="text-brand-gray mb-2">
-            Thanks, <strong>{form.name.split(' ')[0]}</strong>! Your beef slot is reserved.
-          </p>
-          <p className="text-brand-gray mb-8">
-            A confirmation email is on its way to <strong>{form.email}</strong>.
-          </p>
-          <a
-            href={`/session/${successSessionId}`}
-            className="inline-block w-full max-w-xs bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold py-4 rounded-xl text-center transition-colors duration-150"
-          >
-            View Your Order →
-          </a>
-          <p className="mt-4 text-sm text-brand-gray">
-            Check your email for confirmation details and next steps.
-          </p>
-        </main>
-      </div>
-    );
   }
 
   // ── Guard not yet confirmed (redirecting) ──────────────────────────────────
@@ -569,10 +540,10 @@ export default function BookPage() {
 
             {/* ── Section 5: Info box + CTA ── */}
             <div className="bg-[#F5F0E8] border border-[#E8DCC8] rounded-2xl px-5 py-4 text-sm text-brand-gray leading-relaxed">
-              <p className="font-semibold text-brand-dark mb-1">What happens after you reserve?</p>
+              <p className="font-semibold text-brand-dark mb-1">What happens next?</p>
               <ul className="space-y-1 list-none pl-0">
-                <li>✅ You&apos;ll receive a confirmation email immediately</li>
-                <li>💳 We&apos;ll reach out with deposit payment details</li>
+                <li>📝 Sign your purchase agreement</li>
+                <li>💳 Pay your deposit to lock in your spot</li>
                 <li>🔪 Build your custom cut sheet before butcher day</li>
                 <li>📦 We notify you when your beef is ready for pickup</li>
               </ul>
@@ -613,7 +584,7 @@ export default function BookPage() {
                   Reserving your slot…
                 </span>
               ) : (
-                'Reserve My Beef →'
+                'Next →'
               )}
             </button>
 
