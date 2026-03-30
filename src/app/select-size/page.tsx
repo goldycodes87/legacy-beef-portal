@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ReservationProgress from '@/components/ReservationProgress';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -192,6 +193,8 @@ export default function SelectSizePage() {
           className="h-10 w-auto object-contain"
         />
       </header>
+
+      <ReservationProgress currentStep="choose" />
 
       <main className="max-w-[680px] mx-auto px-4 py-10">
         {/* Heading */}

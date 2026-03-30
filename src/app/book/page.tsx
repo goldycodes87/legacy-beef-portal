@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ReservationProgress from '@/components/ReservationProgress';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -266,6 +267,8 @@ export default function BookPage() {
       <header className="bg-brand-dark px-4 py-4 flex items-center">
         <Image src="/images/LLC_Logo.svg" alt="Legacy Land &amp; Cattle" width={140} height={60} className="h-10 w-auto object-contain" />
       </header>
+
+      <ReservationProgress currentStep="info" />
 
       <main className="max-w-[680px] mx-auto px-4 py-10">
 

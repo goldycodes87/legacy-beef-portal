@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ESignContract from '@/components/ESignContract';
+import ReservationProgress from '@/components/ReservationProgress';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -161,6 +162,8 @@ export default function ContractPage() {
           className="h-10 w-auto object-contain"
         />
       </header>
+
+      <ReservationProgress currentStep="contract" />
 
       <main>
         {state.status === 'loading' && (

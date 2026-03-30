@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ReservationProgress from '@/components/ReservationProgress';
 
 type AnimalType = 'grass_fed' | 'grain_finished' | 'wagyu' | 'no_preference';
 
@@ -104,6 +105,8 @@ export default function SelectAnimalPage() {
           className="h-10 w-auto object-contain"
         />
       </header>
+
+      <ReservationProgress currentStep="choose" />
 
       {/* Content */}
       <main className="max-w-[640px] mx-auto px-4 py-10">

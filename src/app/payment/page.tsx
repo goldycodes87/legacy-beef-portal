@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import ReservationProgress from '@/components/ReservationProgress';
 
 export const metadata = {
   title: 'Payment | Legacy Land & Cattle',
@@ -16,6 +17,7 @@ export default function PaymentPage() {
           className="h-10 w-auto object-contain"
         />
       </header>
+      <ReservationProgress currentStep="deposit" />
       <main className="max-w-[720px] mx-auto px-4 py-24 text-center">
         <div className="text-6xl mb-6">🚧</div>
         <h1

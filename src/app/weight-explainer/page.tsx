@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import WeightExplainer from '@/components/WeightExplainer';
+import ReservationProgress from '@/components/ReservationProgress';
 
 export default function WeightExplainerPage() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function WeightExplainerPage() {
           className="h-10 w-auto object-contain"
         />
       </header>
+
+      <ReservationProgress currentStep="learn" />
 
       <main className="max-w-[700px] mx-auto px-4 py-10">
 
