@@ -24,13 +24,34 @@ function computeSpotsRemaining(
   }
 }
 
-// Deposit amounts by size
-function depositAmount(purchaseType: string): number {
+// Fetch deposit amounts from the config table
+async function fetchDepositAmounts(): Promise<Record<string, number>> {
+  const { data, error } = await supabaseAdmin
+    .from('config')
+    .select('key, value')
+    .in('key', ['deposit_half', 'deposit_whole_single', 'deposit_whole_split', 'deposit_quarter']);
+
+  if (error || !data) {
+    console.error('Error fetching deposit config:', error);
+    // Fallback to known values if config fetch fails
+    return {
+      deposit_half: 500,
+      deposit_whole_single: 850,
+      deposit_whole_split: 500,
+      deposit_quarter: 250,
+    };
+  }
+
+  return Object.fromEntries(data.map((row) => [row.key, Number(row.value)]));
+}
+
+// Resolve deposit amount for a purchase type using config values
+function resolveDepositAmount(purchaseType: string, config: Record<string, number>): number {
   switch (purchaseType) {
-    case 'whole':   return 250;
-    case 'half':    return 150;
-    case 'quarter': return 100;
-    default:        return 150;
+    case 'whole':   return config['deposit_whole_single'] ?? 850;
+    case 'half':    return config['deposit_half']         ?? 500;
+    case 'quarter': return config['deposit_quarter']      ?? 250;
+    default:        return config['deposit_half']         ?? 500;
   }
 }
 
@@ -55,6 +76,7 @@ export async function GET(request: NextRequest) {
   const purchaseType = searchParams.get('purchaseType') || 'half';
 
   try {
+    // Fetch animals and deposit config in parallel
     let query = supabaseAdmin
       .from('animals')
       .select('*')
@@ -66,7 +88,10 @@ export async function GET(request: NextRequest) {
       query = query.eq('animal_type', animalType);
     }
 
-    const { data: animals, error } = await query;
+    const [{ data: animals, error }, depositConfig] = await Promise.all([
+      query,
+      fetchDepositAmounts(),
+    ]);
 
     if (error) {
       console.error('Error fetching animals:', error);
@@ -94,7 +119,7 @@ export async function GET(request: NextRequest) {
           slots_quarter:         animal.slots_quarter,
           slots_quarter_used:    animal.slots_quarter_used,
           spots_remaining:       spotsRemaining,
-          deposit_amount:        depositAmount(purchaseType),
+          deposit_amount:        resolveDepositAmount(purchaseType, depositConfig),
           est_total_low:         estRange.low,
           est_total_high:        estRange.high,
           purchase_type:         purchaseType,
