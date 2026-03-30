@@ -79,7 +79,26 @@ export default function ContractPage() {
       const data = await res.json();
       console.log('API response data:', JSON.stringify(data));
 
-      if (!res.ok || !data.customer) {
+      // Issue 1 fix: deposit_amount may be null in DB — calculate client-side fallback
+      const depositAmount = data.deposit_amount ?? (() => {
+        switch (data.purchase_type) {
+          case 'whole': return 850;
+          case 'half': return 500;
+          case 'quarter': return 250;
+          default: return 500;
+        }
+      })();
+
+      // Note: Supabase nested select returns `customers` and `animals`, not `customer`/`animal`
+      if (!res.ok || !data.id) {
+        console.log('About to set error state. Conditions:');
+        console.log('res.ok:', res.ok);
+        console.log('data.id:', data.id);
+        console.log('data.customer:', data.customer);
+        console.log('data.customers:', data.customers);
+        console.log('depositAmount:', depositAmount);
+        console.log('data.animal:', data.animal);
+        console.log('data.animals:', data.animals);
         console.error('Failed to load session:', data);
         router.replace('/select-size?error=session_not_found');
         return;
@@ -101,12 +120,24 @@ export default function ContractPage() {
 
       // 3. Must have customer
       if (!customer) {
+        console.log('About to set error state. Conditions:');
+        console.log('res.ok:', res.ok);
+        console.log('data.customer:', data.customer);
+        console.log('data.customers:', data.customers);
+        console.log('depositAmount:', depositAmount);
+        console.log('data.animal:', data.animal);
         setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
         return;
       }
 
       // 4. Must have animal
       if (!animal) {
+        console.log('About to set error state. Conditions:');
+        console.log('res.ok:', res.ok);
+        console.log('data.customer:', data.customer);
+        console.log('depositAmount:', depositAmount);
+        console.log('data.animal:', data.animal);
+        console.log('data.animals:', data.animals);
         setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
         return;
       }
@@ -119,14 +150,15 @@ export default function ContractPage() {
       }
 
       // deposit_amount column requires Block 8 DB migration; use purchase_type fallback
-      const depositAmount = sessionData.deposit_amount ?? depositForType(sessionData.purchase_type);
+      // depositAmount was already calculated above from data directly (before nested extraction)
+      const finalDepositAmount = sessionData.deposit_amount ?? depositAmount;
 
       setState({
         status: 'ready',
         session: sessionData,
         customer,
         animal,
-        depositAmount,
+        depositAmount: finalDepositAmount,
       });
     }
 
