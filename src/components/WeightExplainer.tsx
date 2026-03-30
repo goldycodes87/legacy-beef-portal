@@ -3,13 +3,24 @@
 import { useState } from 'react';
 
 export default function WeightExplainer() {
-  const [liveWeight, setLiveWeight] = useState(1300);
+  const [liveWeight, setLiveWeight] = useState(1200);
 
   const hangingWeight = Math.round(liveWeight * 0.60);
   const finishedCuts = Math.round(hangingWeight * 0.52);
-  const halfCostBase = Math.round(finishedCuts * 0.5 * 8.25);
-  const halfCostLow = Math.round(halfCostBase * 0.9);
-  const halfCostHigh = Math.round(halfCostBase * 1.1);
+
+  // Prices are charged on hanging weight
+  // Range reflects ±5% natural variation in hanging weight yield
+  // Whole Beef: $8.00/lb hanging weight
+  const wholeLow = Math.round(hangingWeight * 0.95 * 8.00);
+  const wholeHigh = Math.round(hangingWeight * 1.05 * 8.00);
+
+  // Half Beef: $8.25/lb hanging weight (half the animal)
+  const halfLow = Math.round((hangingWeight / 2) * 0.95 * 8.25);
+  const halfHigh = Math.round((hangingWeight / 2) * 1.05 * 8.25);
+
+  // Quarter Beef: $8.50/lb hanging weight (quarter of the animal)
+  const quarterLow = Math.round((hangingWeight / 4) * 0.95 * 8.50);
+  const quarterHigh = Math.round((hangingWeight / 4) * 1.05 * 8.50);
 
   return (
     <div className="w-full">
@@ -79,32 +90,56 @@ export default function WeightExplainer() {
         <input
           id="liveWeightSlider"
           type="range"
-          min={900}
-          max={1600}
+          min={1000}
+          max={1500}
           step={10}
           value={liveWeight}
           onChange={(e) => setLiveWeight(Number(e.target.value))}
           className="w-full h-3 rounded-full appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #E85D24 0%, #E85D24 ${((liveWeight - 900) / 700) * 100}%, #E5E7EB ${((liveWeight - 900) / 700) * 100}%, #E5E7EB 100%)`,
+            background: `linear-gradient(to right, #E85D24 0%, #E85D24 ${((liveWeight - 1000) / 500) * 100}%, #E5E7EB ${((liveWeight - 1000) / 500) * 100}%, #E5E7EB 100%)`,
           }}
         />
         <div className="flex justify-between text-xs text-brand-gray mt-1">
-          <span>900 lbs</span>
-          <span>1,600 lbs</span>
+          <span>1,000 lbs</span>
+          <span>1,500 lbs</span>
         </div>
       </div>
 
-      {/* Estimated half cost */}
-      <div className="bg-[#FFF5F0] border border-brand-orange rounded-xl p-4 mb-8 text-center">
-        <div className="text-sm text-brand-gray font-medium mb-1">Estimated Half-Beef Cost (at $8.25/lb hanging)</div>
-        <div
-          className="text-2xl font-bold text-brand-orange"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          ${halfCostLow.toLocaleString()} – ${halfCostHigh.toLocaleString()}
+      {/* Estimated costs by size */}
+      <div className="bg-[#FFF5F0] border border-brand-orange rounded-xl p-4 mb-8">
+        <div className="text-sm font-semibold text-brand-dark mb-3 text-center">
+          Estimated cost by size (based on {liveWeight} lb live animal)
         </div>
-        <div className="text-xs text-brand-gray mt-1">±10% range based on final animal size</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-brand-dark">Whole Beef</span>
+            <span
+              className="text-lg font-bold text-brand-orange"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Est. ${wholeLow.toLocaleString()}–${wholeHigh.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-brand-dark">Half Beef</span>
+            <span
+              className="text-lg font-bold text-brand-orange"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Est. ${halfLow.toLocaleString()}–${halfHigh.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-brand-dark">Quarter Beef</span>
+            <span
+              className="text-lg font-bold text-brand-orange"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Est. ${quarterLow.toLocaleString()}–${quarterHigh.toLocaleString()}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
