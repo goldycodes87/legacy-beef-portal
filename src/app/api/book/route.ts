@@ -1,26 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function purchaseTypeLabel(type: string) {
-  switch (type) {
-    case 'whole':   return 'Whole Beef';
-    case 'half':    return 'Half Beef';
-    case 'quarter': return 'Quarter Beef';
-    default:        return type;
-  }
-}
 
 function depositAmount(purchaseType: string): number {
   switch (purchaseType) {
@@ -142,191 +123,18 @@ export async function POST(request: NextRequest) {
       // Non-fatal — log but continue
     }
 
-    // 5. Build session URL
-    const sessionUrl = `${APP_URL}/session/${sessionId}`;
-
-    // 6. Send confirmation email via Resend
-    const firstName = name.split(' ')[0];
-    const deposit = depositAmount(purchase_type);
-
-    try {
-      await resend.emails.send({
-        from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-        to: email,
-        subject: 'Your Legacy Land & Cattle beef order is confirmed',
-        html: buildConfirmationEmail({
-          firstName,
-          name,
-          animalName:     animal.name,
-          purchaseType:   purchaseTypeLabel(purchase_type),
-          butcherDate:    animal.butcher_date ? formatDate(animal.butcher_date) : 'TBD',
-          estimatedReady: animal.estimated_ready_date ? formatDate(animal.estimated_ready_date) : 'TBD',
-          hangingWeight:  animal.hanging_weight_lbs,
-          pricePerLb:     Number(animal.price_per_lb),
-          deposit,
-          sessionUrl,
-        }),
-      });
-
-      await supabaseAdmin.from('notifications').insert({
-        session_id: sessionId,
-        type:       'confirmation',
-        channel:    'email',
-        sent_at:    new Date().toISOString(),
-        status:     'sent',
-      });
-    } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
-      await supabaseAdmin.from('notifications').insert({
-        session_id: sessionId,
-        type:       'confirmation',
-        channel:    'email',
-        sent_at:    null,
-        status:     'failed',
-      });
-    }
+    // NOTE: No confirmation email sent here.
+    // A single comprehensive confirmation email is sent by /api/payments/confirm
+    // after the deposit is successfully paid.
 
     return NextResponse.json({
       success:     true,
       session_id:  sessionId,
       customer_id: customerId,
-      message:     'Booking confirmed! Check your email for details.',
+      message:     'Booking confirmed! You will receive a confirmation email after your deposit is processed.',
     });
   } catch (err) {
     console.error('Unexpected booking error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
-
-// ─── Email builder ────────────────────────────────────────────────────────────
-
-interface EmailData {
-  firstName:     string;
-  name:          string;
-  animalName:    string;
-  purchaseType:  string;
-  butcherDate:   string;
-  estimatedReady: string;
-  hangingWeight: number;
-  pricePerLb:    number;
-  deposit:       number;
-  sessionUrl:    string;
-}
-
-function buildConfirmationEmail(data: EmailData): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Legacy Land &amp; Cattle Beef Order</title>
-</head>
-<body style="margin:0;padding:0;background-color:#F5F0E8;font-family:Georgia,Cambria,serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#F5F0E8;padding:40px 0;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-
-          <!-- Header -->
-          <tr>
-            <td style="background-color:#2D5016;padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:1px;">
-                Legacy Land &amp; Cattle
-              </h1>
-              <p style="margin:6px 0 0;color:#C4A46B;font-size:13px;font-family:Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;">
-                Grass-Fed Beef Direct from the Ranch
-              </p>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:36px 40px;">
-              <h2 style="margin:0 0 8px;color:#2D5016;font-size:22px;">
-                Order Confirmed, ${data.firstName}! &#x1F389;
-              </h2>
-              <p style="margin:0 0 24px;color:#555;font-size:15px;font-family:Arial,sans-serif;line-height:1.6;">
-                Your beef order has been successfully reserved. Here&apos;s a summary of what you&apos;ve locked in:
-              </p>
-
-              <!-- Order Details Box -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#F5F0E8;border-radius:8px;margin-bottom:28px;">
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <p style="margin:0 0 12px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:2px;font-family:Arial,sans-serif;">
-                      Order Summary
-                    </p>
-                    ${buildRow('Animal', data.animalName)}
-                    ${buildRow('Order Type', data.purchaseType)}
-                    ${buildRow('Butcher Date', data.butcherDate)}
-                    ${buildRow('Estimated Ready', data.estimatedReady)}
-                    ${data.hangingWeight ? buildRow('Hanging Weight', `~${data.hangingWeight} lbs`) : ''}
-                    ${buildRow('Price Per Lb', `$${data.pricePerLb.toFixed(2)}/lb`)}
-                    ${buildRow('Deposit Due', `$${data.deposit.toLocaleString()}`, true)}
-                  </td>
-                </tr>
-              </table>
-
-              <!-- CTA Button -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-                <tr>
-                  <td align="center">
-                    <a href="${data.sessionUrl}"
-                       style="display:inline-block;background-color:#2D5016;color:#ffffff;text-decoration:none;padding:16px 40px;border-radius:8px;font-size:16px;font-weight:700;font-family:Arial,sans-serif;letter-spacing:0.5px;">
-                      View Your Order &rarr;
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin:0 0 8px;color:#555;font-size:13px;font-family:Arial,sans-serif;line-height:1.5;text-align:center;">
-                Or copy this link into your browser:
-              </p>
-              <p style="margin:0 0 28px;font-size:11px;color:#888;font-family:monospace;text-align:center;word-break:break-all;">
-                ${data.sessionUrl}
-              </p>
-
-              <hr style="border:none;border-top:1px solid #eee;margin-bottom:24px;">
-
-              <h3 style="margin:0 0 12px;color:#2D5016;font-size:16px;">What&apos;s Next?</h3>
-              <p style="margin:0 0 8px;color:#555;font-size:14px;font-family:Arial,sans-serif;line-height:1.6;">
-                1. <strong>Deposit</strong> — A $${data.deposit.toLocaleString()} deposit secures your slot. We&apos;ll reach out with payment details.
-              </p>
-              <p style="margin:0 0 8px;color:#555;font-size:14px;font-family:Arial,sans-serif;line-height:1.6;">
-                2. <strong>Cut Sheet</strong> — Build your custom cut sheet so the butcher knows exactly how you want your beef.
-              </p>
-              <p style="margin:0;color:#555;font-size:14px;font-family:Arial,sans-serif;line-height:1.6;">
-                3. <strong>Pickup</strong> — Once your beef is ready, we&apos;ll notify you to schedule pickup or delivery.
-              </p>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background:#f9f9f9;padding:20px 40px;text-align:center;border-top:1px solid #eee;">
-              <p style="margin:0;color:#aaa;font-size:12px;font-family:Arial,sans-serif;">
-                Legacy Land &amp; Cattle &middot; legacylandandcattleco.com
-              </p>
-              <p style="margin:4px 0 0;color:#ccc;font-size:11px;font-family:Arial,sans-serif;">
-                Questions? Reply to this email or contact us directly.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}
-
-function buildRow(label: string, value: string, last = false): string {
-  return `
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:${last ? '0' : '8px'};">
-    <tr>
-      <td style="font-size:13px;color:#888;font-family:Arial,sans-serif;width:140px;">${label}</td>
-      <td style="font-size:14px;color:#222;font-family:Arial,sans-serif;font-weight:600;">${value}</td>
-    </tr>
-  </table>`;
 }

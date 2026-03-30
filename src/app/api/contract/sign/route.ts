@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -21,18 +17,6 @@ function formatDate(dateStr: string | null): string {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
-}
-
-function formatNow(): string {
-  return new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
   });
 }
 
@@ -196,8 +180,9 @@ async function generateContractPdf(params: {
   });
 }
 
-// ─── Email Builder ─────────────────────────────────────────────────────────────
+// ─── Email Builder (unused — email deferred to /api/payments/confirm) ──────────
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildContractEmail(params: {
   firstName: string;
   purchaseType: string;
@@ -393,76 +378,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to record signature' }, { status: 500 });
     }
 
-    // 5. Generate PDF
-    let pdfBuffer: Buffer | null = null;
-    try {
-      pdfBuffer = await generateContractPdf({
-        customer,
-        animal,
-        purchaseType: session.purchase_type,
-        depositAmount,
-        signature,
-        ipAddress,
-        contractVersion: contract_version,
-        sessionId: session_id,
-        signedAt: signedAtFormatted,
-      });
-    } catch (pdfErr) {
-      console.error('PDF generation error:', pdfErr);
-      // Non-fatal — continue without attachment
-    }
+    // NOTE: No confirmation email sent here.
+    // Contract signing only records the signature in the DB.
+    // A single comprehensive confirmation email is sent by /api/payments/confirm
+    // after the deposit is successfully paid.
 
-    // 6. Send email via Resend
-    const firstName = customer.name.split(' ')[0];
-    const filename = `contract_${session_id}.pdf`;
-
-    try {
-      const emailPayload: Parameters<typeof resend.emails.send>[0] = {
-        from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-        to: customer.email,
-        subject: 'Your Legacy Land & Cattle Buyers Agreement — Signed Copy',
-        html: buildContractEmail({
-          firstName,
-          purchaseType: purchaseTypeLabel(session.purchase_type),
-          animalName: animal.name,
-          butcherDate: formatDate(animal.butcher_date),
-          estimatedReady: formatDate(animal.estimated_ready_date),
-          pricePerLb: Number(animal.price_per_lb),
-          depositAmount,
-          signature,
-          signedAt: signedAtFormatted,
-        }),
-      };
-
-      if (pdfBuffer) {
-        emailPayload.attachments = [
-          {
-            filename,
-            content: pdfBuffer.toString('base64'),
-          },
-        ];
-      }
-
-      await resend.emails.send(emailPayload);
-
-      await supabaseAdmin.from('notifications').insert({
-        session_id,
-        type:    'contract_signed',
-        channel: 'email',
-        sent_at: signedAt,
-        status:  'sent',
-      });
-    } catch (emailErr) {
-      console.error('Email send error:', emailErr);
-      await supabaseAdmin.from('notifications').insert({
-        session_id,
-        type:    'contract_signed',
-        channel: 'email',
-        sent_at: null,
-        status:  'failed',
-      });
-      // Non-fatal — signature was recorded
-    }
+    // Log the contract signing notification (no email sent)
+    await supabaseAdmin.from('notifications').insert({
+      session_id,
+      type:    'contract_signed',
+      channel: 'email',
+      sent_at: null,
+      status:  'skipped', // Email deferred to /api/payments/confirm
+    });
 
     return NextResponse.json({ success: true, session_id });
   } catch (err) {
