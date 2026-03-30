@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import ReservationProgress from '@/components/ReservationProgress';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -315,17 +314,23 @@ export default function PaymentPage() {
         return;
       }
 
-      // Load session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('sessions')
-        .select('id, customer_id, animal_id, purchase_type, contract_signed, status')
-        .eq('id', sessionId)
-        .single();
-
-      if (sessionError || !sessionData) {
+      // Load session, customer, and animal via API route
+      const res = await fetch(`/api/session/${sessionId}`);
+      if (!res.ok) {
         router.replace('/select-size?error=session_not_found');
         return;
       }
+
+      const data = await res.json();
+
+      const sessionData: Session = {
+        id: data.id,
+        customer_id: data.customer_id,
+        animal_id: data.animal_id,
+        purchase_type: data.purchase_type,
+        contract_signed: data.contract_signed,
+        status: data.status,
+      };
 
       if (!sessionData.contract_signed) {
         router.replace('/contract');
@@ -338,26 +343,15 @@ export default function PaymentPage() {
         return;
       }
 
-      // Load customer
-      const { data: customer, error: customerError } = await supabase
-        .from('customers')
-        .select('id, name, email')
-        .eq('id', sessionData.customer_id)
-        .single();
+      const customer: Customer = data.customer;
+      const animal: Animal = data.animal;
 
-      if (customerError || !customer) {
+      if (!customer) {
         setState({ status: 'error', message: 'Could not load customer details.' });
         return;
       }
 
-      // Load animal
-      const { data: animal, error: animalError } = await supabase
-        .from('animals')
-        .select('id, name, butcher_date, estimated_ready_date, price_per_lb')
-        .eq('id', sessionData.animal_id)
-        .single();
-
-      if (animalError || !animal) {
+      if (!animal) {
         setState({ status: 'error', message: 'Could not load animal details.' });
         return;
       }
