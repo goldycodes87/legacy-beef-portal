@@ -363,15 +363,15 @@ export default function BookPage() {
 
           {!slotsLoading && !slotsError && slots.length === 0 && (
             <div className="text-center py-12 border-2 border-dashed border-[#E5E7EB] rounded-2xl">
-              <p className="text-brand-dark font-semibold mb-1">No slots available right now</p>
+              <p className="text-brand-dark font-semibold mb-1">No slots currently available for your selection</p>
               <p className="text-sm text-brand-gray mb-4">
-                We&apos;re sold out for your selection. Check back soon or adjust your size.
+                Please check back soon — we add new animals regularly.
               </p>
               <button
-                onClick={() => router.replace('/select-size')}
+                onClick={() => router.replace('/select-animal')}
                 className="text-brand-orange hover:underline text-sm font-medium"
               >
-                ← Change my size
+                ← Try a different selection
               </button>
             </div>
           )}
