@@ -58,7 +58,7 @@ export default function HomePage() {
           </p>
 
           <Link
-            href="/select-animal"
+            href="/weight-explainer"
             className="inline-block bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold text-lg px-10 py-4 rounded-xl shadow-lg transition-colors duration-150 min-h-[56px]"
           >
             Reserve Your Beef →
