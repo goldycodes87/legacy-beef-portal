@@ -65,7 +65,6 @@ export default function ContractPage() {
     async function init() {
       // 1. Check for session_id in sessionStorage
       const sessionId = sessionStorage.getItem('session_id');
-      console.log('Session ID from storage:', sessionId);
 
       if (!sessionId) {
         router.replace('/select-size?error=session_not_found');
@@ -74,10 +73,7 @@ export default function ContractPage() {
 
       // 2. Load session via server-side API route (bypasses RLS using admin client)
       const res = await fetch(`/api/session/${sessionId}`);
-      console.log('API response status:', res.status);
-
       const data = await res.json();
-      console.log('API response data:', JSON.stringify(data));
 
       // Issue 1 fix: deposit_amount may be null in DB — calculate client-side fallback
       const depositAmount = data.deposit_amount ?? (() => {
@@ -89,21 +85,11 @@ export default function ContractPage() {
         }
       })();
 
-      // Note: Supabase nested select returns `customers` and `animals`, not `customer`/`animal`
       if (!res.ok || !data.id) {
-        console.log('About to set error state. Conditions:');
-        console.log('res.ok:', res.ok);
-        console.log('data.id:', data.id);
-        console.log('data.customer:', data.customer);
-        console.log('data.customers:', data.customers);
-        console.log('depositAmount:', depositAmount);
-        console.log('data.animal:', data.animal);
-        console.log('data.animals:', data.animals);
         console.error('Failed to load session:', data);
         router.replace('/select-size?error=session_not_found');
         return;
       }
-      // data contains session with nested customers and animals (from select('*, customers(*), animals(*)'))
 
       const sessionData = {
         id: data.id,
@@ -115,26 +101,16 @@ export default function ContractPage() {
         deposit_amount: data.deposit_amount,
       };
 
-      const customer: Customer = data.customers;
-      const animal: Animal = data.animals;
+      const customer: Customer = data.customer;
+      const animal: Animal = data.animal;
 
       // 3. Must have customer
-      console.log('DIAG [customer check] - !customer:', !customer);
-      console.log('DIAG [customer check] - typeof customer:', typeof customer);
-      console.log('DIAG [customer check] - customer value:', customer);
-      console.log('DIAG [customer check] - data.customers:', data.customers);
-      console.log('DIAG [customer check] - data.customer (wrong key):', data.customer);
       if (!customer) {
         setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
         return;
       }
 
       // 4. Must have animal
-      console.log('DIAG [animal check] - !animal:', !animal);
-      console.log('DIAG [animal check] - typeof animal:', typeof animal);
-      console.log('DIAG [animal check] - animal value:', animal);
-      console.log('DIAG [animal check] - data.animals:', data.animals);
-      console.log('DIAG [animal check] - data.animal (wrong key):', data.animal);
       if (!animal) {
         setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
         return;
