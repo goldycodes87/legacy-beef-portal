@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import ESignContract from '@/components/ESignContract';
 import ReservationProgress from '@/components/ReservationProgress';
 
@@ -71,27 +70,38 @@ export default function ContractPage() {
         return;
       }
 
-      // 2. Check Supabase auth
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      // Note: this app uses service-key API routes; auth check is best-effort for block 8.
-      // If no Supabase auth, proceed but rely on session_id guard.
-
-      // 3. Load session record
-      // Note: is_splitting and deposit_amount require Block 8 DB migration
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('sessions')
-        .select('id, customer_id, animal_id, purchase_type, contract_signed')
-        .eq('id', sessionId)
-        .single();
-
-      if (sessionError || !sessionData) {
+      // 2. Load session via server-side API route (bypasses RLS using admin client)
+      const res = await fetch(`/api/session/${sessionId}`);
+      if (!res.ok) {
         router.replace('/select-size?error=session_not_found');
         return;
       }
 
-      // 4. Must have customer_id
-      if (!sessionData.customer_id) {
-        router.replace('/select-size?error=session_not_found');
+      const data = await res.json();
+      // data contains session with nested customers and animals (from select('*, customers(*), animals(*)'))
+
+      const sessionData = {
+        id: data.id,
+        customer_id: data.customer_id,
+        animal_id: data.animal_id,
+        purchase_type: data.purchase_type,
+        is_splitting: data.is_splitting,
+        contract_signed: data.contract_signed,
+        deposit_amount: data.deposit_amount,
+      };
+
+      const customer: Customer = data.customers;
+      const animal: Animal = data.animals;
+
+      // 3. Must have customer
+      if (!customer) {
+        setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
+        return;
+      }
+
+      // 4. Must have animal
+      if (!animal) {
+        setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
         return;
       }
 
@@ -102,32 +112,8 @@ export default function ContractPage() {
         return;
       }
 
-      // 6. Load customer
-      const { data: customer, error: customerError } = await supabase
-        .from('customers')
-        .select('id, name, email, phone, address, city, state, zip')
-        .eq('id', sessionData.customer_id)
-        .single();
-
-      if (customerError || !customer) {
-        setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
-        return;
-      }
-
-      // 7. Load animal
-      const { data: animal, error: animalError } = await supabase
-        .from('animals')
-        .select('id, name, butcher_date, estimated_ready_date, price_per_lb')
-        .eq('id', sessionData.animal_id)
-        .single();
-
-      if (animalError || !animal) {
-        setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
-        return;
-      }
-
       // deposit_amount column requires Block 8 DB migration; use purchase_type fallback
-      const depositAmount = depositForType(sessionData.purchase_type);
+      const depositAmount = sessionData.deposit_amount ?? depositForType(sessionData.purchase_type);
 
       setState({
         status: 'ready',
