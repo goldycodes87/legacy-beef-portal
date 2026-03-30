@@ -65,6 +65,8 @@ export default function ContractPage() {
     async function init() {
       // 1. Check for session_id in sessionStorage
       const sessionId = sessionStorage.getItem('session_id');
+      console.log('Session ID from storage:', sessionId);
+
       if (!sessionId) {
         router.replace('/select-size?error=session_not_found');
         return;
@@ -72,12 +74,16 @@ export default function ContractPage() {
 
       // 2. Load session via server-side API route (bypasses RLS using admin client)
       const res = await fetch(`/api/session/${sessionId}`);
-      if (!res.ok) {
+      console.log('API response status:', res.status);
+
+      const data = await res.json();
+      console.log('API response data:', JSON.stringify(data));
+
+      if (!res.ok || !data.customer) {
+        console.error('Failed to load session:', data);
         router.replace('/select-size?error=session_not_found');
         return;
       }
-
-      const data = await res.json();
       // data contains session with nested customers and animals (from select('*, customers(*), animals(*)'))
 
       const sessionData = {
