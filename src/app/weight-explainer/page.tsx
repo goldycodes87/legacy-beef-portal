@@ -69,7 +69,7 @@ export default function WeightExplainerPage() {
               controls
               preload="metadata"
               poster="/images/hero_pasture.jpg"
-              style={{ width: '100%', borderRadius: '12px', maxWidth: '600px' }}
+              style={{ width: '100%', borderRadius: '12px', maxWidth: '750px' }}
             >
               <source src="/videos/Freezervideo.mp4" type="video/mp4" />
               Your browser does not support video playback.
