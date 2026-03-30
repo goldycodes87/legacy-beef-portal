@@ -83,6 +83,20 @@ export default function BookPage() {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [animalType, setAnimalType] = useState<string>('no_preference');
 
+  // Per-size pricing (matches API config, with hardcoded fallback)
+  const PRICE_PER_LB: Record<string, number> = {
+    whole:   8.00,
+    half:    8.25,
+    quarter: 8.50,
+  };
+
+  // Est total ranges based on hanging weight × price/lb (rounded to nearest $50)
+  const EST_TOTAL: Record<string, { low: number; high: number }> = {
+    whole:   { low: 5200, high: 6200 },
+    half:    { low: 2700, high: 3200 },
+    quarter: { low: 1400, high: 1650 },
+  };
+
   // Slots
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -294,10 +308,15 @@ export default function BookPage() {
           <div className="flex-1">
             <p className="text-xs text-brand-gray uppercase tracking-widest font-semibold mb-0.5">Your Selection</p>
             <p className="text-brand-dark font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
-              {purchaseTypeLabel(selectedSize)}
+              {purchaseTypeLabel(selectedSize)} at ${(PRICE_PER_LB[selectedSize] ?? 8.00).toFixed(2)}/lb
             </p>
             {animalType && animalType !== 'no_preference' && (
               <p className="text-sm text-brand-gray">{animalTypeLabel(animalType)}</p>
+            )}
+            {EST_TOTAL[selectedSize] && (
+              <p className="text-xs text-brand-gray mt-0.5">
+                Est. total: ${EST_TOTAL[selectedSize].low.toLocaleString()}–${EST_TOTAL[selectedSize].high.toLocaleString()}
+              </p>
             )}
           </div>
           <button
