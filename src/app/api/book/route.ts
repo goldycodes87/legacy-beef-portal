@@ -15,7 +15,7 @@ function depositAmount(purchaseType: string): number {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, address, animal_id, purchase_type } = body;
+    const { name, email, phone, address, city, state, zip, animal_id, purchase_type } = body;
 
     // Validate required fields
     if (!name || !email || !phone || !address || !animal_id || !purchase_type) {
@@ -73,13 +73,13 @@ export async function POST(request: NextRequest) {
     if (existingCustomer) {
       await supabaseAdmin
         .from('customers')
-        .update({ name, phone, address })
+        .update({ name, phone, address, city, state, zip })
         .eq('id', existingCustomer.id);
       customerId = existingCustomer.id;
     } else {
       const { data: newCustomer, error: customerError } = await supabaseAdmin
         .from('customers')
-        .insert({ name, email, phone, address })
+        .insert({ name, email, phone, address, city, state, zip })
         .select('id')
         .single();
 

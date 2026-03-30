@@ -26,7 +26,10 @@ interface FormState {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  address: string;  // street address line only
+  city: string;
+  state: string;
+  zip: string;
 }
 
 interface FormErrors {
@@ -34,7 +37,23 @@ interface FormErrors {
   email?: string;
   phone?: string;
   address?: string;
+  city?: string;
+  zip?: string;
 }
+
+// ─── US States ────────────────────────────────────────────────────────────────
+
+const US_STATES = [
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado',
+  'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho',
+  'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana',
+  'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+  'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey',
+  'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma',
+  'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+  'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
+  'West Virginia', 'Wisconsin', 'Wyoming',
+];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -73,6 +92,13 @@ function validatePhone(phone: string): boolean {
   return phone.replace(/\D/g, '').length >= 10;
 }
 
+function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BookPage() {
@@ -104,7 +130,7 @@ export default function BookPage() {
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
   // Form
-  const [form, setForm] = useState<FormState>({ name: '', email: '', phone: '', address: '' });
+  const [form, setForm] = useState<FormState>({ name: '', email: '', phone: '', address: '', city: '', state: '', zip: '' });
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -165,7 +191,9 @@ export default function BookPage() {
     else if (!validateEmail(fields.email)) errors.email = 'Enter a valid email address.';
     if (!fields.phone.trim()) errors.phone = 'Phone number is required.';
     else if (!validatePhone(fields.phone)) errors.phone = 'Enter a valid 10-digit phone number.';
-    if (!fields.address.trim()) errors.address = 'Address is required.';
+    if (!fields.address.trim()) errors.address = 'Street address is required.';
+    if (!fields.city.trim()) errors.city = 'City is required.';
+    if (!/^\d{5}$/.test(fields.zip)) errors.zip = 'Enter a valid 5-digit ZIP code.';
     return errors;
   }
 
@@ -188,7 +216,7 @@ export default function BookPage() {
     e.preventDefault();
 
     // Mark all fields touched
-    setTouched({ name: true, email: true, phone: true, address: true });
+    setTouched({ name: true, email: true, phone: true, address: true, city: true, state: true, zip: true });
     const errs = validate(form);
     setFieldErrors(errs);
 
@@ -210,6 +238,9 @@ export default function BookPage() {
           email:         form.email,
           phone:         form.phone,
           address:       form.address,
+          city:          form.city,
+          state:         form.state,
+          zip:           form.zip,
           animal_id:     selectedSlot.id,
           purchase_type: selectedSize,
         }),
@@ -500,7 +531,7 @@ export default function BookPage() {
                 type="tel"
                 autoComplete="tel"
                 value={form.phone}
-                onChange={(e) => handleChange('phone', e.target.value)}
+                onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
                 onBlur={() => handleBlur('phone')}
                 placeholder="(555) 555-5555"
                 className={`
@@ -514,21 +545,21 @@ export default function BookPage() {
               )}
             </div>
 
-            {/* Address */}
+            {/* Street Address */}
             <div>
               <label htmlFor="address" className="block text-sm font-semibold text-brand-dark mb-1">
-                Address <span className="text-red-500">*</span>
+                Street Address <span className="text-red-500">*</span>
               </label>
-              <textarea
+              <input
                 id="address"
+                type="text"
                 autoComplete="street-address"
                 value={form.address}
                 onChange={(e) => handleChange('address', e.target.value)}
                 onBlur={() => handleBlur('address')}
-                placeholder="123 Main St, Town, State, ZIP"
-                rows={2}
+                placeholder="123 Main Street"
                 className={`
-                  w-full border rounded-xl px-4 py-3 text-sm text-brand-dark resize-none
+                  w-full border rounded-xl px-4 py-3 text-sm text-brand-dark
                   focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors
                   ${touched.address && fieldErrors.address ? 'border-red-400 bg-red-50' : 'border-[#E5E7EB]'}
                 `}
@@ -536,6 +567,89 @@ export default function BookPage() {
               {touched.address && fieldErrors.address && (
                 <p className="text-red-600 text-xs mt-1">{fieldErrors.address}</p>
               )}
+            </div>
+
+            {/* City / State / Zip */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* City — 50% on desktop */}
+              <div className="sm:w-1/2">
+                <label htmlFor="city" className="block text-sm font-semibold text-brand-dark mb-1">
+                  City <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="city"
+                  type="text"
+                  autoComplete="address-level2"
+                  value={form.city}
+                  onChange={(e) => handleChange('city', e.target.value)}
+                  onBlur={() => handleBlur('city')}
+                  placeholder="Denver"
+                  className={`
+                    w-full border rounded-xl px-4 py-3 text-sm text-brand-dark
+                    focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors
+                    ${touched.city && fieldErrors.city ? 'border-red-400 bg-red-50' : 'border-[#E5E7EB]'}
+                  `}
+                />
+                {touched.city && fieldErrors.city && (
+                  <p className="text-red-600 text-xs mt-1">{fieldErrors.city}</p>
+                )}
+              </div>
+
+              {/* State — 25% on desktop */}
+              <div className="sm:w-1/4">
+                <label htmlFor="state" className="block text-sm font-semibold text-brand-dark mb-1">
+                  State <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="state"
+                  autoComplete="address-level1"
+                  value={form.state}
+                  onChange={(e) => handleChange('state', e.target.value)}
+                  onBlur={() => handleBlur('state')}
+                  className="w-full border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-brand-dark bg-white focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors"
+                >
+                  <option value="">—</option>
+                  {US_STATES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Zip — 25% on desktop */}
+              <div className="sm:w-1/4">
+                <label htmlFor="zip" className="block text-sm font-semibold text-brand-dark mb-1">
+                  ZIP <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="zip"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  value={form.zip}
+                  onChange={(e) => handleChange('zip', e.target.value.replace(/\D/g, '').slice(0, 5))}
+                  onBlur={() => handleBlur('zip')}
+                  placeholder="80202"
+                  className={`
+                    w-full border rounded-xl px-4 py-3 text-sm text-brand-dark
+                    focus:outline-none focus:ring-2 focus:ring-brand-orange transition-colors
+                    ${touched.zip && fieldErrors.zip ? 'border-red-400 bg-red-50' : 'border-[#E5E7EB]'}
+                  `}
+                />
+                {touched.zip && fieldErrors.zip && (
+                  <p className="text-red-600 text-xs mt-1">{fieldErrors.zip}</p>
+                )}
+              </div>
+            </div>
+
+            {/* ── Colorado Shipping Note ── */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm">
+              <p className="font-semibold text-amber-900 mb-1">📦 Outside Colorado?</p>
+              <p className="text-amber-800">
+                We can absolutely sell beef to out-of-state customers! You&apos;re welcome to
+                pick up in person at the ranch, or we can
+                arrange shipping at your cost. Contact us to discuss
+                shipping options before reserving.
+              </p>
             </div>
 
             {/* ── Section 5: Info box + CTA ── */}
