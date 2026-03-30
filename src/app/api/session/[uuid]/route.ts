@@ -3,19 +3,35 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { uuid: string } }
+  { params }: { params: Promise<{ uuid: string }> }
 ) {
-  const { uuid } = params;
+  const { uuid } = await params;
 
-  const { data: session, error } = await supabaseAdmin
+  const { data: session, error: sessionError } = await supabaseAdmin
     .from('sessions')
-    .select('*, customers(*), animals(*)')
+    .select('*')
     .eq('id', uuid)
     .single();
 
-  if (error || !session) {
+  if (sessionError || !session) {
     return NextResponse.json({ error: 'session_not_found' }, { status: 404 });
   }
 
-  return NextResponse.json(session);
+  const { data: customer } = await supabaseAdmin
+    .from('customers')
+    .select('*')
+    .eq('id', session.customer_id)
+    .single();
+
+  const { data: animal } = await supabaseAdmin
+    .from('animals')
+    .select('*')
+    .eq('id', session.animal_id)
+    .single();
+
+  return NextResponse.json({
+    ...session,
+    customer: customer || null,
+    animal: animal || null,
+  });
 }
