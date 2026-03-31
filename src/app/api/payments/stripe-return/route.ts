@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', sessionId);
 
-    return NextResponse.redirect(new URL(`/session/${sessionId}?payment=success`, request.url));
+    return NextResponse.redirect(new URL(`/payment-success?session_id=${sessionId}`, request.url));
   }
 
   if (redirectStatus === 'processing') {
