@@ -29,7 +29,7 @@ export default function HomePage() {
               alt="Legacy Land & Cattle"
               width={300}
               height={130}
-              className="h-20 md:h-28 w-auto mb-6 brightness-0 invert"
+              className="h-24 md:h-32 w-auto mb-6 invert"
               priority
             />
           </div>
