@@ -38,7 +38,7 @@ export default function WeightExplainerPage() {
 
         {/* SECTION 2 + 3 — Calculator and Video */}
         <section className="mb-12">
-          <div className="flex flex-col md:flex-row gap-8">
+          <div className="flex flex-col gap-8 w-full">
             {/* Interactive Weight Calculator */}
             <div className="overflow-x-auto max-w-full flex-1">
               <WeightExplainer />
