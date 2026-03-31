@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
 export const metadata = {
-  title: 'Grass-Fed Beef Direct From Our Ranch | Legacy Land & Cattle',
+  title: 'Local Colorado Beef | Legacy Land & Cattle',
   description: 'Reserve your share of the harvest. Whole, half, or quarter beef — customized exactly how you want it.',
 };
 
@@ -29,7 +29,7 @@ export default function HomePage() {
               alt="Legacy Land & Cattle"
               width={300}
               height={130}
-              className="h-24 md:h-32 w-auto mb-6 "
+              className="h-36 md:h-48 w-auto mb-6 "
               priority
             />
           </div>
@@ -39,7 +39,7 @@ export default function HomePage() {
             className="font-display font-black text-white mb-4"
             style={{ fontSize: 'clamp(2.25rem, 10vw, 3.25rem)' }}
           >
-            Grass-Fed Beef, Direct From Our Ranch
+            Local Colorado Beef, Direct from Our Ranch to You
           </h1>
 
           {/* Subheadline */}
