@@ -48,36 +48,44 @@ async function fetchPriceConfig(): Promise<Record<string, number>> {
   const { data, error } = await supabaseAdmin
     .from('config')
     .select('key, value')
-    .in('key', ['price_whole', 'price_half', 'price_quarter']);
+    .like('key', 'price_%');
 
-  // Start with hardcoded fallbacks
   const result: Record<string, number> = {
-    price_whole:   8.00,
-    price_half:    8.25,
-    price_quarter: 8.50,
+    price_whole_grass_fed: 8.00,
+    price_half_grass_fed: 8.25,
+    price_quarter_grass_fed: 8.50,
+    price_whole_grain_finished: 8.00,
+    price_half_grain_finished: 8.25,
+    price_quarter_grain_finished: 8.50,
+    price_whole_wagyu: 9.50,
+    price_half_wagyu: 9.75,
+    price_quarter_wagyu: 10.00,
   };
 
-  if (error || !data) {
-    console.error('Error fetching price config, using fallbacks:', error);
-    return result;
+  if (!error && data) {
+    for (const row of data) {
+      result[row.key] = Number(row.value);
+    }
   }
-
-  // Override fallbacks with any values found in config
-  for (const row of data) {
-    result[row.key] = Number(row.value);
-  }
-
   return result;
 }
 
-// Resolve price per lb for a purchase type from config
-function resolvePricePerLb(purchaseType: string, priceConfig: Record<string, number>): number {
-  switch (purchaseType) {
-    case 'whole':   return priceConfig['price_whole']   ?? 8.00;
-    case 'half':    return priceConfig['price_half']    ?? 8.25;
-    case 'quarter': return priceConfig['price_quarter'] ?? 8.50;
-    default:        return priceConfig['price_half']    ?? 8.25;
-  }
+// Resolve price per lb for a purchase type and animal type from config
+function resolvePricePerLb(purchaseType: string, animalType: string, priceConfig: Record<string, number>): number {
+  const type = animalType === 'wagyu' ? 'wagyu' : animalType === 'grain_finished' ? 'grain_finished' : 'grass_fed';
+  const key = `price_${purchaseType}_${type}`;
+  const fallbacks: Record<string, number> = {
+    price_whole_grass_fed: 8.00,
+    price_half_grass_fed: 8.25,
+    price_quarter_grass_fed: 8.50,
+    price_whole_grain_finished: 8.00,
+    price_half_grain_finished: 8.25,
+    price_quarter_grain_finished: 8.50,
+    price_whole_wagyu: 9.50,
+    price_half_wagyu: 9.75,
+    price_quarter_wagyu: 10.00,
+  };
+  return priceConfig[key] ?? fallbacks[key] ?? 8.00;
 }
 
 // Estimated total range based on hanging weight ranges (rounded to nearest $50)
@@ -143,7 +151,7 @@ export async function GET(request: NextRequest) {
       .map((animal) => {
         const spotsRemaining = computeSpotsRemaining(animal, purchaseType);
         // Use per-size price from config (with fallback), not animal-level price
-        const pricePerLb = resolvePricePerLb(purchaseType, priceConfig);
+        const pricePerLb = resolvePricePerLb(purchaseType, animal.animal_type, priceConfig);
         const estRange = estimatedTotalRange(purchaseType, pricePerLb);
         return {
           id:                    animal.id,

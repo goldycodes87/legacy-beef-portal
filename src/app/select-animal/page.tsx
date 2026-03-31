@@ -47,6 +47,7 @@ export default function SelectAnimalPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<AnimalType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWagyuModal, setShowWagyuModal] = useState(false);
   // Only wagyu visibility is conditional — all other cards always show
   const [wagyuActive, setWagyuActive] = useState(false);
 
@@ -110,7 +111,7 @@ export default function SelectAnimalPage() {
                 return (
                   <button
                     key={opt.id}
-                    onClick={() => setSelected(opt.id)}
+                    onClick={() => { setSelected(opt.id); if (opt.id === 'wagyu') setShowWagyuModal(true); }}
                     className={`
                       relative text-left rounded-xl border-2 p-5 transition-all duration-150
                       focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2
@@ -155,6 +156,34 @@ export default function SelectAnimalPage() {
           </>
         )}
       </main>
+
+      {showWagyuModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+            <div className="text-4xl mb-4 text-center">⭐</div>
+            <h3 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">American Wagyu</h3>
+            <p className="text-brand-gray text-sm leading-relaxed mb-4">
+              Our American Wagyu is a cross between Japanese Wagyu and Black Angus cattle — 50% of each. The result is beef with extraordinary marbling, rich buttery flavor, and a tenderness you won&apos;t find in conventional beef.
+            </p>
+            <p className="text-brand-gray text-sm leading-relaxed mb-4">
+              Unlike pure Japanese Wagyu, American Wagyu has a heartier, beefier flavor profile that American palates love — you get the best of both worlds. The marbling melts during cooking, basting the meat from within for an incredibly juicy, flavorful result.
+            </p>
+            <p className="text-brand-gray text-sm leading-relaxed mb-6">
+              Wagyu cattle require significantly more feed, more time, and more hands-on care than conventional beef cattle — which is why the price reflects that. But for beef lovers who want something truly exceptional, there&apos;s nothing quite like it.
+            </p>
+            <div className="bg-brand-warm rounded-xl p-4 mb-6 text-sm text-brand-dark">
+              <p className="font-semibold mb-1">Wagyu Pricing</p>
+              <p>Whole: $9.50/lb · Half: $9.75/lb · Quarter: $10.00/lb hanging weight</p>
+            </div>
+            <button
+              onClick={() => setShowWagyuModal(false)}
+              className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-3 rounded-xl font-semibold"
+            >
+              Got It — Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

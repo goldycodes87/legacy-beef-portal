@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ReservationProgressProps {
   currentStep?: 'learn' | 'choose' | 'info' | 'contract' | 'deposit' | 'cut-sheet';
@@ -15,7 +16,17 @@ const STEPS = [
   { key: 'cut-sheet', label: 'Cut Sheet', number: 6 },
 ];
 
+const stepRoutes: Record<string, string> = {
+  learn: '/weight-explainer',
+  choose: '/select-size',
+  info: '/book',
+  contract: '/contract',
+  deposit: '/payment',
+  'cut-sheet': '/session',
+};
+
 export default function ReservationProgress({ currentStep }: ReservationProgressProps) {
+  const router = useRouter();
   const currentIndex = STEPS.findIndex(s => s.key === currentStep);
 
   // Mobile: Show "Step X of 6" only
@@ -30,23 +41,26 @@ export default function ReservationProgress({ currentStep }: ReservationProgress
 
       {/* Desktop view */}
       <div className="hidden lg:flex bg-brand-warm px-6 py-4 gap-4 items-center">
-        {STEPS.map((step, idx) => (
-          <React.Fragment key={step.key}>
-            {/* Step circle */}
+        {STEPS.map((step, idx) => {
+          const isCompleted = idx < currentIndex;
+          const isCurrent = idx === currentIndex;
+
+          const circleEl = (
             <div
               className={cn(
                 'flex items-center justify-center w-10 h-10 rounded-full font-body font-semibold text-sm transition-colors',
-                idx < currentIndex
-                  ? 'bg-brand-green text-white' // Completed
-                  : idx === currentIndex
-                    ? 'bg-brand-orange text-white' // Current
-                    : 'bg-brand-gray-light text-brand-gray' // Future
+                isCompleted
+                  ? 'bg-brand-green text-white'
+                  : isCurrent
+                    ? 'bg-brand-orange text-white'
+                    : 'bg-brand-gray-light text-brand-gray'
               )}
             >
-              {idx < currentIndex ? '✓' : step.number}
+              {isCompleted ? '✓' : step.number}
             </div>
+          );
 
-            {/* Step label */}
+          const labelEl = (
             <p
               className={cn(
                 'font-body text-xs font-semibold transition-colors',
@@ -55,18 +69,38 @@ export default function ReservationProgress({ currentStep }: ReservationProgress
             >
               {step.label}
             </p>
+          );
 
-            {/* Connecting line */}
-            {idx < STEPS.length - 1 && (
-              <div
-                className={cn(
-                  'flex-1 h-0.5 transition-colors',
-                  idx < currentIndex ? 'bg-brand-green' : 'bg-brand-gray-light'
-                )}
-              />
-            )}
-          </React.Fragment>
-        ))}
+          return (
+            <React.Fragment key={step.key}>
+              {/* Step circle + label — clickable if completed */}
+              {isCompleted ? (
+                <button
+                  onClick={() => router.push(stepRoutes[step.key])}
+                  className="flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  {circleEl}
+                  {labelEl}
+                </button>
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  {circleEl}
+                  {labelEl}
+                </div>
+              )}
+
+              {/* Connecting line */}
+              {idx < STEPS.length - 1 && (
+                <div
+                  className={cn(
+                    'flex-1 h-0.5 transition-colors',
+                    isCompleted ? 'bg-brand-green' : 'bg-brand-gray-light'
+                  )}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
     </>
   );
