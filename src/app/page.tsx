@@ -27,9 +27,10 @@ export default function HomePage() {
             <Image
               src="/images/LLC_Logo.svg"
               alt="Legacy Land & Cattle"
-              width={200}
-              height={90}
-              className="h-16 w-auto mb-6"
+              width={300}
+              height={130}
+              className="h-20 md:h-28 w-auto mb-6 brightness-0 invert"
+              priority
             />
           </div>
 
