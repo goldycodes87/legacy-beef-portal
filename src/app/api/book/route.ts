@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     // 1. Verify the animal is still available with spots remaining
     const { data: animal, error: animalError } = await supabaseAdmin
       .from('animals')
-      .select('*')
+      .select('id, name, status, total_animals, units_used, animal_type')
       .eq('id', animal_id)
       .eq('status', 'available')
       .single();
@@ -36,27 +36,11 @@ export async function POST(request: NextRequest) {
       }, { status: 409 });
     }
 
-    // Compute spots remaining for this purchase type
-    let spotsRemaining = 0;
-    let usedColumn = '';
-    switch (purchase_type) {
-      case 'whole':
-        spotsRemaining = Math.max(0, (animal.slots_whole || 0) - (animal.slots_whole_used || 0));
-        usedColumn = 'slots_whole_used';
-        break;
-      case 'half':
-        spotsRemaining = Math.max(0, (animal.slots_half || 0) - (animal.slots_half_used || 0));
-        usedColumn = 'slots_half_used';
-        break;
-      case 'quarter':
-        spotsRemaining = Math.max(0, (animal.slots_quarter || 0) - (animal.slots_quarter_used || 0));
-        usedColumn = 'slots_quarter_used';
-        break;
-      default:
-        return NextResponse.json({ error: 'Invalid purchase type' }, { status: 400 });
-    }
+    // Compute spots remaining using unit-based capacity
+    const unitCost = purchase_type === 'whole' ? 1.0 : purchase_type === 'half' ? 0.5 : 0.25;
+    const remaining = (animal.total_animals || 1) - (animal.units_used || 0);
 
-    if (spotsRemaining <= 0) {
+    if (remaining < unitCost) {
       return NextResponse.json({
         error: 'No spots remaining for this selection. Please go back and choose another.',
       }, { status: 409 });
@@ -112,10 +96,10 @@ export async function POST(request: NextRequest) {
 
     const sessionId = sessionData.id;
 
-    // 4. Increment slots_used on the animal (optimistic — race condition handled by check above)
+    // 4. Increment units_used on the animal (optimistic — race condition handled by check above)
     const { error: updateError } = await supabaseAdmin
       .from('animals')
-      .update({ [usedColumn]: (animal[usedColumn] || 0) + 1 })
+      .update({ units_used: (animal.units_used || 0) + unitCost })
       .eq('id', animal_id);
 
     if (updateError) {

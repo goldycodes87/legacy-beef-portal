@@ -2,25 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // Compute spots remaining based on purchaseType
-function computeSpotsRemaining(
-  animal: Record<string, number>,
-  purchaseType: string
-): number {
+function computeSpotsRemaining(animal: any, purchaseType: string): number {
+  const remaining = (animal.total_animals || 1) - (animal.units_used || 0);
   switch (purchaseType) {
-    case 'whole':
-      return Math.max(0, (animal.slots_whole || 0) - (animal.slots_whole_used || 0));
-    case 'half':
-      return Math.max(0, (animal.slots_half || 0) - (animal.slots_half_used || 0));
-    case 'quarter':
-      return Math.max(0, (animal.slots_quarter || 0) - (animal.slots_quarter_used || 0));
-    default:
-      // fallback: use the largest available pool
-      return Math.max(
-        0,
-        (animal.slots_whole || 0) - (animal.slots_whole_used || 0),
-        (animal.slots_half || 0) - (animal.slots_half_used || 0),
-        (animal.slots_quarter || 0) - (animal.slots_quarter_used || 0)
-      );
+    case 'whole': return Math.floor(remaining / 1.0);
+    case 'half': return Math.floor(remaining / 0.5);
+    case 'quarter': return Math.floor(remaining / 0.25);
+    default: return 0;
   }
 }
 
@@ -129,7 +117,7 @@ export async function GET(request: NextRequest) {
     // Fetch animals, deposit config, and price config in parallel
     let query = supabaseAdmin
       .from('animals')
-      .select('*')
+      .select('id, name, animal_type, butcher_date, estimated_ready_date, status, price_per_lb, hanging_weight_lbs, total_animals, units_used, wagyu_active')
       .eq('status', 'available')
       .order('butcher_date', { ascending: true });
 
@@ -165,12 +153,6 @@ export async function GET(request: NextRequest) {
           estimated_ready_date:  animal.estimated_ready_date,
           price_per_lb:          pricePerLb,
           hanging_weight_lbs:    animal.hanging_weight_lbs,
-          slots_whole:           animal.slots_whole,
-          slots_whole_used:      animal.slots_whole_used,
-          slots_half:            animal.slots_half,
-          slots_half_used:       animal.slots_half_used,
-          slots_quarter:         animal.slots_quarter,
-          slots_quarter_used:    animal.slots_quarter_used,
           spots_remaining:       spotsRemaining,
           deposit_amount:        resolveDepositAmount(purchaseType, depositConfig),
           est_total_low:         estRange.low,
