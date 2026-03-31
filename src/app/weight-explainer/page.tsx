@@ -36,29 +36,35 @@ export default function WeightExplainerPage() {
           </p>
         </section>
 
-        {/* SECTION 2 — Interactive Weight Calculator */}
+        {/* SECTION 2 + 3 — Calculator and Video */}
         <section className="mb-12">
-          <WeightExplainer />
-        </section>
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Interactive Weight Calculator */}
+            <div className="overflow-x-auto max-w-full flex-1">
+              <WeightExplainer />
+            </div>
 
-        {/* SECTION 3 — Freezer Video */}
-        <section className="mb-12">
-          <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
-            Will It Fit In My Freezer?
-          </h2>
-          <p className="font-body text-brand-gray text-base mb-5 text-center">
-            Watch this quick video to see exactly how much space your beef will take up.
-          </p>
-          <div className="flex justify-center">
-            <video
-              controls
-              preload="metadata"
-              poster="/images/hero_pasture.jpg"
-              style={{ width: '100%', borderRadius: '12px', maxWidth: '750px' }}
-            >
-              <source src="/videos/Freezervideo.mp4" type="video/mp4" />
-              Your browser does not support video playback.
-            </video>
+            {/* Freezer Video */}
+            <div className="flex-1">
+              <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
+                Will It Fit In My Freezer?
+              </h2>
+              <p className="font-body text-brand-gray text-base mb-5 text-center">
+                Watch this quick video to see exactly how much space your beef will take up.
+              </p>
+              <div className="flex justify-center">
+                <video
+                  controls
+                  preload="metadata"
+                  poster="/images/hero_pasture.jpg"
+                  className="w-full max-w-[750px]"
+                  style={{ borderRadius: '12px' }}
+                >
+                  <source src="/videos/Freezervideo.mp4" type="video/mp4" />
+                  Your browser does not support video playback.
+                </video>
+              </div>
+            </div>
           </div>
         </section>
 

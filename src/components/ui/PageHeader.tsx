@@ -35,15 +35,15 @@ export function PageHeader({
             onClick={handleBack}
             className="text-white hover:opacity-80 transition-opacity"
           >
-            ← Back
+            <span className="text-white text-xl">←</span>
           </button>
         )}
         <Link href="/">
           <Image
             src="/images/LLC_Logo.svg"
             alt="Legacy Land & Cattle"
-            width={48}
-            height={48}
+            width={160}
+            height={70}
             className="h-12 w-auto"
           />
         </Link>
