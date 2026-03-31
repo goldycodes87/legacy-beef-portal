@@ -40,7 +40,7 @@ export function PageHeader({
         )}
         <Link href="/">
           <Image
-            src="/images/LLC_Logo.svg"
+            src="/images/LLC_Logo_white.svg"
             alt="Legacy Land & Cattle"
             width={160}
             height={70}

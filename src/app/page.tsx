@@ -25,11 +25,11 @@ export default function HomePage() {
           {/* Logo */}
           <div className="mb-8 flex justify-center">
             <Image
-              src="/images/LLC_Logo.svg"
+              src="/images/LLC_Logo_white.svg"
               alt="Legacy Land & Cattle"
               width={300}
               height={130}
-              className="h-24 md:h-32 w-auto mb-6 invert"
+              className="h-24 md:h-32 w-auto mb-6 "
               priority
             />
           </div>
