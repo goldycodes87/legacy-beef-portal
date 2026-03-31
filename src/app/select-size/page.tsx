@@ -119,11 +119,6 @@ export default function SelectSizePage() {
     return !inventoryLoading && getAvailable(size) === 0;
   }
 
-  function showSpotsRemaining(size: SizeOption): boolean {
-    const n = getAvailable(size);
-    return !inventoryLoading && n > 0 && n <= 3;
-  }
-
   // ── CTA disabled logic ───────────────────────────────────────────────────
   const ctaDisabled: boolean = (() => {
     if (!selectedSize) return true;
@@ -214,7 +209,6 @@ export default function SelectSizePage() {
               deposit="$850 deposit (or $500 each if splitting)"
               yieldRange="Est. $5,200–$6,200 total | ~390–465 lbs finished cuts"
               soldOut={isSoldOut('whole')}
-              spotsRemaining={showSpotsRemaining('whole') ? getAvailable('whole') : null}
               selected={selectedSize === 'whole'}
               onSelect={() => handleSelectSize('whole')}
             />
@@ -229,7 +223,6 @@ export default function SelectSizePage() {
               deposit="$500 deposit"
               yieldRange="Est. $2,700–$3,200 total | ~195–235 lbs finished cuts"
               soldOut={isSoldOut('half')}
-              spotsRemaining={showSpotsRemaining('half') ? getAvailable('half') : null}
               selected={selectedSize === 'half'}
               onSelect={() => handleSelectSize('half')}
             />
@@ -243,7 +236,6 @@ export default function SelectSizePage() {
               yieldRange="Est. $1,400–$1,650 total | ~98–118 lbs finished cuts"
               note="Uses Legacy's house cut sheet"
               soldOut={isSoldOut('quarter')}
-              spotsRemaining={showSpotsRemaining('quarter') ? getAvailable('quarter') : null}
               selected={selectedSize === 'quarter'}
               onSelect={() => handleSelectSize('quarter')}
             />
@@ -433,7 +425,6 @@ interface SizeCardProps {
   yieldRange: string;
   note?: string;
   soldOut: boolean;
-  spotsRemaining: number | null;
   selected: boolean;
   onSelect: () => void;
 }
@@ -447,7 +438,6 @@ function SizeCard({
   yieldRange,
   note,
   soldOut,
-  spotsRemaining,
   selected,
   onSelect,
 }: SizeCardProps) {
@@ -477,11 +467,6 @@ function SizeCard({
         {soldOut && (
           <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#6B7280] text-white">
             Sold Out
-          </span>
-        )}
-        {spotsRemaining !== null && !soldOut && (
-          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">
-            {spotsRemaining} spot{spotsRemaining !== 1 ? 's' : ''} remaining
           </span>
         )}
       </div>

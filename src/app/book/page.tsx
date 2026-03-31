@@ -124,6 +124,9 @@ export default function BookPage() {
     quarter: { low: 1400, high: 1650 },
   };
 
+  // Dynamic price from selected slot
+  const [pricePerLb, setPricePerLb] = useState<number | null>(null);
+
   // Slots
   const [slots, setSlots] = useState<Slot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -297,29 +300,36 @@ export default function BookPage() {
         </div>
 
         {/* ── Section 2: Selection summary card ── */}
-        <div className="bg-[#F5F0E8] border border-[#E8DCC8] rounded-2xl px-5 py-4 mb-8 flex items-center gap-4">
-          <div className="text-3xl">🐄</div>
-          <div className="flex-1">
-            <p className="text-xs text-brand-gray uppercase tracking-widest font-semibold mb-0.5">Your Selection</p>
-            <p className="text-brand-dark font-bold text-lg font-display">
-              {purchaseTypeLabel(selectedSize)} at ${(PRICE_PER_LB[selectedSize] ?? 8.00).toFixed(2)}/lb
-            </p>
-            {animalType && animalType !== 'no_preference' && (
-              <p className="text-sm text-brand-gray">{animalTypeLabel(animalType)}</p>
-            )}
-            {EST_TOTAL[selectedSize] && (
-              <p className="text-xs text-brand-gray mt-0.5">
-                Est. total: ${EST_TOTAL[selectedSize].low.toLocaleString()}–${EST_TOTAL[selectedSize].high.toLocaleString()}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={() => router.replace('/select-size')}
-            className="text-sm text-brand-orange hover:underline font-medium"
-          >
-            Change
-          </button>
-        </div>
+        {(() => {
+          const estimatedTotal = selectedSlot
+            ? { low: selectedSlot.est_total_low, high: selectedSlot.est_total_high }
+            : EST_TOTAL[selectedSize];
+          return (
+            <div className="bg-[#F5F0E8] border border-[#E8DCC8] rounded-2xl px-5 py-4 mb-8 flex items-center gap-4">
+              <div className="text-3xl">🐄</div>
+              <div className="flex-1">
+                <p className="text-xs text-brand-gray uppercase tracking-widest font-semibold mb-0.5">Your Selection</p>
+                <p className="text-brand-dark font-bold text-lg font-display">
+                  {purchaseTypeLabel(selectedSize)} at ${(pricePerLb ?? PRICE_PER_LB[selectedSize] ?? 8.00).toFixed(2)}/lb
+                </p>
+                {animalType && animalType !== 'no_preference' && (
+                  <p className="text-sm text-brand-gray">{animalTypeLabel(animalType)}</p>
+                )}
+                {estimatedTotal && (
+                  <p className="text-xs text-brand-gray mt-0.5">
+                    Est. total: ${estimatedTotal.low.toLocaleString()}–${estimatedTotal.high.toLocaleString()}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => router.replace('/select-size')}
+                className="text-sm text-brand-orange hover:underline font-medium"
+              >
+                Change
+              </button>
+            </div>
+          );
+        })()}
 
         {/* ── Section 3: Slot cards ── */}
         <section className="mb-8">
@@ -377,7 +387,9 @@ export default function BookPage() {
                   <button
                     key={slot.id}
                     onClick={() => {
-                      setSelectedSlot(isSelected ? null : slot);
+                      const newSlot = isSelected ? null : slot;
+                      setSelectedSlot(newSlot);
+                      setPricePerLb(newSlot ? newSlot.price_per_lb : null);
                       // Scroll to form
                       setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
                     }}
