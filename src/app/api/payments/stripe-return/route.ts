@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
   }
 
   if (redirectStatus === 'succeeded' && paymentIntentId) {
+    // Update session status
     await supabaseAdmin
       .from('sessions')
       .update({
@@ -24,6 +26,20 @@ export async function GET(request: NextRequest) {
         payment_method: 'card',
       })
       .eq('id', sessionId);
+
+    // Call confirm to create payment record and send confirmation email
+    try {
+      await fetch(`${APP_URL}/api/payments/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          stripe_payment_intent_id: paymentIntentId,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to call payments/confirm:', err);
+    }
 
     return NextResponse.redirect(new URL(`/payment-success?session_id=${sessionId}`, request.url));
   }
