@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 type AnimalType = 'grass_fed' | 'grain_finished' | 'wagyu' | 'no_preference';
 
@@ -82,29 +83,17 @@ export default function SelectAnimalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Dark Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={3} totalSteps={6} />
 
       <ReservationProgress currentStep="choose" />
 
       {/* Content */}
       <main className="max-w-[640px] mx-auto px-4 py-10">
-        <h1
-          className="text-3xl md:text-4xl font-bold text-brand-dark mb-3"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-3">
           How was your beef raised?
         </h1>
-        <p className="text-brand-gray mb-8 text-base">
+        <p className="font-body text-brand-gray mb-8 text-base">
           Your choice determines which animals and dates are available.
         </p>
 
@@ -155,19 +144,14 @@ export default function SelectAnimalPage() {
             </div>
 
             {/* Continue button */}
-            <button
+            <Button
               onClick={handleContinue}
               disabled={!selected}
-              className={`
-                w-full min-h-[48px] rounded-xl font-semibold text-base transition-colors duration-150
-                ${selected
-                  ? 'bg-brand-orange hover:bg-brand-orange-hover text-white cursor-pointer'
-                  : 'bg-brand-gray-light text-brand-gray cursor-not-allowed'
-                }
-              `}
+              fullWidth
+              size="lg"
             >
               Continue →
-            </button>
+            </Button>
           </>
         )}
       </main>

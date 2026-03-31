@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -512,16 +512,8 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8]">
-      <header className="bg-[#0F0F0F] px-4 py-4 flex items-center sticky top-0 z-10">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={6} totalSteps={6} />
 
       <ReservationProgress currentStep="deposit" />
 

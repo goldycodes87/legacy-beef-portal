@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -182,29 +183,17 @@ export default function SelectSizePage() {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={2} totalSteps={6} />
 
       <ReservationProgress currentStep="choose" />
 
       <main className="max-w-[680px] mx-auto px-4 py-10">
         {/* Heading */}
-        <h1
-          className="text-3xl md:text-4xl font-bold text-brand-dark mb-3"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-3">
           Choose Your Beef
         </h1>
-        <p className="text-brand-gray mb-8 text-base">
+        <p className="font-body text-brand-gray mb-8 text-base">
           Select how much beef you&apos;d like to reserve. All prices are based on hanging weight.
         </p>
 
@@ -271,10 +260,7 @@ export default function SelectSizePage() {
         >
           {selectedSize && (
             <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-2xl p-6 mb-6">
-              <h2
-                className="text-lg font-bold text-brand-dark mb-4"
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
+              <h2 className="font-display font-bold text-lg text-brand-dark mb-4">
                 Are you splitting with someone?
               </h2>
 
@@ -410,19 +396,15 @@ export default function SelectSizePage() {
         </div>
 
         {/* ── CTA Button ── */}
-        <button
+        <Button
           onClick={handleReserve}
           disabled={ctaDisabled || submitting}
-          className={`
-            w-full min-h-[48px] rounded-xl font-semibold text-base transition-colors duration-150
-            ${!ctaDisabled && !submitting
-              ? 'bg-brand-orange hover:bg-brand-orange-hover text-white cursor-pointer'
-              : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
-            }
-          `}
+          loading={submitting}
+          fullWidth
+          size="lg"
         >
           {submitting ? 'Checking availability…' : 'Reserve My Slot →'}
-        </button>
+        </Button>
       </main>
 
       {/* Toast */}

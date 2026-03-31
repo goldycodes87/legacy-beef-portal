@@ -1,10 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import WeightExplainer from '@/components/WeightExplainer';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 
 export default function WeightExplainerPage() {
   const router = useRouter();
@@ -17,17 +19,8 @@ export default function WeightExplainerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Dark Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={1} totalSteps={6} />
 
       <ReservationProgress currentStep="learn" />
 
@@ -35,13 +28,10 @@ export default function WeightExplainerPage() {
 
         {/* SECTION 1 — Page Heading */}
         <section className="mb-10 text-center">
-          <h1
-            className="text-3xl md:text-4xl font-bold text-brand-dark mb-4"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-4">
             Know Your Beef Before You Buy
           </h1>
-          <p className="text-brand-gray text-base leading-relaxed max-w-[560px] mx-auto">
+          <p className="font-body text-brand-gray text-base leading-relaxed max-w-[560px] mx-auto">
             One of the most common surprises for first-time bulk beef buyers is yield. Here&apos;s exactly what to expect.
           </p>
         </section>
@@ -51,17 +41,12 @@ export default function WeightExplainerPage() {
           <WeightExplainer />
         </section>
 
-        {/* PHASE 5 - ELEVENLABS VOICE ASSISTANT — narrates weight explainer on page load. Grant has ElevenLabs account. TODO: implement after core app stable. See elevenlabs.io/docs/conversational-ai */}
-
         {/* SECTION 3 — Freezer Video */}
         <section className="mb-12">
-          <h2
-            className="text-2xl font-bold text-brand-dark mb-3 text-center"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
             Will It Fit In My Freezer?
           </h2>
-          <p className="text-brand-gray text-base mb-5 text-center">
+          <p className="font-body text-brand-gray text-base mb-5 text-center">
             Watch this quick video to see exactly how much space your beef will take up.
           </p>
           <div className="flex justify-center">
@@ -79,43 +64,27 @@ export default function WeightExplainerPage() {
 
         {/* SECTION 4 — Key Info Card */}
         <section className="mb-10">
-          <div
-            className="rounded-xl p-6 text-white"
-            style={{ backgroundColor: '#1A3D2B' }}
-          >
-            <h3
-              className="text-lg font-bold mb-4"
-              style={{ fontFamily: "'Playfair Display', serif" }}
-            >
+          <Card variant="dark" padding="md">
+            <h3 className="font-display font-bold text-lg text-white mb-4">
               What You Need to Know
             </h3>
             <ul className="space-y-3">
-              <li className="flex items-start gap-3">
-                <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange"></span>
-                <span className="text-sm leading-relaxed opacity-90">
-                  Your final cost is based on <strong>HANGING weight</strong> — not live weight and not finished cuts
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange"></span>
-                <span className="text-sm leading-relaxed opacity-90">
-                  Legacy Land &amp; Cattle will notify you of the exact hanging weight before your balance is due
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange"></span>
-                <span className="text-sm leading-relaxed opacity-90">
-                  A chest freezer (7 cu ft) holds a quarter beef. A half needs ~14 cu ft.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange"></span>
-                <span className="text-sm leading-relaxed opacity-90">
-                  Your beef is dry aged 21-24 days for maximum tenderness and flavor — this process reduces yield slightly but dramatically improves quality.
-                </span>
-              </li>
+              {[
+                'Your final cost is based on <strong>HANGING weight</strong> — not live weight and not finished cuts',
+                'Legacy Land &amp; Cattle will notify you of the exact hanging weight before your balance is due',
+                'A chest freezer (7 cu ft) holds a quarter beef. A half needs ~14 cu ft.',
+                'Your beef is dry aged 21-24 days for maximum tenderness and flavor — this process reduces yield slightly but dramatically improves quality.',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange" />
+                  <span
+                    className="font-body text-sm leading-relaxed text-white/90"
+                    dangerouslySetInnerHTML={{ __html: item }}
+                  />
+                </li>
+              ))}
             </ul>
-          </div>
+          </Card>
         </section>
 
         {/* SECTION 5 — Checkbox + CTA */}
@@ -132,8 +101,8 @@ export default function WeightExplainerPage() {
               <div
                 className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                   checked
-                    ? 'bg-brand-green border-brand-green'
-                    : 'bg-white border-brand-gray group-hover:border-brand-green'
+                    ? 'bg-brand-orange border-brand-orange'
+                    : 'bg-white border-brand-gray group-hover:border-brand-orange'
                 }`}
                 style={{ minWidth: '24px', minHeight: '24px' }}
               >
@@ -144,26 +113,20 @@ export default function WeightExplainerPage() {
                 )}
               </div>
             </div>
-            <span className="text-sm text-brand-dark leading-relaxed">
+            <span className="font-body text-sm text-brand-dark leading-relaxed">
               I understand that my final price is based on hanging weight and will vary based on animal size.
             </span>
           </label>
 
           {/* CTA Button */}
-          <button
+          <Button
             onClick={handleContinue}
             disabled={!checked}
-            className={`
-              w-full min-h-[48px] rounded-xl font-semibold text-base transition-colors duration-150
-              ${checked
-                ? 'text-white cursor-pointer'
-                : 'bg-brand-gray-light text-brand-gray cursor-not-allowed'
-              }
-            `}
-            style={checked ? { backgroundColor: '#E85D24' } : undefined}
+            fullWidth
+            size="lg"
           >
             I Understand — Choose My Beef →
-          </button>
+          </Button>
         </section>
       </main>
     </div>

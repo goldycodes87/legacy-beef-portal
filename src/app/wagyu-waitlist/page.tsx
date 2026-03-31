@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { InfoBox } from '@/components/ui/InfoBox';
 
 type SizeOption = 'whole' | 'half' | 'quarter';
 
@@ -51,29 +53,18 @@ export default function WagyuWaitlistPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-white">
-        <header className="bg-brand-dark px-4 py-4 flex items-center">
-          <Image
-            src="/images/LLC_Logo.svg"
-            alt="Legacy Land & Cattle"
-            width={140}
-            height={60}
-            className="h-10 w-auto object-contain"
-          />
-        </header>
+      <div className="min-h-screen bg-brand-warm">
+        <PageHeader showBack={false} />
         <main className="max-w-[640px] mx-auto px-4 py-16 text-center">
           <div className="w-16 h-16 bg-brand-green rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1
-            className="text-3xl font-bold text-brand-dark mb-4"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
+          <h1 className="font-display font-bold text-3xl text-brand-dark mb-4">
             You&apos;re on the list!
           </h1>
-          <p className="text-brand-gray text-lg">
+          <p className="font-body text-brand-gray text-lg">
             We&apos;ll reach out when your Wagyu slot is available.
           </p>
         </main>
@@ -82,33 +73,21 @@ export default function WagyuWaitlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Dark Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} />
 
       <main className="max-w-[640px] mx-auto px-4 py-10">
-        <h1
-          className="text-3xl md:text-4xl font-bold text-brand-dark mb-3"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
+        <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-3">
           Reserve Your Wagyu
         </h1>
-        <p className="text-brand-gray mb-8 text-base">
+        <p className="font-body text-brand-gray mb-8 text-base">
           We source Wagyu in limited quantities. Join the waitlist and we&apos;ll contact you when your slot is ready.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Full Name */}
           <div>
-            <label className="block text-sm font-medium text-brand-dark mb-1.5" htmlFor="name">
+            <label className="block font-body text-sm font-medium text-brand-dark mb-1.5" htmlFor="name">
               Full Name <span className="text-brand-orange">*</span>
             </label>
             <input
@@ -118,13 +97,13 @@ export default function WagyuWaitlistPage() {
               value={form.customer_name}
               onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
               placeholder="Jane Smith"
-              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
+              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 font-body text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
             />
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-brand-dark mb-1.5" htmlFor="email">
+            <label className="block font-body text-sm font-medium text-brand-dark mb-1.5" htmlFor="email">
               Email <span className="text-brand-orange">*</span>
             </label>
             <input
@@ -134,14 +113,14 @@ export default function WagyuWaitlistPage() {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="jane@example.com"
-              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
+              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 font-body text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
             />
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-sm font-medium text-brand-dark mb-1.5" htmlFor="phone">
-              Phone <span className="text-brand-gray text-xs">(optional)</span>
+            <label className="block font-body text-sm font-medium text-brand-dark mb-1.5" htmlFor="phone">
+              Phone <span className="font-body text-brand-gray text-xs">(optional)</span>
             </label>
             <input
               id="phone"
@@ -149,13 +128,13 @@ export default function WagyuWaitlistPage() {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="(555) 123-4567"
-              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
+              className="w-full border border-brand-gray-light rounded-xl px-4 py-3 font-body text-brand-dark placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent transition"
             />
           </div>
 
           {/* Size preference */}
           <div>
-            <label className="block text-sm font-medium text-brand-dark mb-3">
+            <label className="block font-body text-sm font-medium text-brand-dark mb-3">
               Size <span className="text-brand-orange">*</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -170,13 +149,13 @@ export default function WagyuWaitlistPage() {
                       relative text-center rounded-xl border-2 p-4 transition-all duration-150 focus:outline-none
                       focus:ring-2 focus:ring-brand-orange focus:ring-offset-2
                       ${isSelected
-                        ? 'border-brand-orange bg-[#FFF5F0]'
+                        ? 'border-brand-orange bg-brand-orange-light'
                         : 'border-brand-gray-light bg-white hover:border-brand-orange'
                       }
                     `}
                   >
-                    <div className="font-semibold text-brand-dark text-sm">{opt.label}</div>
-                    <div className="text-xs text-brand-gray mt-1">{opt.deposit}</div>
+                    <div className="font-body font-semibold text-brand-dark text-sm">{opt.label}</div>
+                    <div className="font-body text-xs text-brand-gray mt-1">{opt.deposit}</div>
                   </button>
                 );
               })}
@@ -184,24 +163,20 @@ export default function WagyuWaitlistPage() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
+            <InfoBox variant="warning" title="Error">
               {error}
-            </div>
+            </InfoBox>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={submitting || !form.customer_name || !form.email || !form.size_preference}
-            className={`
-              w-full min-h-[48px] rounded-xl font-semibold text-base transition-colors duration-150
-              ${(!submitting && form.customer_name && form.email && form.size_preference)
-                ? 'bg-brand-orange hover:bg-brand-orange-hover text-white cursor-pointer'
-                : 'bg-brand-gray-light text-brand-gray cursor-not-allowed'
-              }
-            `}
+            loading={submitting}
+            fullWidth
+            size="lg"
           >
             {submitting ? 'Joining...' : 'Join the Waitlist'}
-          </button>
+          </Button>
         </form>
       </main>
     </div>

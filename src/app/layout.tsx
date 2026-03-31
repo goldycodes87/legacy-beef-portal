@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Legacy Land & Cattle | Grass-Fed Beef",
   description: "Premium grass-fed beef direct from Legacy Land & Cattle. Reserve your share of the harvest.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://legacylandandcattleco.com"),
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -15,9 +18,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600&family=Dancing+Script:wght@700&display=swap" 
+          rel="stylesheet" 
+        />
       </head>
-      <body className="min-h-screen bg-white font-sans antialiased">
+      <body className="min-h-screen bg-white font-body antialiased">
         {children}
       </body>
     </html>

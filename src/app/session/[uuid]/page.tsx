@@ -1,6 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Card } from '@/components/ui/Card';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -119,16 +120,16 @@ export default async function SessionPage({ params }: PageProps) {
   const firstName = session.customer?.name?.split(' ')[0] ?? 'there';
 
   return (
-    <main className="min-h-screen px-4 py-12 bg-[#F5F0E8]">
+    <main className="min-h-screen px-4 py-12 bg-brand-warm">
       <div className="max-w-lg mx-auto">
 
         {/* Brand wordmark */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <h1 className="text-2xl font-serif font-bold text-[#2D5016]">
+            <h1 className="font-display font-bold text-2xl text-brand-green">
               Legacy Land &amp; Cattle
             </h1>
-            <p className="text-xs text-[#8B6914] uppercase tracking-widest mt-0.5">
+            <p className="font-body text-xs text-brand-gold uppercase tracking-widest mt-0.5">
               Customer Portal
             </p>
           </Link>

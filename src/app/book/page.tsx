@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -270,7 +271,7 @@ export default function BookPage() {
   // ── Guard not yet confirmed (redirecting) ──────────────────────────────────
   if (!guardPassed) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-brand-warm flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -278,11 +279,8 @@ export default function BookPage() {
 
   // ── Main page ──────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center">
-        <Image src="/images/LLC_Logo.svg" alt="Legacy Land &amp; Cattle" width={140} height={60} className="h-10 w-auto object-contain" />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={4} totalSteps={6} />
 
       <ReservationProgress currentStep="info" />
 
@@ -290,16 +288,10 @@ export default function BookPage() {
 
         {/* ── Section 1: Page heading ── */}
         <div className="mb-8">
-          <button
-            onClick={() => router.back()}
-            className="text-sm text-brand-orange hover:underline mb-4 flex items-center gap-1"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl md:text-4xl font-bold text-brand-dark mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-2">
             Reserve Your Beef
           </h1>
-          <p className="text-brand-gray text-base">
+          <p className="font-body text-brand-gray text-base">
             Select an available animal and lock in your order.
           </p>
         </div>
@@ -309,7 +301,7 @@ export default function BookPage() {
           <div className="text-3xl">🐄</div>
           <div className="flex-1">
             <p className="text-xs text-brand-gray uppercase tracking-widest font-semibold mb-0.5">Your Selection</p>
-            <p className="text-brand-dark font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <p className="text-brand-dark font-bold text-lg font-display">
               {purchaseTypeLabel(selectedSize)} at ${(PRICE_PER_LB[selectedSize] ?? 8.00).toFixed(2)}/lb
             </p>
             {animalType && animalType !== 'no_preference' && (
@@ -331,7 +323,7 @@ export default function BookPage() {
 
         {/* ── Section 3: Slot cards ── */}
         <section className="mb-8">
-          <h2 className="text-xl font-bold text-brand-dark mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h2 className="text-xl font-bold text-brand-dark mb-4 font-display">
             Available Animals
           </h2>
 
@@ -403,7 +395,7 @@ export default function BookPage() {
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="font-bold text-brand-dark text-base" style={{ fontFamily: "'Playfair Display', serif" }}>
+                          <span className="font-bold text-brand-dark text-base font-display">
                             {slot.name}
                           </span>
                           {slot.animal_type && slot.animal_type !== 'no_preference' && (
@@ -464,7 +456,7 @@ export default function BookPage() {
 
         {/* ── Section 4: Contact form ── */}
         <section ref={formRef} className="mb-8">
-          <h2 className="text-xl font-bold text-brand-dark mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h2 className="text-xl font-bold text-brand-dark mb-4 font-display">
             Your Information
           </h2>
 
@@ -678,29 +670,15 @@ export default function BookPage() {
             )}
 
             {/* CTA button */}
-            <button
+            <Button
               type="submit"
               disabled={submitting || (!selectedSlot && slots.length > 0)}
-              className={`
-                w-full min-h-[52px] rounded-xl font-semibold text-base transition-colors duration-150
-                ${!submitting && (selectedSlot || slots.length === 0)
-                  ? 'bg-brand-orange hover:bg-brand-orange-hover text-white cursor-pointer'
-                  : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
-                }
-              `}
+              loading={submitting}
+              fullWidth
+              size="lg"
             >
-              {submitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Reserving your slot…
-                </span>
-              ) : (
-                'Next →'
-              )}
-            </button>
+              {submitting ? 'Reserving your slot…' : 'Next →'}
+            </Button>
 
             <p className="text-xs text-center text-brand-gray">
               By reserving, you agree to our{' '}

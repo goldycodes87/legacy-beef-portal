@@ -82,7 +82,7 @@ export default async function SessionStatusPage({ params }: PageProps) {
   const isBeefReady = session.status === 'beef_ready';
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-10">
+    <main className="min-h-screen bg-brand-warm px-4 py-10">
       <div className="max-w-lg mx-auto">
 
         {/* Back link */}
@@ -95,10 +95,10 @@ export default async function SessionStatusPage({ params }: PageProps) {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-serif font-bold text-brand-green">
+          <h1 className="font-display font-bold text-2xl text-brand-green">
             Order Status
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="font-body text-sm text-brand-gray mt-1">
             {session.customer?.name} · {session.animal?.name}
           </p>
         </div>

@@ -52,3 +52,34 @@ input[type='range']::-moz-range-thumb {
     @apply block text-sm font-semibold text-brand-dark mb-1;
   }
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #E85D24;
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F0E8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E85D24;
+  border-radius: 3px;
+}
+
+::selection {
+  background: #E85D24;
+  color: white;
+}

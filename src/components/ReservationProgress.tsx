@@ -1,103 +1,77 @@
 'use client';
 
-export type ReservationStep = 'learn' | 'choose' | 'info' | 'contract' | 'deposit' | 'cutsheet';
+import React from 'react';
 
 interface ReservationProgressProps {
-  currentStep: ReservationStep;
+  currentStep?: 'learn' | 'choose' | 'info' | 'contract' | 'deposit' | 'cut-sheet';
 }
 
-const STEPS: { id: ReservationStep; label: string }[] = [
-  { id: 'learn',    label: 'Learn' },
-  { id: 'choose',   label: 'Choose' },
-  { id: 'info',     label: 'Your Info' },
-  { id: 'contract', label: 'Contract' },
-  { id: 'deposit',  label: 'Deposit' },
-  { id: 'cutsheet', label: 'Cut Sheet' },
+const STEPS = [
+  { key: 'learn', label: 'Learn', number: 1 },
+  { key: 'choose', label: 'Choose', number: 2 },
+  { key: 'info', label: 'Your Info', number: 3 },
+  { key: 'contract', label: 'Contract', number: 4 },
+  { key: 'deposit', label: 'Deposit', number: 5 },
+  { key: 'cut-sheet', label: 'Cut Sheet', number: 6 },
 ];
 
-const STEP_ORDER = STEPS.map((s) => s.id);
-
 export default function ReservationProgress({ currentStep }: ReservationProgressProps) {
-  const currentIndex = STEP_ORDER.indexOf(currentStep);
+  const currentIndex = STEPS.findIndex(s => s.key === currentStep);
 
+  // Mobile: Show "Step X of 6" only
   return (
-    <div className="w-full bg-white border-b border-gray-200 px-4 py-3">
-      <div className="max-w-[700px] mx-auto">
-        {/* Desktop: single row */}
-        <ol className="hidden sm:flex items-center w-full">
-          {STEPS.map((step, i) => {
-            const isCompleted = i < currentIndex;
-            const isCurrent   = i === currentIndex;
-
-            return (
-              <li key={step.id} className="flex items-center flex-1 min-w-0">
-                {/* Step pill */}
-                <span
-                  className="flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap"
-                  style={{
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: '14px',
-                    backgroundColor: isCurrent
-                      ? '#E85D24'
-                      : isCompleted
-                      ? '#1A3D2B'
-                      : '#E5E7EB',
-                    color: isCurrent || isCompleted ? '#fff' : '#6B7280',
-                  }}
-                >
-                  {isCompleted && (
-                    <svg
-                      className="w-3.5 h-3.5 mr-1 flex-shrink-0"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                  {step.label}
-                </span>
-
-                {/* Arrow connector (not after last step) */}
-                {i < STEPS.length - 1 && (
-                  <span
-                    className="flex-1 mx-1 text-center text-gray-400 select-none"
-                    style={{ fontSize: '12px' }}
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-
-        {/* Mobile: current step label + fraction */}
-        <div className="flex sm:hidden items-center gap-3">
-          <span
-            className="px-3 py-1 rounded-full text-sm font-medium text-white"
-            style={{ backgroundColor: '#E85D24', fontFamily: 'Inter, sans-serif', fontSize: '14px' }}
-          >
-            {STEPS[currentIndex]?.label}
-          </span>
-          <span className="text-sm text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>
-            Step {currentIndex + 1} of {STEPS.length}
-          </span>
-
-          {/* Progress bar */}
-          <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{
-                width: `${((currentIndex + 1) / STEPS.length) * 100}%`,
-                backgroundColor: '#E85D24',
-              }}
-            />
-          </div>
-        </div>
+    <>
+      {/* Mobile view */}
+      <div className="lg:hidden bg-brand-warm px-4 py-3 text-center">
+        <p className="font-body text-sm text-brand-gray">
+          Step {currentIndex + 1} of {STEPS.length}
+        </p>
       </div>
-    </div>
+
+      {/* Desktop view */}
+      <div className="hidden lg:flex bg-brand-warm px-6 py-4 gap-4 items-center">
+        {STEPS.map((step, idx) => (
+          <React.Fragment key={step.key}>
+            {/* Step circle */}
+            <div
+              className={cn(
+                'flex items-center justify-center w-10 h-10 rounded-full font-body font-semibold text-sm transition-colors',
+                idx < currentIndex
+                  ? 'bg-brand-green text-white' // Completed
+                  : idx === currentIndex
+                    ? 'bg-brand-orange text-white' // Current
+                    : 'bg-brand-gray-light text-brand-gray' // Future
+              )}
+            >
+              {idx < currentIndex ? '✓' : step.number}
+            </div>
+
+            {/* Step label */}
+            <p
+              className={cn(
+                'font-body text-xs font-semibold transition-colors',
+                idx <= currentIndex ? 'text-brand-dark' : 'text-brand-gray'
+              )}
+            >
+              {step.label}
+            </p>
+
+            {/* Connecting line */}
+            {idx < STEPS.length - 1 && (
+              <div
+                className={cn(
+                  'flex-1 h-0.5 transition-colors',
+                  idx < currentIndex ? 'bg-brand-green' : 'bg-brand-gray-light'
+                )}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+    </>
   );
+}
+
+function cn(...classes: (string | undefined)[]) {
+  return classes.filter(Boolean).join(' ');
 }

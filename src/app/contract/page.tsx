@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ESignContract from '@/components/ESignContract';
 import ReservationProgress from '@/components/ReservationProgress';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,15 +47,6 @@ interface PageState {
   depositAmount?: number;
 }
 
-function depositForType(type: string): number {
-  switch (type) {
-    case 'whole':   return 850;
-    case 'half':    return 500;
-    case 'quarter': return 250;
-    default:        return 500;
-  }
-}
-
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function ContractPage() {
@@ -63,7 +55,6 @@ export default function ContractPage() {
 
   useEffect(() => {
     async function init() {
-      // 1. Check for session_id in sessionStorage
       const sessionId = sessionStorage.getItem('session_id');
 
       if (!sessionId) {
@@ -71,11 +62,9 @@ export default function ContractPage() {
         return;
       }
 
-      // 2. Load session via server-side API route (bypasses RLS using admin client)
       const res = await fetch(`/api/session/${sessionId}`);
       const data = await res.json();
 
-      // Issue 1 fix: deposit_amount may be null in DB — calculate client-side fallback
       const depositAmount = data.deposit_amount ?? (() => {
         switch (data.purchase_type) {
           case 'whole': return 850;
@@ -104,27 +93,22 @@ export default function ContractPage() {
       const customer: Customer = data.customer;
       const animal: Animal = data.animal;
 
-      // 3. Must have customer
       if (!customer) {
         setState({ status: 'error', errorMessage: 'Could not load customer details. Please contact support.' });
         return;
       }
 
-      // 4. Must have animal
       if (!animal) {
         setState({ status: 'error', errorMessage: 'Could not load animal details. Please contact support.' });
         return;
       }
 
-      // 5. Already signed → redirect to /payment
       if (sessionData.contract_signed === true) {
         setState({ status: 'already-signed' });
         router.replace('/payment');
         return;
       }
 
-      // deposit_amount column requires Block 8 DB migration; use purchase_type fallback
-      // depositAmount was already calculated above from data directly (before nested extraction)
       const finalDepositAmount = sessionData.deposit_amount ?? depositAmount;
 
       setState({
@@ -149,17 +133,8 @@ export default function ContractPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-brand-dark px-4 py-4 flex items-center sticky top-0 z-10">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land &amp; Cattle"
-          width={140}
-          height={60}
-          className="h-10 w-auto object-contain"
-        />
-      </header>
+    <div className="min-h-screen bg-brand-warm">
+      <PageHeader showBack={true} currentStep={5} totalSteps={6} />
 
       <ReservationProgress currentStep="contract" />
 
@@ -170,29 +145,26 @@ export default function ContractPage() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <p className="text-brand-gray text-sm">Loading your agreement…</p>
+            <p className="font-body text-brand-gray text-sm">Loading your agreement…</p>
           </div>
         )}
 
         {state.status === 'already-signed' && (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <p className="text-brand-gray">Redirecting to payment…</p>
+            <p className="font-body text-brand-gray">Redirecting to payment…</p>
           </div>
         )}
 
         {state.status === 'error' && (
           <div className="max-w-[720px] mx-auto px-4 py-16 text-center">
             <div className="text-5xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-brand-dark mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h1 className="font-display font-bold text-2xl text-brand-dark mb-3">
               Something went wrong
             </h1>
-            <p className="text-brand-gray mb-6">{state.errorMessage}</p>
-            <button
-              onClick={() => router.push('/select-size')}
-              className="btn-primary"
-            >
+            <p className="font-body text-brand-gray mb-6">{state.errorMessage}</p>
+            <Button onClick={() => router.push('/select-size')}>
               Start Over
-            </button>
+            </Button>
           </div>
         )}
 
