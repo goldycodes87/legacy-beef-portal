@@ -42,7 +42,15 @@ export async function GET(request: NextRequest) {
       console.error('Failed to call payments/confirm:', err);
     }
 
-    return NextResponse.redirect(new URL(`/payment-success?session_id=${sessionId}`, request.url));
+    const response = NextResponse.redirect(new URL(`/payment-success?session_id=${sessionId}`, request.url));
+    response.cookies.set('payment_just_completed', sessionId, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 60 * 30,
+      path: '/',
+    });
+    return response;
   }
 
   if (redirectStatus === 'processing') {

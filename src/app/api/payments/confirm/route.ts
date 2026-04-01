@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     const { email, name } = customer;
     const firstName = name?.split(' ')[0] ?? 'there';
-    const sessionUrl = `${APP_URL}/session/${session_id}`;
+    const sessionUrl = `${APP_URL}/session/${session_id}/cuts`;
 
     const depositPaid = amount_cents
       ? amount_cents / 100

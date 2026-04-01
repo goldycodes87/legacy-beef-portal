@@ -13,7 +13,7 @@ function PaymentSuccessContent() {
 
   function handleStartCutSheet() {
     if (sessionId) {
-      router.push(`/session/${sessionId}`);
+      router.push(`/session/${sessionId}/cuts`);
     }
   }
 

@@ -38,6 +38,12 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Allow access if customer just completed payment for this session
+  const paymentCookie = request.cookies.get('payment_just_completed');
+  if (paymentCookie && pathname.startsWith('/session/') && pathname.includes(paymentCookie.value)) {
+    return NextResponse.next();
+  }
+
   // Check session — IMPORTANT: do not run arbitrary code between createServerClient and getUser
   const {
     data: { user },

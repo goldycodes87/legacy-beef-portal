@@ -73,8 +73,18 @@ export async function GET(request: NextRequest) {
         .single();
 
       if (customerSession) {
-        // Existing customer with a session — send them to it
-        return NextResponse.redirect(`${origin}/session/${customerSession.id}`);
+        // Check if cut sheet not yet started — go straight to cuts page
+        const { data: cutAnswers } = await supabaseAdmin
+          .from('cut_sheet_answers')
+          .select('id')
+          .eq('session_id', customerSession.id)
+          .limit(1);
+        const hasCutSheet = cutAnswers && cutAnswers.length > 0;
+        return NextResponse.redirect(
+          hasCutSheet
+            ? `${origin}/session/${customerSession.id}`
+            : `${origin}/session/${customerSession.id}/cuts`
+        );
       }
     }
   } catch (err) {
