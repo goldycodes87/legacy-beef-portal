@@ -117,11 +117,19 @@ export default function BookPage() {
     quarter: 8.50,
   };
 
-  // Est total ranges based on hanging weight × price/lb (rounded to nearest $50)
+  // Est total ranges computed from price/lb × hanging weight ranges
+  // Whole: 650-775 lbs, Half: 325-390 lbs, Quarter: 163-195 lbs
+  const computeEstTotal = (size: string, ppl: number) => {
+    const ranges: Record<string, [number, number]> = {
+      whole: [650, 775], half: [325, 390], quarter: [163, 195],
+    };
+    const [low, high] = ranges[size] || [325, 390];
+    return { low: Math.round(low * ppl / 50) * 50, high: Math.round(high * ppl / 50) * 50 };
+  };
   const EST_TOTAL: Record<string, { low: number; high: number }> = {
-    whole:   { low: 5200, high: 6200 },
-    half:    { low: 2700, high: 3200 },
-    quarter: { low: 1400, high: 1650 },
+    whole:   computeEstTotal('whole',   PRICE_PER_LB['whole']   ?? 8.00),
+    half:    computeEstTotal('half',    PRICE_PER_LB['half']    ?? 8.25),
+    quarter: computeEstTotal('quarter', PRICE_PER_LB['quarter'] ?? 8.50),
   };
 
   // Dynamic price from selected slot
@@ -314,7 +322,9 @@ export default function BookPage() {
         {(() => {
           const estimatedTotal = selectedSlot
             ? { low: selectedSlot.est_total_low, high: selectedSlot.est_total_high }
-            : EST_TOTAL[selectedSize];
+            : pricePerLb !== null
+              ? computeEstTotal(selectedSize, pricePerLb)
+              : EST_TOTAL[selectedSize];
           return (
             <div className="bg-[#F5F0E8] border border-[#E8DCC8] rounded-2xl px-5 py-4 mb-8 flex items-center gap-4">
               <div className="text-3xl">🐄</div>
