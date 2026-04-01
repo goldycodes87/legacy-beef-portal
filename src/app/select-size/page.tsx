@@ -65,10 +65,8 @@ export default function SelectSizePage() {
 
   // ── Fetch inventory on mount ─────────────────────────────────────────────
   useEffect(() => {
-if (typeof window !== 'undefined') sessionStorage.removeItem('animalTypePreference');
+    if (typeof window !== 'undefined') sessionStorage.removeItem('animalTypePreference');
     fetch(`/api/inventory?animalType=no_preference`)
-
-    fetch(`/api/inventory?animalType=${encodeURIComponent(animalType)}`)
       .then((r) => r.json())
       .then((data: Inventory) => {
         setInventory(data);
