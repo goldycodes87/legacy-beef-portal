@@ -157,6 +157,17 @@ export default function BookPage() {
 
     setSelectedSize(size);
     setAnimalType(aType);
+
+    // Set initial price based on animal type preference
+    const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
+    const standardPrices: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
+    if (aType === 'wagyu') {
+      setPricePerLb(wagyuPrices[size] ?? 9.50);
+    } else if (aType !== 'no_preference') {
+      setPricePerLb(standardPrices[size] ?? 8.00);
+    }
+    // no_preference: leave pricePerLb null until slot selected
+
     setGuardPassed(true);
   }, [router]);
 
@@ -310,7 +321,7 @@ export default function BookPage() {
               <div className="flex-1">
                 <p className="text-xs text-brand-gray uppercase tracking-widest font-semibold mb-0.5">Your Selection</p>
                 <p className="text-brand-dark font-bold text-lg font-display">
-                  {purchaseTypeLabel(selectedSize)} at ${(pricePerLb ?? PRICE_PER_LB[selectedSize] ?? 8.00).toFixed(2)}/lb
+                  {purchaseTypeLabel(selectedSize)}{pricePerLb !== null ? ` at $${pricePerLb.toFixed(2)}/lb` : animalType === 'no_preference' ? ' — price varies by animal' : ''}
                 </p>
                 {animalType && animalType !== 'no_preference' && (
                   <p className="text-sm text-brand-gray">{animalTypeLabel(animalType)}</p>
