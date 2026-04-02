@@ -62,15 +62,15 @@ function BeefCowDiagram({
   };
 
   const regions: { id: string; cowPart: string; path: string; label: string; lx: number; ly: number }[] = [
-    { id: 'chuck', cowPart: 'chuck', label: 'Chuck', lx: 178, ly: 155, path: 'M130,65 L230,60 L235,175 L230,265 L175,270 L130,240 Z' },
-    { id: 'rib', cowPart: 'rib', label: 'Rib', lx: 288, ly: 130, path: 'M230,60 L345,55 L348,225 L235,230 Z' },
-    { id: 'short_loin', cowPart: 'short_loin', label: 'Loin', lx: 380, ly: 128, path: 'M345,55 L415,58 L415,220 L348,225 Z' },
-    { id: 'sirloin', cowPart: 'sirloin', label: 'Sirloin', lx: 442, ly: 118, path: 'M415,58 L470,60 L468,190 L415,195 Z' },
-    { id: 'round', cowPart: 'round', label: 'Round', lx: 510, ly: 160, path: 'M468,60 L555,80 L558,270 L468,265 Z' },
-    { id: 'brisket', cowPart: 'brisket', label: 'Brisket', lx: 178, ly: 278, path: 'M130,240 L235,240 L235,320 L165,325 L130,300 Z' },
-    { id: 'short_ribs', cowPart: 'short_ribs', label: 'S.Ribs', lx: 290, ly: 265, path: 'M235,230 L345,228 L345,305 L235,308 Z' },
-    { id: 'flank', cowPart: 'flank', label: 'Flank', lx: 405, ly: 258, path: 'M348,225 L468,222 L468,295 L345,298 Z' },
-    { id: 'skirt', cowPart: 'skirt', label: 'Skirt', lx: 348, ly: 313, path: 'M235,305 L465,298 L465,322 L235,325 Z' },
+    { id: 'chuck', cowPart: 'chuck', label: 'Chuck', lx: 178, ly: 155, path: 'M128,58 L230,52 L238,172 L232,268 L172,272 L128,238 Z' },
+    { id: 'rib', cowPart: 'rib', label: 'Rib', lx: 290, ly: 135, path: 'M230,52 L348,48 L350,222 L238,228 Z' },
+    { id: 'short_loin', cowPart: 'short_loin', label: 'Loin', lx: 381, ly: 132, path: 'M348,48 L412,52 L412,218 L350,222 Z' },
+    { id: 'sirloin', cowPart: 'sirloin', label: 'Sirloin', lx: 440, ly: 122, path: 'M412,52 L468,58 L466,192 L412,218 Z' },
+    { id: 'round', cowPart: 'round', label: 'Round', lx: 510, ly: 162, path: 'M466,58 L552,82 L554,268 L466,268 Z' },
+    { id: 'brisket', cowPart: 'brisket', label: 'Brisket', lx: 178, ly: 275, path: 'M128,238 L232,238 L232,318 L162,322 L128,298 Z' },
+    { id: 'short_ribs', cowPart: 'short_ribs', label: 'S.Ribs', lx: 290, ly: 262, path: 'M232,228 L348,222 L348,302 L232,308 Z' },
+    { id: 'flank', cowPart: 'flank', label: 'Flank', lx: 407, ly: 258, path: 'M348,222 L466,218 L466,295 L348,302 Z' },
+    { id: 'skirt', cowPart: 'skirt', label: 'Skirt', lx: 348, ly: 312, path: 'M232,308 L466,295 L466,318 L232,318 Z' },
   ];
 
   return (
