@@ -56,76 +56,80 @@ function BeefCowDiagram({
   const getStyle = (sectionId: string) => {
     const isActive = activeSection === sectionId;
     const isCompleted = completedSections.includes(sectionId);
-    if (isActive) return { fill: '#E85D24', opacity: 0.55 };
-    if (isCompleted) return { fill: '#1A3D2B', opacity: 0.45 };
-    return { fill: '#9CA3AF', opacity: 0.15 };
+    if (isActive) return { fill: '#E85D24', opacity: 0.6 };
+    if (isCompleted) return { fill: '#1A3D2B', opacity: 0.5 };
+    return { fill: 'transparent', opacity: 0 };
   };
 
-  const regions: { id: string; cowPart: string; path: string; label: string; lx: number; ly: number }[] = [
-    { id: 'chuck', cowPart: 'chuck', label: 'Chuck', lx: 178, ly: 155, path: 'M128,58 L230,52 L238,172 L232,268 L172,272 L128,238 Z' },
-    { id: 'rib', cowPart: 'rib', label: 'Rib', lx: 290, ly: 135, path: 'M230,52 L348,48 L350,222 L238,228 Z' },
-    { id: 'short_loin', cowPart: 'short_loin', label: 'Loin', lx: 381, ly: 132, path: 'M348,48 L412,52 L412,218 L350,222 Z' },
-    { id: 'sirloin', cowPart: 'sirloin', label: 'Sirloin', lx: 440, ly: 122, path: 'M412,52 L468,58 L466,192 L412,218 Z' },
-    { id: 'round', cowPart: 'round', label: 'Round', lx: 510, ly: 162, path: 'M466,58 L552,82 L554,268 L466,268 Z' },
-    { id: 'brisket', cowPart: 'brisket', label: 'Brisket', lx: 178, ly: 275, path: 'M128,238 L232,238 L232,318 L162,322 L128,298 Z' },
-    { id: 'short_ribs', cowPart: 'short_ribs', label: 'S.Ribs', lx: 290, ly: 262, path: 'M232,228 L348,222 L348,302 L232,308 Z' },
-    { id: 'flank', cowPart: 'flank', label: 'Flank', lx: 407, ly: 258, path: 'M348,222 L466,218 L466,295 L348,302 Z' },
-    { id: 'skirt', cowPart: 'skirt', label: 'Skirt', lx: 348, ly: 312, path: 'M232,308 L466,295 L466,318 L232,318 Z' },
+  // Multiple paths can share the same sectionId (e.g. bones = front + rear shanks)
+  const regions = [
+    { id: 'chuck', path: 'M240,56 L239,101 L239,142 L243,175 L131,165 L144,116 L153,93 L174,55 Z' },
+    { id: 'rib', path: 'M248,56 L293,58 L355,65 L363,106 L364,161 L365,185 L246,174 L243,120 Z' },
+    { id: 'short_loin', path: 'M360,65 L428,63 L433,86 L440,89 L497,86 L503,111 L437,114 L437,151 L432,195 L402,187 L370,186 L371,122 Z' },
+    { id: 'sirloin', path: 'M433,61 L460,55 L493,51 L499,83 L463,82 L437,86 Z' },
+    { id: 'sirloin', path: 'M442,119 L442,144 L440,172 L437,197 L465,209 L484,223 L504,238 L509,198 L509,148 L502,116 Z' },
+    { id: 'round', path: 'M497,53 L508,118 L513,169 L514,211 L507,238 L536,245 L569,241 L567,183 L571,146 L575,103 L547,98 L535,78 L531,55 Z' },
+    { id: 'brisket', path: 'M131,170 L241,180 L249,212 L259,245 L217,246 L194,251 L179,258 L157,245 L143,223 L130,186 Z' },
+    { id: 'short_ribs', path: 'M248,181 L258,226 L362,235 L364,191 Z' },
+    { id: 'flank', path: 'M369,190 L366,253 L397,254 L432,243 L457,260 L490,275 L504,243 L465,217 L435,201 Z' },
+    { id: 'skirt', path: 'M258,228 L265,244 L295,243 L337,250 L360,254 L361,236 Z' },
+    { id: 'bones', path: 'M183,260 L219,253 L257,250 L260,266 L263,282 L260,331 L238,333 L233,307 L223,281 L216,303 L214,328 L190,328 L191,285 L191,268 Z' },
+    { id: 'bones', path: 'M507,243 L533,249 L570,245 L575,273 L568,333 L544,339 L545,303 L530,279 L520,301 L505,335 L483,335 L491,304 L489,282 L504,259 Z' },
   ];
 
   return (
-    <div className="relative w-full max-w-lg mx-auto select-none">
-      <div className="relative">
-        <img
-          src="/images/beef_cuts.webp"
-          alt="Beef cuts diagram"
-          className="w-full h-auto block"
-          draggable={false}
+    <div className="w-full max-w-lg mx-auto select-none">
+      <svg
+        viewBox="0 0 595 359"
+        className="w-full h-auto"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+      >
+        {/* Embedded image — coordinate system guaranteed to match */}
+        <image
+          href="/images/beef_cuts.webp"
+          width="595"
+          height="359"
+          preserveAspectRatio="xMidYMid meet"
         />
-        <svg
-          viewBox="0 0 600 395"
-          className="absolute inset-0 w-full h-full"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {regions.map(({ id, path, label, lx, ly }) => {
-            const style = getStyle(id);
-            const isActive = activeSection === id;
-            return (
-              <g key={id} onClick={() => onSectionClick(id)} className="cursor-pointer">
-                <path
-                  d={path}
-                  fill={style.fill}
-                  opacity={style.opacity}
-                  className="transition-opacity duration-200 hover:opacity-60"
-                />
-                {isActive && (
-                  <text
-                    x={lx} y={ly}
-                    textAnchor="middle"
-                    fontSize="11"
-                    fontWeight="700"
-                    fill="white"
-                    style={{ pointerEvents: 'none', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
-                  >
-                    {label}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </svg>
-      </div>
+
+        {/* Clickable overlay regions */}
+        {regions.map((region, i) => {
+          const style = getStyle(region.id);
+          return (
+            <path
+              key={`${region.id}-${i}`}
+              d={region.path}
+              fill={style.fill}
+              opacity={style.opacity}
+              className="cursor-pointer transition-all duration-200"
+              onClick={() => onSectionClick(region.id)}
+              onMouseEnter={(e) => {
+                if (activeSection !== region.id) {
+                  (e.target as SVGPathElement).style.fill = '#E85D24';
+                  (e.target as SVGPathElement).style.opacity = '0.3';
+                }
+              }}
+              onMouseLeave={(e) => {
+                const s = getStyle(region.id);
+                (e.target as SVGPathElement).style.fill = s.fill;
+                (e.target as SVGPathElement).style.opacity = String(s.opacity);
+              }}
+            />
+          );
+        })}
+      </svg>
 
       {/* Legend */}
-      <div className="flex gap-4 justify-center mt-2 text-xs text-brand-gray">
+      <div className="flex gap-4 justify-center mt-1 text-xs text-brand-gray">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#E85D24', opacity:0.8}}/>Current
+          <span className="w-3 h-3 rounded-sm inline-block bg-brand-orange opacity-80"/>Current
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#1A3D2B', opacity:0.8}}/>Done
+          <span className="w-3 h-3 rounded-sm inline-block bg-brand-green opacity-80"/>Done
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#9CA3AF', opacity:0.8}}/>Not started
+          <span className="w-3 h-3 rounded-sm inline-block bg-gray-400 opacity-80"/>Hover to explore
         </span>
       </div>
     </div>
