@@ -75,6 +75,25 @@ export async function POST(request: NextRequest) {
       customerId = newCustomer.id;
     }
 
+    // 3. Check for existing draft session to prevent duplicates
+    const { data: existingSession } = await supabaseAdmin
+      .from('sessions')
+      .select('id')
+      .eq('customer_id', customerId)
+      .eq('animal_id', animal_id)
+      .eq('purchase_type', purchase_type)
+      .eq('status', 'draft')
+      .single();
+
+    if (existingSession) {
+      return NextResponse.json({
+        success: true,
+        session_id: existingSession.id,
+        customer_id: customerId,
+        message: 'Existing booking found.',
+      });
+    }
+
     // 3. Create session record (slot_id is nullable per block7 migration)
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('sessions')
