@@ -30,12 +30,17 @@ export async function GET(request: NextRequest) {
 
     // Call confirm to create payment record and send confirmation email
     try {
+      // Fetch amount from Stripe so confirm can record it
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const amountCents = paymentIntent.amount;
+
       await fetch(`${APP_URL}/api/payments/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: sessionId,
           stripe_payment_intent_id: paymentIntentId,
+          amount_cents: amountCents,
         }),
       });
     } catch (err) {
