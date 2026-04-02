@@ -62,7 +62,7 @@ const HOUSE_DEFAULTS: Record<string, Record<string, unknown>> = {
   tenderized_round: { choice: 'no' },
   organs: { choice: ['none'] },
   bones: { choice: 'soup' },
-  packing: { fat_pct: '85/15', lbs_per_pack: 1, packages: 5 },
+  packing: { fat_pct: '85/15', lbs_per_pack: 1 },
 };
 
 // ─── SVG Cow Component ────────────────────────────────────────────────────────
@@ -751,6 +751,40 @@ function getSectionContent(
             </div>
           </div>
         )}
+        {choice === true && (
+          <>
+            {/* Package size for stew meat */}
+            <div>
+              <label className="block text-sm font-semibold text-brand-dark mb-2">
+                Package size
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {['1 lb', '1.5 lb', '2 lb'].map(size => (
+                  <button
+                    key={size}
+                    onClick={() => onUpdate({ ...answers, pkg_size: size }, true)}
+                    className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                      answers.pkg_size === size
+                        ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                        : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Auto-calculated package count */}
+            {answers.pounds && answers.pkg_size && (
+              <div className="bg-brand-warm rounded-xl p-3 text-sm text-brand-gray">
+                That&apos;s approximately <span className="font-semibold text-brand-dark">
+                  {Math.ceil(parseFloat(answers.pounds as string) / parseFloat(answers.pkg_size as string))} packages
+                </span> of stew meat.
+              </div>
+            )}
+          </>
+        )}
         {choice !== null && (
           <ConfirmationMessage text={cd.choices[choice ? 'yes_with_pounds' : 'no']} />
         )}
@@ -855,8 +889,7 @@ function getSectionContent(
   if (section.id === 'packing') {
     const fatPct = (answers.fat_pct as string) || '';
     const lbsPerPack = (answers.lbs_per_pack as number) || 0;
-    const packages = (answers.packages as number) || 0;
-    const isComplete = !!(fatPct && lbsPerPack && packages > 0);
+    const isComplete = !!(fatPct && lbsPerPack);
 
     return (
       <div className="space-y-4">
@@ -870,7 +903,7 @@ function getSectionContent(
                 key={pct}
                 onClick={() => {
                   const updated = { ...answers, fat_pct: pct };
-                  onUpdate(updated, !!(pct && lbsPerPack && packages > 0));
+                  onUpdate(updated, !!(pct && lbsPerPack));
                 }}
                 className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
                   fatPct === pct
@@ -892,7 +925,7 @@ function getSectionContent(
                 key={lbs}
                 onClick={() => {
                   const updated = { ...answers, lbs_per_pack: lbs };
-                  onUpdate(updated, !!(fatPct && lbs && packages > 0));
+                  onUpdate(updated, !!(fatPct && lbs));
                 }}
                 className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
                   lbsPerPack === lbs
@@ -906,24 +939,8 @@ function getSectionContent(
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-semibold text-brand-dark mb-2">Packages per Order</label>
-          <input
-            type="number"
-            min="1"
-            max="20"
-            value={packages || ''}
-            onChange={(e) => {
-              const pkgs = parseInt(e.target.value, 10) || 0;
-              const updated = { ...answers, packages: pkgs };
-              onUpdate(updated, !!(fatPct && lbsPerPack && pkgs > 0));
-            }}
-            className="w-full px-4 py-2 border border-brand-gray-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
-          />
-        </div>
-
         {isComplete && (
-          <ConfirmationMessage text={`Your burger will be packed as ${lbsPerPack} lb packages, ${packages} packages total, ${fatPct} fat.`} />
+          <ConfirmationMessage text={`Your burger will be packed in ${answers.lbs_per_pack} lb packages at ${answers.fat_pct} fat.`} />
         )}
       </div>
     );
