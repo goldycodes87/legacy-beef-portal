@@ -53,136 +53,79 @@ function BeefCowDiagram({
   completedSections: string[];
   onSectionClick: (sectionId: string) => void;
 }) {
-  const getOverlayStyle = (part: string) => {
-    const sectionId = SECTIONS.find(s => s.cowPart === part)?.id;
-    if (!sectionId) return { fill: 'transparent', opacity: 0 };
-    
+  const getStyle = (sectionId: string) => {
     const isActive = activeSection === sectionId;
     const isCompleted = completedSections.includes(sectionId);
-    
-    if (isActive) return { fill: '#E85D24', opacity: 0.5 };
-    if (isCompleted) return { fill: '#1A3D2B', opacity: 0.4 };
-    return { fill: '#6B7280', opacity: 0.15 };
+    if (isActive) return { fill: '#E85D24', opacity: 0.55 };
+    if (isCompleted) return { fill: '#1A3D2B', opacity: 0.45 };
+    return { fill: '#9CA3AF', opacity: 0.15 };
   };
 
-  const handleClick = (part: string) => {
-    const section = SECTIONS.find(s => s.cowPart === part);
-    if (section) onSectionClick(section.id);
-  };
+  const regions: { id: string; cowPart: string; path: string; label: string; lx: number; ly: number }[] = [
+    { id: 'chuck', cowPart: 'chuck', label: 'Chuck', lx: 178, ly: 155, path: 'M130,65 L230,60 L235,175 L230,265 L175,270 L130,240 Z' },
+    { id: 'rib', cowPart: 'rib', label: 'Rib', lx: 288, ly: 130, path: 'M230,60 L345,55 L348,225 L235,230 Z' },
+    { id: 'short_loin', cowPart: 'short_loin', label: 'Loin', lx: 380, ly: 128, path: 'M345,55 L415,58 L415,220 L348,225 Z' },
+    { id: 'sirloin', cowPart: 'sirloin', label: 'Sirloin', lx: 442, ly: 118, path: 'M415,58 L470,60 L468,190 L415,195 Z' },
+    { id: 'round', cowPart: 'round', label: 'Round', lx: 510, ly: 160, path: 'M468,60 L555,80 L558,270 L468,265 Z' },
+    { id: 'brisket', cowPart: 'brisket', label: 'Brisket', lx: 178, ly: 278, path: 'M130,240 L235,240 L235,320 L165,325 L130,300 Z' },
+    { id: 'short_ribs', cowPart: 'short_ribs', label: 'S.Ribs', lx: 290, ly: 265, path: 'M235,230 L345,228 L345,305 L235,308 Z' },
+    { id: 'flank', cowPart: 'flank', label: 'Flank', lx: 405, ly: 258, path: 'M348,225 L468,222 L468,295 L345,298 Z' },
+    { id: 'skirt', cowPart: 'skirt', label: 'Skirt', lx: 348, ly: 313, path: 'M235,305 L465,298 L465,322 L235,325 Z' },
+  ];
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
-      <img 
-        src="/images/beef_cuts.webp" 
-        alt="Beef cuts diagram"
-        className="w-full h-auto"
-      />
-      <svg
-        viewBox="0 0 500 340"
-        className="absolute inset-0 w-full h-full"
-        style={{ top: 0, left: 0 }}
-      >
-        {/* CHUCK — left shoulder area */}
-        <rect
-          x="82" y="60" width="110" height="160"
-          rx="8"
-          fill={getOverlayStyle('chuck').fill}
-          opacity={getOverlayStyle('chuck').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('chuck')}
+    <div className="relative w-full max-w-lg mx-auto select-none">
+      <div className="relative">
+        <img
+          src="/images/beef_cuts.webp"
+          alt="Beef cuts diagram"
+          className="w-full h-auto block"
+          draggable={false}
         />
-
-        {/* RIB — center upper */}
-        <rect
-          x="192" y="45" width="105" height="130"
-          rx="8"
-          fill={getOverlayStyle('rib').fill}
-          opacity={getOverlayStyle('rib').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('rib')}
-        />
-
-        {/* SHORT LOIN — center upper right */}
-        <rect
-          x="270" y="45" width="75" height="110"
-          rx="8"
-          fill={getOverlayStyle('short_loin').fill}
-          opacity={getOverlayStyle('short_loin').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('short_loin')}
-        />
-
-        {/* SIRLOIN — upper right */}
-        <rect
-          x="320" y="45" width="75" height="100"
-          rx="8"
-          fill={getOverlayStyle('sirloin').fill}
-          opacity={getOverlayStyle('sirloin').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('sirloin')}
-        />
-
-        {/* ROUND — far right */}
-        <rect
-          x="375" y="55" width="90" height="160"
-          rx="8"
-          fill={getOverlayStyle('round').fill}
-          opacity={getOverlayStyle('round').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('round')}
-        />
-
-        {/* BRISKET — lower left chest */}
-        <rect
-          x="82" y="200" width="100" height="80"
-          rx="8"
-          fill={getOverlayStyle('brisket').fill}
-          opacity={getOverlayStyle('brisket').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('brisket')}
-        />
-
-        {/* SHORT RIBS / PLATE — lower center left */}
-        <rect
-          x="182" y="175" width="90" height="90"
-          rx="8"
-          fill={getOverlayStyle('short_ribs').fill}
-          opacity={getOverlayStyle('short_ribs').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('short_ribs')}
-        />
-
-        {/* FLANK — lower center right */}
-        <rect
-          x="270" y="175" width="105" height="80"
-          rx="8"
-          fill={getOverlayStyle('flank').fill}
-          opacity={getOverlayStyle('flank').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('flank')}
-        />
-
-        {/* SKIRT — lower belly strip */}
-        <rect
-          x="192" y="255" width="175" height="45"
-          rx="8"
-          fill={getOverlayStyle('skirt').fill}
-          opacity={getOverlayStyle('skirt').opacity}
-          className="cursor-pointer hover:opacity-60 transition-opacity"
-          onClick={() => handleClick('skirt')}
-        />
-      </svg>
+        <svg
+          viewBox="0 0 600 395"
+          className="absolute inset-0 w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {regions.map(({ id, path, label, lx, ly }) => {
+            const style = getStyle(id);
+            const isActive = activeSection === id;
+            return (
+              <g key={id} onClick={() => onSectionClick(id)} className="cursor-pointer">
+                <path
+                  d={path}
+                  fill={style.fill}
+                  opacity={style.opacity}
+                  className="transition-opacity duration-200 hover:opacity-60"
+                />
+                {isActive && (
+                  <text
+                    x={lx} y={ly}
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight="700"
+                    fill="white"
+                    style={{ pointerEvents: 'none', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+                  >
+                    {label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
 
       {/* Legend */}
       <div className="flex gap-4 justify-center mt-2 text-xs text-brand-gray">
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-brand-orange inline-block opacity-70"/>Current
+          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#E85D24', opacity:0.8}}/>Current
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-brand-green inline-block opacity-70"/>Done
+          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#1A3D2B', opacity:0.8}}/>Done
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded-sm bg-gray-400 inline-block opacity-70"/>Not started
+          <span className="w-3 h-3 rounded-sm inline-block" style={{backgroundColor:'#9CA3AF', opacity:0.8}}/>Not started
         </span>
       </div>
     </div>
