@@ -60,8 +60,8 @@ const HOUSE_DEFAULTS: Record<string, Record<string, unknown>> = {
   flank: { choice: 'yes' },
   stew_meat: { choice: 'no' },
   tenderized_round: { choice: 'no' },
-  organs: { choice: ['none'] },
-  bones: { choice: 'soup' },
+  organs: { choices: ['none'] },
+  bones: { choices: ['soup'] },
   packing: { fat_pct: '85/15', lbs_per_pack: 1 },
 };
 
@@ -821,7 +821,7 @@ function getSectionContent(
 
   // ─── SECTION 12: ORGANS ───
   if (section.id === 'organs') {
-    const choice = (answers.choice as string[]) || [];
+    const choice = (answers.choices as string[]) || [];
     const cd = cutDescriptions.organs;
 
     const handleOrgans = (id: string | string[]) => {
@@ -832,7 +832,7 @@ function getSectionContent(
       } else {
         newChoice = newChoice.filter(x => x !== 'none');
       }
-      onUpdate({ choice: newChoice }, newChoice.length > 0);
+      onUpdate({ choices: newChoice }, newChoice.length > 0);
     };
 
     return (
@@ -849,14 +849,14 @@ function getSectionContent(
           onChange={handleOrgans}
           multi={true}
         />
-        {choice.length > 0 && !choice.includes('none') && (
+        {choice.length > 0 && choice[0] !== 'none' && (
           <div className="space-y-2">
             {choice.map(organ => (
-              <ConfirmationMessage key={organ} text={cd.choices[organ as keyof typeof cd.choices] ?? ''} />
+              <ConfirmationMessage key={organ} text={(cutDescriptions.organs.choices as Record<string, string>)[organ] ?? ''} />
             ))}
           </div>
         )}
-        {choice.includes('none') && <ConfirmationMessage text={cd.choices.none} />}
+        {choice.includes('none') && <ConfirmationMessage text={cutDescriptions.organs.choices.none} />}
         <p className="text-xs text-brand-gray border-t border-brand-gray-light pt-3">Organs must be requested at drop-off. If your cut sheet doesn&apos;t reach us before butcher day, organs won&apos;t be available.</p>
       </div>
     );
@@ -864,8 +864,7 @@ function getSectionContent(
 
   // ─── SECTION 13: BONES ───
   if (section.id === 'bones') {
-    const choice = answers.choice as string | undefined;
-    const cd = cutDescriptions.bones;
+    const choices = (answers.choices as string[]) || [];
     return (
       <div className="space-y-4">
         <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
@@ -875,11 +874,19 @@ function getSectionContent(
             { id: 'soup', label: 'Soup Bones' },
             { id: 'none', label: 'Skip the bones' },
           ]}
-          value={choice ?? null}
-          onChange={(v) => onUpdate({ choice: v }, !!v)}
+          value={choices}
+          onChange={(v) => onUpdate({ choices: v as string[] }, (v as string[]).length > 0)}
+          multi={true}
         />
-        {choice && (
-          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        {choices.length > 0 && (
+          <div className="space-y-2">
+            {choices.map(bone => (
+              <ConfirmationMessage
+                key={bone}
+                text={(cutDescriptions.bones.choices as Record<string, string>)[bone] ?? ''}
+              />
+            ))}
+          </div>
         )}
       </div>
     );
@@ -1057,6 +1064,17 @@ function SectionForm({
   const [customRequest, setCustomRequest] = useState('');
   const [customSaved, setCustomSaved] = useState(false);
 
+  // Auto-complete tenderized_round if round is not steaks
+  useEffect(() => {
+    if (section.id === 'tenderized_round') {
+      const roundAnswers = allAnswers.find(a => a.section === 'round');
+      if (roundAnswers?.answers?.choice !== 'steaks') {
+        onSave({ choice: 'skipped', reason: 'round_not_steaks' }, true);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section.id]);
+
   const handleUseHouseDefault = () => {
     onSave({ ...HOUSE_DEFAULTS[section.id], house_default: true }, true);
   };
@@ -1188,7 +1206,13 @@ export default function CutsPage() {
       setSession(sessionData);
       setAnswers(Array.isArray(answersData) ? answersData : []);
 
-      if (Array.isArray(answersData) && answersData.length > 0) {
+      // Handle ?section= query param
+      const urlParams = new URLSearchParams(window.location.search);
+      const sectionParam = urlParams.get('section');
+      if (sectionParam !== null) {
+        setCurrentIndex(parseInt(sectionParam, 10));
+        setShowIntro(false);
+      } else if (Array.isArray(answersData) && answersData.length > 0) {
         const firstIncomplete = SECTIONS.findIndex(
           s => !answersData.find((a: CutSheetAnswer) => a.section === s.id && a.completed)
         );
@@ -1229,14 +1253,10 @@ export default function CutsPage() {
   }, [uuid]);
 
   const handleNext = async () => {
-    if (currentIndex < SECTIONS.length - 1) {
-      setCurrentIndex(i => i + 1);
+    if (currentIndex === SECTIONS.length - 1) {
+      router.push(`/session/${uuid}/review`);
     } else {
-      // All sections complete — lock the cut sheet
-      const res = await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
-      if (res.ok) {
-        setShowWrapped(true);
-      }
+      setCurrentIndex(i => i + 1);
     }
   };
 
