@@ -110,6 +110,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Record payment in payments table
     const paymentRecord: Record<string, unknown> = {
+      method: 'card',
       session_id,
       type: 'deposit',
       status: 'paid',
