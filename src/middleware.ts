@@ -44,6 +44,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const orderAccessCookie = request.cookies.get('order_access');
+  if (orderAccessCookie && pathname.startsWith('/session/') && pathname.includes(orderAccessCookie.value)) {
+    return NextResponse.next();
+  }
+  // Also allow the /access/* routes through
+  if (pathname.startsWith('/access')) {
+    return NextResponse.next();
+  }
+
   // Check session — IMPORTANT: do not run arbitrary code between createServerClient and getUser
   const {
     data: { user },

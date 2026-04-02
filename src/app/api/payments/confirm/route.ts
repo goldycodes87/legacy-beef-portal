@@ -1,21 +1,8 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { createClient } from '@supabase/supabase-js';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
-
-// Supabase auth client for generating magic links
-const supabaseAuth = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SECRET_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -115,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const { email, name } = customer;
     const firstName = name?.split(' ')[0] ?? 'there';
-    const sessionUrl = `${APP_URL}/session/${session_id}/cuts`;
+    const sessionUrl = `${APP_URL}/access/${session_id}`;
 
     const depositPaid = amount_cents
       ? amount_cents / 100
@@ -153,47 +140,16 @@ export async function POST(request: NextRequest) {
       console.error('Error updating session status:', updateError);
     }
 
-    // 4. Generate magic link and send comprehensive confirmation email
-    let magicLinkSent = false;
+    // 4. Send comprehensive confirmation email
+    // No magic link needed — email contains permanent /access/[session_id] link
+    const magicLinkSent = true;
     let magicLinkError: string | null = null;
 
     try {
-      // Use admin.generateLink to get the token without Supabase sending its own email
-      const { data: linkData, error: linkError } = await supabaseAuth.auth.admin.generateLink({
-        type: 'magiclink',
-        email,
-        options: {
-          redirectTo: `${APP_URL}/auth/callback`,
-        },
-      });
-
       const resendKey = process.env.RESEND_API_KEY;
       if (!resendKey || resendKey === 're_placeholder_set_in_vercel') {
         console.warn('RESEND_API_KEY not configured — skipping email send');
-        magicLinkSent = false;
-      } else if (linkError || !linkData?.properties?.action_link) {
-        console.error('Failed to generate magic link:', linkError);
-
-        // Fallback: use signInWithOtp and let Supabase send its own email
-        const { error: otpError } = await supabaseAuth.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: `${APP_URL}/auth/callback`,
-            shouldCreateUser: true,
-            data: { session_id },
-          },
-        });
-
-        if (otpError) {
-          magicLinkError = otpError.message;
-          console.error('signInWithOtp fallback failed:', otpError);
-        } else {
-          magicLinkSent = true;
-        }
       } else {
-        // We have the magic link — send our comprehensive branded confirmation email
-        const actionLink = linkData.properties.action_link;
-
         const { Resend } = await import('resend');
         const resend = new Resend(resendKey);
 
@@ -211,13 +167,11 @@ export async function POST(request: NextRequest) {
             pricePerLb: Number(animal.price_per_lb),
             depositPaid,
             stripeReceiptId: stripe_receipt_id || stripe_payment_intent_id || null,
-            magicLink: actionLink,
+            magicLink: sessionUrl,
             sessionUrl,
             sessionId: session_id,
           }),
         });
-
-        magicLinkSent = true;
 
         await supabaseAdmin.from('notifications').insert({
           session_id,
@@ -397,7 +351,7 @@ function buildConfirmationEmail(p: ConfirmationEmailParams): string {
                 </tr>
               </table>
               <p style="margin:0 0 6px;color:#aaa;font-size:11px;font-family:Arial,sans-serif;text-align:center;">
-                This magic link is single-use and expires in 24 hours.
+                This link is permanent — bookmark it for easy access anytime.
               </p>
               <p style="margin:0 0 28px;font-size:10px;color:#ccc;font-family:monospace;text-align:center;word-break:break-all;">
                 ${p.magicLink}
