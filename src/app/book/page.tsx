@@ -235,8 +235,12 @@ export default function BookPage() {
   }
 
   // ── Submit ─────────────────────────────────────────────────────────────────
+  const submitRef = useRef(false);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (submitRef.current) return;
+    submitRef.current = true;
 
     // Mark all fields touched
     setTouched({ name: true, email: true, phone: true, address: true, city: true, state: true, zip: true });
@@ -287,6 +291,7 @@ export default function BookPage() {
       setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setSubmitting(false);
+      submitRef.current = false;
     }
   }
 
