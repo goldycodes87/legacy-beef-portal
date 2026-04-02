@@ -53,180 +53,139 @@ function BeefCowDiagram({
   completedSections: string[];
   onSectionClick: (sectionId: string) => void;
 }) {
-  const getColor = (part: string) => {
-    if (activeSection && SECTIONS.find(s => s.id === activeSection)?.cowPart === part) return '#E85D24';
-    if (completedSections.some(s => SECTIONS.find(sec => sec.id === s)?.cowPart === part)) return '#1A3D2B';
-    return '#D1D5DB';
+  const getOverlayStyle = (part: string) => {
+    const sectionId = SECTIONS.find(s => s.cowPart === part)?.id;
+    if (!sectionId) return { fill: 'transparent', opacity: 0 };
+    
+    const isActive = activeSection === sectionId;
+    const isCompleted = completedSections.includes(sectionId);
+    
+    if (isActive) return { fill: '#E85D24', opacity: 0.5 };
+    if (isCompleted) return { fill: '#1A3D2B', opacity: 0.4 };
+    return { fill: '#6B7280', opacity: 0.15 };
   };
 
-  const getOpacity = (part: string) => {
-    if (activeSection && SECTIONS.find(s => s.id === activeSection)?.cowPart === part) return '0.9';
-    return '0.7';
+  const handleClick = (part: string) => {
+    const section = SECTIONS.find(s => s.cowPart === part);
+    if (section) onSectionClick(section.id);
   };
 
   return (
-    <svg viewBox="0 0 500 280" className="w-full max-w-md mx-auto" style={{filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.1))'}}>
-      {/* Body outline */}
-      <ellipse cx="240" cy="160" rx="180" ry="80" fill="#F5F0E8" stroke="#E8DCC8" strokeWidth="2"/>
-      
-      {/* HEAD */}
-      <ellipse cx="68" cy="145" rx="45" ry="38" fill="#F5F0E8" stroke="#E8DCC8" strokeWidth="2"/>
-      {/* Nose */}
-      <ellipse cx="35" cy="155" rx="18" ry="12" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5"/>
-      {/* Eye */}
-      <circle cx="62" cy="135" r="5" fill="#1A3D2B"/>
-      <circle cx="63" cy="134" r="1.5" fill="white"/>
-      {/* Ear */}
-      <ellipse cx="100" cy="118" rx="12" ry="8" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5" transform="rotate(-20 100 118)"/>
-      {/* Horn */}
-      <path d="M95 112 Q105 95 115 105" stroke="#C4A46B" strokeWidth="3" fill="none" strokeLinecap="round"/>
-
-      {/* CHUCK — neck/shoulder area */}
-      <path 
-        d="M108 115 Q130 100 160 108 L165 175 Q140 185 108 175 Z" 
-        fill={getColor('chuck')} 
-        opacity={getOpacity('chuck')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('chuck')}
+    <div className="relative w-full max-w-md mx-auto">
+      <img 
+        src="/images/beef_cuts.webp" 
+        alt="Beef cuts diagram"
+        className="w-full h-auto"
       />
+      <svg
+        viewBox="0 0 500 340"
+        className="absolute inset-0 w-full h-full"
+        style={{ top: 0, left: 0 }}
+      >
+        {/* CHUCK — left shoulder area */}
+        <rect
+          x="82" y="60" width="110" height="160"
+          rx="8"
+          fill={getOverlayStyle('chuck').fill}
+          opacity={getOverlayStyle('chuck').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('chuck')}
+        />
 
-      {/* RIB — mid upper back */}
-      <path 
-        d="M160 100 Q195 88 225 92 L228 168 Q195 175 165 175 Z" 
-        fill={getColor('rib')} 
-        opacity={getOpacity('rib')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('rib')}
-      />
+        {/* RIB — center upper */}
+        <rect
+          x="192" y="45" width="105" height="130"
+          rx="8"
+          fill={getOverlayStyle('rib').fill}
+          opacity={getOverlayStyle('rib').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('rib')}
+        />
 
-      {/* SHORT LOIN — upper middle */}
-      <path 
-        d="M225 92 Q258 85 285 90 L285 168 Q258 172 228 168 Z" 
-        fill={getColor('short_loin')} 
-        opacity={getOpacity('short_loin')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('short_loin')}
-      />
+        {/* SHORT LOIN — center upper right */}
+        <rect
+          x="270" y="45" width="75" height="110"
+          rx="8"
+          fill={getOverlayStyle('short_loin').fill}
+          opacity={getOverlayStyle('short_loin').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('short_loin')}
+        />
 
-      {/* SIRLOIN — upper rear */}
-      <path 
-        d="M285 90 Q318 86 345 95 L342 168 Q318 172 285 168 Z" 
-        fill={getColor('sirloin')} 
-        opacity={getOpacity('sirloin')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('sirloin')}
-      />
+        {/* SIRLOIN — upper right */}
+        <rect
+          x="320" y="45" width="75" height="100"
+          rx="8"
+          fill={getOverlayStyle('sirloin').fill}
+          opacity={getOverlayStyle('sirloin').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('sirloin')}
+        />
 
-      {/* ROUND — rear haunches */}
-      <path 
-        d="M342 95 Q375 92 400 110 L398 175 Q375 182 342 168 Z" 
-        fill={getColor('round')} 
-        opacity={getOpacity('round')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('round')}
-      />
+        {/* ROUND — far right */}
+        <rect
+          x="375" y="55" width="90" height="160"
+          rx="8"
+          fill={getOverlayStyle('round').fill}
+          opacity={getOverlayStyle('round').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('round')}
+        />
 
-      {/* BRISKET — lower front chest */}
-      <path 
-        d="M108 175 Q130 185 162 190 L155 220 Q128 218 105 205 Z" 
-        fill={getColor('brisket')} 
-        opacity={getOpacity('brisket')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('brisket')}
-      />
+        {/* BRISKET — lower left chest */}
+        <rect
+          x="82" y="200" width="100" height="80"
+          rx="8"
+          fill={getOverlayStyle('brisket').fill}
+          opacity={getOverlayStyle('brisket').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('brisket')}
+        />
 
-      {/* SKIRT — lower mid belly */}
-      <path 
-        d="M162 190 Q200 198 235 195 L232 222 Q198 225 155 220 Z" 
-        fill={getColor('skirt')} 
-        opacity={getOpacity('skirt')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('skirt')}
-      />
+        {/* SHORT RIBS / PLATE — lower center left */}
+        <rect
+          x="182" y="175" width="90" height="90"
+          rx="8"
+          fill={getOverlayStyle('short_ribs').fill}
+          opacity={getOverlayStyle('short_ribs').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('short_ribs')}
+        />
 
-      {/* FLANK — lower rear belly */}
-      <path 
-        d="M235 195 Q270 195 305 190 L308 220 Q272 228 232 222 Z" 
-        fill={getColor('flank')} 
-        opacity={getOpacity('flank')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('flank')}
-      />
+        {/* FLANK — lower center right */}
+        <rect
+          x="270" y="175" width="105" height="80"
+          rx="8"
+          fill={getOverlayStyle('flank').fill}
+          opacity={getOverlayStyle('flank').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('flank')}
+        />
 
-      {/* SHORT RIBS — lower rib area */}
-      <path 
-        d="M162 175 Q195 178 228 175 L232 195 Q198 198 162 190 Z" 
-        fill={getColor('short_ribs')} 
-        opacity={getOpacity('short_ribs')}
-        stroke="white" strokeWidth="1.5"
-        className="cursor-pointer hover:opacity-90 transition-all"
-        onClick={() => onSectionClick('short_ribs')}
-      />
-
-      {/* REAR LEG (Round continuation) */}
-      <rect x="370" y="200" width="30" height="60" rx="10" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5"/>
-      <rect x="375" y="255" width="20" height="15" rx="5" fill="#C4A46B"/>
-
-      {/* FRONT LEG */}
-      <rect x="120" y="205" width="28" height="58" rx="10" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5"/>
-      <rect x="124" y="258" width="20" height="15" rx="5" fill="#C4A46B"/>
-
-      {/* SECOND FRONT LEG */}
-      <rect x="165" y="210" width="25" height="55" rx="10" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5"/>
-      <rect x="168" y="258" width="19" height="15" rx="5" fill="#C4A46B"/>
-
-      {/* SECOND REAR LEG */}
-      <rect x="335" y="205" width="28" height="58" rx="10" fill="#F0E8D8" stroke="#E8DCC8" strokeWidth="1.5"/>
-      <rect x="338" y="258" width="20" height="15" rx="5" fill="#C4A46B"/>
-
-      {/* TAIL */}
-      <path d="M415 130 Q440 120 445 140 Q450 155 435 160" stroke="#C4A46B" strokeWidth="4" fill="none" strokeLinecap="round"/>
-      <ellipse cx="432" cy="163" rx="6" ry="8" fill="#C4A46B"/>
-
-      {/* Section labels */}
-      {[
-        { part: 'chuck', x: 133, y: 143, label: 'Chuck' },
-        { part: 'rib', x: 192, y: 132, label: 'Rib' },
-        { part: 'short_loin', x: 256, y: 128, label: 'Loin' },
-        { part: 'sirloin', x: 314, y: 128, label: 'Sirloin' },
-        { part: 'round', x: 370, y: 133, label: 'Round' },
-        { part: 'brisket', x: 133, y: 205, label: 'Brisket' },
-        { part: 'short_ribs', x: 195, y: 187, label: 'S.Ribs' },
-        { part: 'skirt', x: 193, y: 210, label: 'Skirt' },
-        { part: 'flank', x: 268, y: 210, label: 'Flank' },
-      ].map(({ part, x, y, label }) => (
-        <text
-          key={part}
-          x={x} y={y}
-          textAnchor="middle"
-          fontSize="9"
-          fontWeight="600"
-          fill="white"
-          className="pointer-events-none select-none"
-          style={{textShadow: '0 1px 2px rgba(0,0,0,0.5)'}}
-        >
-          {label}
-        </text>
-      ))}
+        {/* SKIRT — lower belly strip */}
+        <rect
+          x="192" y="255" width="175" height="45"
+          rx="8"
+          fill={getOverlayStyle('skirt').fill}
+          opacity={getOverlayStyle('skirt').opacity}
+          className="cursor-pointer hover:opacity-60 transition-opacity"
+          onClick={() => handleClick('skirt')}
+        />
+      </svg>
 
       {/* Legend */}
-      <g transform="translate(10, 10)">
-        <rect x="0" y="0" width="10" height="10" rx="2" fill="#E85D24"/>
-        <text x="14" y="9" fontSize="8" fill="#6B7280">Current</text>
-        <rect x="65" y="0" width="10" height="10" rx="2" fill="#1A3D2B"/>
-        <text x="79" y="9" fontSize="8" fill="#6B7280">Done</text>
-        <rect x="115" y="0" width="10" height="10" rx="2" fill="#D1D5DB"/>
-        <text x="129" y="9" fontSize="8" fill="#6B7280">Not started</text>
-      </g>
-    </svg>
+      <div className="flex gap-4 justify-center mt-2 text-xs text-brand-gray">
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-sm bg-brand-orange inline-block opacity-70"/>Current
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-sm bg-brand-green inline-block opacity-70"/>Done
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-sm bg-gray-400 inline-block opacity-70"/>Not started
+        </span>
+      </div>
+    </div>
   );
 }
 
