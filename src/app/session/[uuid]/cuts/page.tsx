@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import cutDescriptions from '@/lib/cut-descriptions.json';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,6 +14,9 @@ interface Session {
   group_size: number;
   is_splitting: boolean;
   cut_sheet_complete: boolean;
+  animal?: {
+    butcher_date?: string;
+  };
 }
 
 interface CutSheetAnswer {
@@ -42,13 +46,32 @@ const SECTIONS = [
   { id: 'packing', label: 'Packing Info', icon: '📦', cowPart: null },
 ];
 
+// ─── House Defaults ────────────────────────────────────────────────────────
+
+const HOUSE_DEFAULTS: Record<string, Record<string, unknown>> = {
+  chuck: { choice: 'steaks', thickness: '1"', steaks_per_pack: 2 },
+  brisket: { choice: 'yes_whole' },
+  skirt: { choice: 'yes' },
+  rib: { choice: 'bone_in_steaks', thickness: '1.25"', steaks_per_pack: 2 },
+  short_ribs: { choice: 'yes' },
+  sirloin: { choice: 'steaks', thickness: '1"', steaks_per_pack: 2 },
+  round: { choice: 'grind' },
+  short_loin: { choice: 'tbone', thickness: '1"', steaks_per_pack: 2 },
+  flank: { choice: 'yes' },
+  stew_meat: { choice: 'no' },
+  tenderized_round: { choice: 'no' },
+  organs: { choice: ['none'] },
+  bones: { choice: 'soup' },
+  packing: { fat_pct: '85/15', lbs_per_pack: 1, packages: 5 },
+};
+
 // ─── SVG Cow Component ────────────────────────────────────────────────────────
 
-function BeefCowDiagram({ 
-  activeSection, 
+function BeefCowDiagram({
+  activeSection,
   completedSections,
-  onSectionClick 
-}: { 
+  onSectionClick
+}: {
   activeSection: string | null;
   completedSections: string[];
   onSectionClick: (sectionId: string) => void;
@@ -61,7 +84,6 @@ function BeefCowDiagram({
     return { fill: 'transparent', opacity: 0 };
   };
 
-  // Multiple paths can share the same sectionId (e.g. bones = front + rear shanks)
   const regions = [
     { id: 'chuck', path: 'M240,56 L239,101 L239,142 L243,175 L131,165 L144,116 L153,93 L174,55 Z' },
     { id: 'rib', path: 'M248,56 L293,58 L355,65 L363,106 L364,161 L365,185 L246,174 L243,120 Z' },
@@ -85,15 +107,12 @@ function BeefCowDiagram({
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
       >
-        {/* Embedded image — coordinate system guaranteed to match */}
         <image
           href="/images/beef_cuts.webp"
           width="600"
           height="395"
           preserveAspectRatio="xMidYMid meet"
         />
-
-        {/* Clickable overlay regions */}
         {regions.map((region, i) => (
           <path
             key={`${region.id}-${i}`}
@@ -107,8 +126,6 @@ function BeefCowDiagram({
           />
         ))}
       </svg>
-
-      {/* Legend */}
       <div className="flex gap-4 justify-center mt-1 text-xs text-brand-gray">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded-sm inline-block bg-brand-orange opacity-80"/>Current
@@ -126,9 +143,9 @@ function BeefCowDiagram({
 
 // ─── Duolingo dot path ─────────────────────────────────────────────────────
 
-function SectionDotPath({ 
-  sections, 
-  currentIndex, 
+function SectionDotPath({
+  sections,
+  currentIndex,
   completedSections,
   onDotClick
 }: {
@@ -230,34 +247,801 @@ function IntroScreen({ session, onStart }: { session: Session; onStart: () => vo
   );
 }
 
-// ─── Section Placeholder (12B will replace these) ────────────────────────────
+// ─── Reusable Sub-Components ──────────────────────────────────────────────────
+
+function ConfirmationMessage({ text }: { text: string }) {
+  return (
+    <div className="mt-4 p-4 bg-brand-green-pale border border-green-200 rounded-xl">
+      <p className="text-brand-green text-sm font-medium">✓ {text}</p>
+    </div>
+  );
+}
+
+function YesNoSelector({ value, onChange }: { value: boolean | null; onChange: (v: boolean) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {([true, false] as boolean[]).map((v) => (
+        <button
+          key={String(v)}
+          onClick={() => onChange(v)}
+          className={`py-4 rounded-xl font-semibold border-2 transition-all ${
+            value === v
+              ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+              : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+          }`}
+        >
+          {v ? 'Yes' : 'No'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function OptionSelector({
+  options,
+  value,
+  onChange,
+  multi = false,
+}: {
+  options: { id: string; label: string; description?: string }[];
+  value: string | string[] | null;
+  onChange: (v: string | string[]) => void;
+  multi?: boolean;
+}) {
+  const isSelected = (id: string) =>
+    multi ? ((value as string[]) || []).includes(id) : value === id;
+
+  const handleClick = (id: string) => {
+    if (multi) {
+      const current = (value as string[]) || [];
+      onChange(current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
+    } else {
+      onChange(id);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {options.map(opt => (
+        <button
+          key={opt.id}
+          onClick={() => handleClick(opt.id)}
+          className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+            isSelected(opt.id)
+              ? 'border-brand-orange bg-brand-orange-light'
+              : 'border-brand-gray-light bg-white hover:border-brand-orange/50'
+          }`}
+        >
+          <p className="font-semibold text-brand-dark text-sm">{opt.label}</p>
+          {opt.description && <p className="text-xs text-brand-gray mt-0.5">{opt.description}</p>}
+          {isSelected(opt.id) && <span className="text-brand-orange text-xs font-bold">✓ Selected</span>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ThicknessSelector({ value, onChange, label = 'Thickness' }: { value: string; onChange: (v: string) => void; label?: string }) {
+  const options = ['3/4"', '1"', '1.25"', '1.5"'];
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-brand-dark mb-2">{label}</label>
+      <div className="grid grid-cols-4 gap-2">
+        {options.map(opt => (
+          <button
+            key={opt}
+            onClick={() => onChange(opt)}
+            className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+              value === opt
+                ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+            }`}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SteaksPerPackSelector({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-brand-dark mb-2">Steaks per pack <span className="text-brand-gray font-normal">(house default: 2)</span></label>
+      <div className="grid grid-cols-4 gap-2">
+        {[1, 2, 3, 4].map(n => (
+          <button
+            key={n}
+            onClick={() => onChange(n)}
+            className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+              value === n
+                ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+            }`}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RoastWeightSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const options = [
+    { id: '2-3', label: '2–3 lbs', description: 'Feeds ~4 people, great for smaller families' },
+    { id: '3-4', label: '3–4 lbs', description: 'Sweet spot for most families of 4–6' },
+    { id: '4-5', label: '4–5 lbs', description: "Big roast — make sure you've got hungry people coming" },
+  ];
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-brand-dark mb-2">Roast size</label>
+      <div className="space-y-2">
+        {options.map(opt => (
+          <button
+            key={opt.id}
+            onClick={() => onChange(opt.id)}
+            className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
+              value === opt.id
+                ? 'border-brand-orange bg-brand-orange-light'
+                : 'border-brand-gray-light bg-white hover:border-brand-orange/50'
+            }`}
+          >
+            <p className="font-semibold text-brand-dark text-sm">{opt.label}</p>
+            <p className="text-xs text-brand-gray">{opt.description}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── getSectionContent ────────────────────────────────────────────────────────
+
+function getSectionContent(
+  section: typeof SECTIONS[0],
+  answers: Record<string, unknown>,
+  onUpdate: (newAnswers: Record<string, unknown>, completed: boolean) => void,
+) {
+  const intro = (cutDescriptions as Record<string, { intro?: string }>)[section.id]?.intro || '';
+
+  // ─── SECTION 1: CHUCK ───
+  if (section.id === 'chuck') {
+    const choice = answers.choice as string | undefined;
+    const thickness = (answers.thickness as string) || '1"';
+    const steaksPerPack = (answers.steaks_per_pack as number) || 2;
+    const cd = cutDescriptions.chuck;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'roasts', label: 'Roasts' },
+            { id: 'steaks', label: 'Steaks' },
+            { id: 'grind', label: 'Ground Beef' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => {
+            const newAnswers: Record<string, unknown> = { choice: v };
+            if (v === 'steaks') {
+              newAnswers.thickness = thickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+            } else if (v === 'roasts') {
+              newAnswers.roast_weight = answers.roast_weight || '3-4';
+            }
+            onUpdate(newAnswers, !!v);
+          }}
+        />
+        {choice === 'steaks' && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice === 'roasts' && (
+          <RoastWeightSelector value={(answers.roast_weight as string) || '3-4'} onChange={(v) => onUpdate({ ...answers, roast_weight: v }, !!choice)} />
+        )}
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 2: BRISKET ───
+  if (section.id === 'brisket') {
+    const choice = answers.choice as string | undefined;
+    const cd = cutDescriptions.brisket;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'yes_whole', label: 'Whole Brisket' },
+            { id: 'yes_half', label: 'Half Brisket' },
+            { id: 'no', label: 'Skip Brisket' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => onUpdate({ choice: v }, !!v)}
+        />
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 3: SKIRT ───
+  if (section.id === 'skirt') {
+    const choice = (answers.choice as boolean | undefined) !== undefined ? (answers.choice as boolean) : null;
+    const cd = cutDescriptions.skirt;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <YesNoSelector
+          value={choice}
+          onChange={(v) => onUpdate({ choice: v }, true)}
+        />
+        {choice !== null && (
+          <ConfirmationMessage text={cd.choices[choice ? 'yes' : 'no']} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 4: RIB ───
+  if (section.id === 'rib') {
+    const choice = answers.choice as string | undefined;
+    const thickness = (answers.thickness as string) || '1.25"';
+    const steaksPerPack = (answers.steaks_per_pack as number) || 2;
+    const cd = cutDescriptions.rib;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'bone_in_roast', label: 'Bone-In Roast' },
+            { id: 'boneless_roast', label: 'Boneless Roast' },
+            { id: 'bone_in_steaks', label: 'Bone-In Steaks' },
+            { id: 'boneless_steaks', label: 'Boneless Steaks' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => {
+            const s = v as string;
+            const newAnswers: Record<string, unknown> = { choice: s };
+            if (s?.includes('roast')) {
+              newAnswers.roast_weight = answers.roast_weight || '3-4';
+            } else if (s?.includes('steaks')) {
+              newAnswers.thickness = thickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+            }
+            onUpdate(newAnswers, !!s);
+          }}
+        />
+        {choice?.includes('roast') && (
+          <RoastWeightSelector value={(answers.roast_weight as string) || '3-4'} onChange={(v) => onUpdate({ ...answers, roast_weight: v }, !!choice)} />
+        )}
+        {choice?.includes('steaks') && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 5: SHORT_RIBS ───
+  if (section.id === 'short_ribs') {
+    const choice = (answers.choice as boolean | undefined) !== undefined ? (answers.choice as boolean) : null;
+    const cd = cutDescriptions.short_ribs;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <YesNoSelector
+          value={choice}
+          onChange={(v) => onUpdate({ choice: v }, true)}
+        />
+        {choice !== null && (
+          <ConfirmationMessage text={cd.choices[choice ? 'yes' : 'no']} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 6: SIRLOIN ───
+  if (section.id === 'sirloin') {
+    const choice = answers.choice as string | undefined;
+    const thickness = (answers.thickness as string) || '1"';
+    const steaksPerPack = (answers.steaks_per_pack as number) || 2;
+    const cd = cutDescriptions.sirloin;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'roasts', label: 'Roasts' },
+            { id: 'steaks', label: 'Steaks' },
+            { id: 'grind', label: 'Ground Beef' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => {
+            const newAnswers: Record<string, unknown> = { choice: v };
+            if (v === 'steaks') {
+              newAnswers.thickness = thickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+            } else if (v === 'roasts') {
+              newAnswers.roast_weight = answers.roast_weight || '3-4';
+            }
+            onUpdate(newAnswers, !!v);
+          }}
+        />
+        {choice === 'steaks' && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice === 'roasts' && (
+          <RoastWeightSelector value={(answers.roast_weight as string) || '3-4'} onChange={(v) => onUpdate({ ...answers, roast_weight: v }, !!choice)} />
+        )}
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 7: ROUND ───
+  if (section.id === 'round') {
+    const choice = answers.choice as string | undefined;
+    const thickness = (answers.thickness as string) || '3/4"';
+    const steaksPerPack = (answers.steaks_per_pack as number) || 2;
+    const cd = cutDescriptions.round;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'roasts', label: 'Roasts' },
+            { id: 'steaks', label: 'Steaks' },
+            { id: 'grind', label: 'Ground Beef' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => {
+            const newAnswers: Record<string, unknown> = { choice: v };
+            if (v === 'steaks') {
+              newAnswers.thickness = thickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+            } else if (v === 'roasts') {
+              newAnswers.roast_weight = answers.roast_weight || '3-4';
+            }
+            onUpdate(newAnswers, !!v);
+          }}
+        />
+        {choice === 'steaks' && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice === 'roasts' && (
+          <RoastWeightSelector value={(answers.roast_weight as string) || '3-4'} onChange={(v) => onUpdate({ ...answers, roast_weight: v }, !!choice)} />
+        )}
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 8: SHORT_LOIN ───
+  if (section.id === 'short_loin') {
+    const choice = answers.choice as string | undefined;
+    const thickness = (answers.thickness as string) || '1"';
+    const filetThickness = (answers.filet_thickness as string) || '1.5"';
+    const steaksPerPack = (answers.steaks_per_pack as number) || 2;
+    const filetSteaksPerPack = (answers.filet_steaks_per_pack as number) || 2;
+    const cd = cutDescriptions.short_loin;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'tbone', label: 'T-Bone Steaks' },
+            { id: 'ny_strip_and_filet', label: 'NY Strip & Filet Mignon' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => {
+            const newAnswers: Record<string, unknown> = { choice: v };
+            if (v === 'tbone') {
+              newAnswers.thickness = thickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+            } else if (v === 'ny_strip_and_filet') {
+              newAnswers.thickness = thickness;
+              newAnswers.filet_thickness = filetThickness;
+              newAnswers.steaks_per_pack = steaksPerPack;
+              newAnswers.filet_steaks_per_pack = filetSteaksPerPack;
+            }
+            onUpdate(newAnswers, !!v);
+          }}
+        />
+        {choice === 'tbone' && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} label="T-Bone Thickness" />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice === 'ny_strip_and_filet' && (
+          <>
+            <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} label="NY Strip Thickness" />
+            <ThicknessSelector value={filetThickness} onChange={(v) => onUpdate({ ...answers, filet_thickness: v }, !!choice)} label="Filet Thickness" />
+            <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
+            <SteaksPerPackSelector value={filetSteaksPerPack} onChange={(v) => onUpdate({ ...answers, filet_steaks_per_pack: v }, !!choice)} />
+          </>
+        )}
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 9: FLANK ───
+  if (section.id === 'flank') {
+    const choice = (answers.choice as boolean | undefined) !== undefined ? (answers.choice as boolean) : null;
+    const cd = cutDescriptions.flank;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <YesNoSelector
+          value={choice}
+          onChange={(v) => onUpdate({ choice: v }, true)}
+        />
+        {choice !== null && (
+          <ConfirmationMessage text={cd.choices[choice ? 'yes' : 'no']} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 10: STEW_MEAT ───
+  if (section.id === 'stew_meat') {
+    const choice = (answers.choice as boolean | undefined) !== undefined ? (answers.choice as boolean) : null;
+    const pounds = (answers.pounds as number) || 2;
+    const cd = cutDescriptions.stew_meat;
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <YesNoSelector
+          value={choice}
+          onChange={(v) => {
+            const newAnswers: Record<string, unknown> = { choice: v };
+            if (v) newAnswers.pounds = pounds;
+            onUpdate(newAnswers, true);
+          }}
+        />
+        {choice === true && (
+          <div>
+            <label className="block text-sm font-semibold text-brand-dark mb-2">Pounds</label>
+            <div className="grid grid-cols-5 gap-2">
+              {[1, 1.5, 2, 2.5, 3].map(n => (
+                <button
+                  key={n}
+                  onClick={() => onUpdate({ ...answers, pounds: n }, true)}
+                  className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                    pounds === n
+                      ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                      : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {choice !== null && (
+          <ConfirmationMessage text={cd.choices[choice ? 'yes_with_pounds' : 'no']} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 11: TENDERIZED_ROUND ───
+  if (section.id === 'tenderized_round') {
+    const roundChoice = answers.round_choice as string | undefined;
+    if (roundChoice !== 'steaks') {
+      return (
+        <div className="bg-brand-warm rounded-xl p-4 text-center border-2 border-dashed border-brand-gray-light">
+          <p className="text-brand-gray text-sm mb-2">This section only applies if you chose steaks for Round.</p>
+          <p className="text-xs text-brand-gray">Since you chose {roundChoice || 'something other than steaks'}, we&apos;ll skip this one.</p>
+        </div>
+      );
+    }
+    const choice = (answers.choice as boolean | undefined) !== undefined ? (answers.choice as boolean) : null;
+    const cd = cutDescriptions.tenderized_round;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <YesNoSelector
+          value={choice}
+          onChange={(v) => onUpdate({ choice: v }, true)}
+        />
+        {choice !== null && (
+          <ConfirmationMessage text={cd.choices[choice ? 'yes' : 'no']} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 12: ORGANS ───
+  if (section.id === 'organs') {
+    const choice = (answers.choice as string[]) || [];
+    const cd = cutDescriptions.organs;
+
+    const handleOrgans = (id: string | string[]) => {
+      const singleId = id as string;
+      let newChoice = choice.includes(singleId) ? choice.filter(x => x !== singleId) : [...choice, singleId];
+      if (singleId === 'none') {
+        newChoice = choice.includes('none') ? [] : ['none'];
+      } else {
+        newChoice = newChoice.filter(x => x !== 'none');
+      }
+      onUpdate({ choice: newChoice }, newChoice.length > 0);
+    };
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'tongue', label: 'Tongue' },
+            { id: 'heart', label: 'Heart' },
+            { id: 'liver', label: 'Liver' },
+            { id: 'none', label: 'No organs' },
+          ]}
+          value={choice}
+          onChange={handleOrgans}
+          multi={true}
+        />
+        {choice.length > 0 && !choice.includes('none') && (
+          <div className="space-y-2">
+            {choice.map(organ => (
+              <ConfirmationMessage key={organ} text={cd.choices[organ as keyof typeof cd.choices] ?? ''} />
+            ))}
+          </div>
+        )}
+        {choice.includes('none') && <ConfirmationMessage text={cd.choices.none} />}
+        <p className="text-xs text-brand-gray border-t border-brand-gray-light pt-3">Organs must be requested at drop-off. If your cut sheet doesn&apos;t reach us before butcher day, organs won&apos;t be available.</p>
+      </div>
+    );
+  }
+
+  // ─── SECTION 13: BONES ───
+  if (section.id === 'bones') {
+    const choice = answers.choice as string | undefined;
+    const cd = cutDescriptions.bones;
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+        <OptionSelector
+          options={[
+            { id: 'dog', label: 'Dog Bones' },
+            { id: 'soup', label: 'Soup Bones' },
+            { id: 'none', label: 'Skip the bones' },
+          ]}
+          value={choice ?? null}
+          onChange={(v) => onUpdate({ choice: v }, !!v)}
+        />
+        {choice && (
+          <ConfirmationMessage text={cd.choices[choice as keyof typeof cd.choices] ?? ''} />
+        )}
+      </div>
+    );
+  }
+
+  // ─── SECTION 14: PACKING ───
+  if (section.id === 'packing') {
+    const fatPct = (answers.fat_pct as string) || '';
+    const lbsPerPack = (answers.lbs_per_pack as number) || 0;
+    const packages = (answers.packages as number) || 0;
+    const isComplete = !!(fatPct && lbsPerPack && packages > 0);
+
+    return (
+      <div className="space-y-4">
+        <p className="text-brand-gray text-sm leading-relaxed mb-4">{intro}</p>
+
+        <div>
+          <label className="block text-sm font-semibold text-brand-dark mb-2">Fat Percentage</label>
+          <div className="grid grid-cols-3 gap-2">
+            {['80/20', '85/15', '90/10'].map(pct => (
+              <button
+                key={pct}
+                onClick={() => {
+                  const updated = { ...answers, fat_pct: pct };
+                  onUpdate(updated, !!(pct && lbsPerPack && packages > 0));
+                }}
+                className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                  fatPct === pct
+                    ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                    : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+                }`}
+              >
+                {pct}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-brand-dark mb-2">Pounds per Package</label>
+          <div className="grid grid-cols-3 gap-2">
+            {[1, 1.5, 2].map(lbs => (
+              <button
+                key={lbs}
+                onClick={() => {
+                  const updated = { ...answers, lbs_per_pack: lbs };
+                  onUpdate(updated, !!(fatPct && lbs && packages > 0));
+                }}
+                className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                  lbsPerPack === lbs
+                    ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
+                    : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
+                }`}
+              >
+                {lbs} lb
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-brand-dark mb-2">Packages per Order</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            value={packages || ''}
+            onChange={(e) => {
+              const pkgs = parseInt(e.target.value, 10) || 0;
+              const updated = { ...answers, packages: pkgs };
+              onUpdate(updated, !!(fatPct && lbsPerPack && pkgs > 0));
+            }}
+            className="w-full px-4 py-2 border border-brand-gray-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+          />
+        </div>
+
+        {isComplete && (
+          <ConfirmationMessage text={`Your burger will be packed as ${lbsPerPack} lb packages, ${packages} packages total, ${fatPct} fat.`} />
+        )}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// ─── Spotify Wrapped Screen ───────────────────────────────────────────────────
+
+function SpotifyWrappedScreen({ session, answers }: { session: Session; answers: CutSheetAnswer[] }) {
+  const totalCuts = answers.filter(a => a.completed && !a.answers.house_default).length;
+  const houseDefaults = answers.filter(a => a.answers.house_default).length;
+  const butcherDate = session.animal?.butcher_date
+    ? new Date(session.animal.butcher_date + 'T00:00:00')
+    : null;
+  const daysUntil = butcherDate
+    ? Math.ceil((butcherDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+
+  return (
+    <div className="min-h-screen bg-brand-dark text-white flex flex-col items-center justify-center px-4 py-12">
+      <div className="max-w-sm w-full text-center space-y-8">
+        {/* Hero */}
+        <div>
+          <div className="text-6xl mb-4">🥩</div>
+          <h1 className="font-display font-bold text-4xl mb-2">Your Cut Sheet is Locked!</h1>
+          <p className="text-white/70 text-base">Your order is headed to the butcher exactly how you want it.</p>
+        </div>
+
+        {/* Stats */}
+        <div className="space-y-4">
+          <div className="bg-white/10 rounded-2xl p-6">
+            <p className="text-5xl font-bold text-brand-orange">{totalCuts}</p>
+            <p className="text-white/70 text-sm mt-1">Sections you customized</p>
+          </div>
+          {houseDefaults > 0 && (
+            <div className="bg-white/10 rounded-2xl p-6">
+              <p className="text-5xl font-bold text-brand-orange">{houseDefaults}</p>
+              <p className="text-white/70 text-sm mt-1">Sections using house defaults</p>
+            </div>
+          )}
+          {daysUntil !== null && (
+            <div className="bg-white/10 rounded-2xl p-6">
+              <p className="text-5xl font-bold text-brand-orange">{daysUntil}</p>
+              <p className="text-white/70 text-sm mt-1">Days until butcher day</p>
+            </div>
+          )}
+          <div className="bg-white/10 rounded-2xl p-6">
+            <p className="text-lg font-bold text-brand-orange">~{
+              session.purchase_type === 'whole' ? '390–465' :
+              session.purchase_type === 'half' ? '195–235' : '98–118'
+            } lbs</p>
+            <p className="text-white/70 text-sm mt-1">Approximate finished cuts you&apos;ll receive</p>
+            <p className="text-white/40 text-xs mt-1">Based on typical hanging weight yields</p>
+          </div>
+        </div>
+
+        {/* What's next */}
+        <div className="bg-brand-green rounded-2xl p-6 text-left">
+          <p className="font-semibold text-white mb-2">What happens next?</p>
+          <p className="text-white/80 text-sm leading-relaxed">We&apos;ll send your cut sheet to T-K Processing before butcher day. You&apos;ll get an email when your beef is ready for pickup with your final balance and pickup scheduling.</p>
+        </div>
+
+        {/* Share */}
+        <button
+          onClick={() => {
+            if (navigator.share) {
+              navigator.share({
+                title: 'I just reserved my beef!',
+                text: `I reserved ${session.purchase_type} beef from Legacy Land & Cattle — grass-fed, custom cut, straight from the ranch. 🐄`,
+                url: window.location.origin,
+              });
+            }
+          }}
+          className="w-full py-4 rounded-xl bg-brand-orange font-semibold text-white text-base"
+        >
+          Share with Friends 🐄
+        </button>
+
+        <p className="text-white/40 text-xs">You&apos;ll receive a copy of your cut sheet by email shortly.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Section Form ─────────────────────────────────────────────────────────────
 
 function SectionForm({
   section,
   answers,
   locked,
   sessionId,
+  allAnswers,
   onSave,
   onNext,
   onPrev,
   isFirst,
   isLast,
+  completedAll,
 }: {
   section: typeof SECTIONS[0];
   answers: Record<string, unknown>;
   locked: boolean;
   sessionId: string;
+  allAnswers: CutSheetAnswer[];
   onSave: (answers: Record<string, unknown>, completed: boolean) => void;
   onNext: () => void;
   onPrev: () => void;
   isFirst: boolean;
   isLast: boolean;
+  completedAll: boolean;
 }) {
   const [customRequest, setCustomRequest] = useState('');
   const [customSaved, setCustomSaved] = useState(false);
 
   const handleUseHouseDefault = () => {
-    onSave({ house_default: true }, true);
+    onSave({ ...HOUSE_DEFAULTS[section.id], house_default: true }, true);
   };
 
   const handleCustomRequest = async () => {
@@ -270,6 +1054,14 @@ function SectionForm({
     setCustomSaved(true);
     setTimeout(() => setCustomSaved(false), 3000);
   };
+
+  // Pass round choice to tenderized_round
+  const enrichedAnswers = section.id === 'tenderized_round'
+    ? {
+        ...answers,
+        round_choice: allAnswers.find(a => a.section === 'round')?.answers?.choice as string | undefined,
+      }
+    : answers;
 
   return (
     <div className="max-w-[600px] mx-auto px-4 py-6">
@@ -291,10 +1083,11 @@ function SectionForm({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-brand-warm rounded-xl p-4 text-center border-2 border-dashed border-brand-gray-light">
-              <p className="text-brand-gray text-sm mb-2">Section form coming in Block 12B</p>
-              <p className="text-xs text-brand-gray">Current answers: {JSON.stringify(answers)}</p>
-            </div>
+            {getSectionContent(
+              section,
+              enrichedAnswers,
+              (newAnswers, completed) => onSave(newAnswers, completed),
+            )}
 
             <button
               onClick={handleUseHouseDefault}
@@ -341,7 +1134,7 @@ function SectionForm({
           onClick={onNext}
           className="flex-1 bg-brand-orange hover:bg-brand-orange-hover text-white py-3 rounded-xl font-semibold"
         >
-          {isLast ? 'Review & Lock →' : 'Next →'}
+          {isLast && completedAll ? 'Lock In My Cut Sheet 🔒' : isLast ? 'Review & Finish →' : 'Next →'}
         </button>
       </div>
     </div>
@@ -359,10 +1152,12 @@ export default function CutsPage() {
   const [answers, setAnswers] = useState<CutSheetAnswer[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showIntro, setShowIntro] = useState(true);
+  const [showWrapped, setShowWrapped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const completedSections = answers.filter(a => a.completed).map(a => a.section);
+  const completedAll = SECTIONS.every(s => completedSections.includes(s.id));
 
   // Load session and answers
   useEffect(() => {
@@ -376,7 +1171,6 @@ export default function CutsPage() {
       setSession(sessionData);
       setAnswers(Array.isArray(answersData) ? answersData : []);
 
-      // If answers exist, skip intro and go to first incomplete section
       if (Array.isArray(answersData) && answersData.length > 0) {
         const firstIncomplete = SECTIONS.findIndex(
           s => !answersData.find((a: CutSheetAnswer) => a.section === s.id && a.completed)
@@ -417,11 +1211,15 @@ export default function CutsPage() {
     }
   }, [uuid]);
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentIndex < SECTIONS.length - 1) {
       setCurrentIndex(i => i + 1);
     } else {
-      router.push(`/session/${uuid}/review`);
+      // All sections complete — lock the cut sheet
+      const res = await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
+      if (res.ok) {
+        setShowWrapped(true);
+      }
     }
   };
 
@@ -443,6 +1241,10 @@ export default function CutsPage() {
         <p className="text-brand-gray">Session not found.</p>
       </div>
     );
+  }
+
+  if (showWrapped) {
+    return <SpotifyWrappedScreen session={session} answers={answers} />;
   }
 
   const currentSection = SECTIONS[currentIndex];
@@ -497,11 +1299,13 @@ export default function CutsPage() {
             answers={currentAnswers?.answers ?? {}}
             locked={isLocked}
             sessionId={uuid}
+            allAnswers={answers}
             onSave={(sectionAnswers, completed) => saveSection(currentSection.id, sectionAnswers, completed)}
             onNext={handleNext}
             onPrev={handlePrev}
             isFirst={currentIndex === 0}
             isLast={currentIndex === SECTIONS.length - 1}
+            completedAll={completedAll}
           />
         </>
       )}

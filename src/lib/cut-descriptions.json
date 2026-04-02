@@ -1,0 +1,105 @@
+{
+  "chuck": {
+    "intro": "Chuck is the workhorse of the beef \u2014 a flavorful, forgiving cut from the shoulder and neck. It's got the marbling and connective tissue that turns tender and juicy when roasted slow, or makes incredible burgers when ground. You'll get more meat per dollar with chuck than any other cut.",
+    "choices": {
+      "roasts": "Perfect for pot roasts, slow-cooked stews, and Sunday dinners \u2014 chuck roasts develop a rich, deep flavor as they braise.",
+      "steaks": "Chuck steaks are underrated \u2014 they've got flavor that expensive cuts don't, especially when seared hot and rested. Try marinating them for even more tenderness.",
+      "grind": "This is premium ground beef for burgers and tacos \u2014 higher fat content than lean ground, so your burgers stay juicy and your meat stays flavorful."
+    }
+  },
+  "brisket": {
+    "intro": "Brisket is pure smoke and slow cooking \u2014 a massive, lean cut from the chest that becomes impossibly tender after 12+ hours of low heat. One brisket feeds a crowd. It's the heart of Texas barbecue for a reason.",
+    "choices": {
+      "yes_whole": "You're getting the full brisket \u2014 point and flat together. That's 12-16 lbs of smoke-ready beef for a serious cook who's got time.",
+      "yes_half": "Half brisket (flat or point) is more manageable for home smoking \u2014 6-8 lbs, same incredible results, easier fit on the smoker.",
+      "no": "Less fuss, more freezer space for other cuts. Brisket's a commitment \u2014 save it for when you've got the time and the smoker ready."
+    }
+  },
+  "skirt": {
+    "intro": "Skirt is the fajita cut \u2014 bold, beefy flavor with a coarse grain that loves a good marinade. It's naturally tough, but high heat and proper slicing turn it into something special. This is the cut that rewards you for knowing how to cook.",
+    "choices": {
+      "yes": "You're making the right call. Skirt takes a marinade like nothing else, grills up fast, and when you slice it thin against the grain, it's pure heaven in a taco.",
+      "no": "No problem \u2014 skirt needs a bit of technique. Plenty of other cuts are more forgiving if you're not ready for the marinade-and-sear game."
+    }
+  },
+  "rib": {
+    "intro": "Rib is luxury beef \u2014 marbled throughout, tender by nature, and forgiving to cook. Whether roasted whole or cut into steaks, rib is the cut you serve when you want to impress. This is beef that cooks itself.",
+    "choices": {
+      "bone_in_roast": "A standing rib roast is showstopper dinner \u2014 those bones are flavor, and the marbling means you're never fighting dryness. This is what special occasions are made of.",
+      "boneless_roast": "All the rib flavor without the bones \u2014 easier to carve and manage, just as tender and rich. Perfect if you want luxury with less fuss.",
+      "bone_in_steaks": "Bone-in ribeyes are the gold standard \u2014 those bones mean flavor, and you're cooking to perfection every time. Sear hot, rest, and watch people lose their minds.",
+      "boneless_steaks": "Boneless ribeyes give you pure rib steak without the bones \u2014 still tender, marbled, and restaurant-quality. All the taste, cleaner plate."
+    }
+  },
+  "short_ribs": {
+    "intro": "Short ribs are braising royalty \u2014 meaty, heavily marbled bones with rich, beefy flavor that only gets better with low, slow heat. This is the cut that makes your house smell incredible and your guests come back for seconds.",
+    "choices": {
+      "yes": "Smart choice. Short ribs turn wine, broth, and vegetables into liquid gold after 3-4 hours in the oven. The meat falls off the bone, and the sauce is worth every minute.",
+      "no": "Braising isn't for everyone and these need time. Plenty of other cuts on the sheet \u2014 no worries."
+    }
+  },
+  "sirloin": {
+    "intro": "Sirloin is the value player \u2014 tender, well-flavored beef that won't break the bank. Whether roasted whole or cut into steaks, sirloin delivers real beef taste with a quality-to-price ratio that ranchers know and love.",
+    "choices": {
+      "roasts": "A sirloin roast is honest beef \u2014 medium-rare, seasoned simple with salt and herbs, and it never lets you down. Roast it hot to brown, then finish low for perfect doneness.",
+      "steaks": "Sirloin steaks are underrated in their own way \u2014 good beef flavor, solid tenderness when cooked proper, and forgiving enough to handle a bit of cooking heat.",
+      "grind": "Ground sirloin is leaner than chuck but still flavorful \u2014 good for folks who want a healthier burger without sacrificing taste."
+    }
+  },
+  "round": {
+    "intro": "Round is the lean, economical choice \u2014 from the back leg, it's got less marbling than premium cuts, but cooked right, it delivers honest beef flavor. This is the cut for roast beef sandwiches and budget-conscious cooks who know what they're doing.",
+    "choices": {
+      "roasts": "Round roast done right is a classic \u2014 high heat to brown, then oven-finish to medium-rare. Slice thin, and you've got beautiful roast beef. The key is not overcooking.",
+      "steaks": "Round steaks need respect \u2014 they're lean, so marinade them or cook hot and fast. Slice thin against the grain, and they're solid eating.",
+      "grind": "Ground round is lean and clean-tasting \u2014 best for folks who want beef flavor without extra fat. Good for meatloaf and everything else."
+    }
+  },
+  "short_loin": {
+    "intro": "Short loin is where the best steaks come from \u2014 the most tender cuts on the whole animal. This is prime real estate, and every ounce counts. Whether you go T-bone or separate strips and tenderloins, you're eating premium beef.",
+    "choices": {
+      "tbone": "T-bones are the showman's steak \u2014 tenderloin on one side of the bone, New York strip on the other. One steak, two perfect cuts, and a conversation starter on the plate.",
+      "ny_strip_and_filet": "You're getting the best of both worlds \u2014 New York strips for a bold, beefy dinner, and filet mignon for when you want pure tenderness. Can't go wrong either way."
+    }
+  },
+  "flank": {
+    "intro": "Flank is the lean, flavorful game-changer \u2014 a whole muscle from the belly that's packed with beefy taste. It needs marinade and high heat, but when you treat it right, it's restaurant-quality beef at a fraction of the price.",
+    "choices": {
+      "yes": "Good call. Flank loves a proper marinade \u2014 acid breaks down the fibers, heat gets it sizzling, and slicing thin against the grain turns it into magic. London broil at home.",
+      "no": "Fair enough \u2014 flank's got attitude and needs technique. Plenty of softer cuts if you'd rather not fuss."
+    }
+  },
+  "stew_meat": {
+    "intro": "Stew meat is about potential \u2014 cubed beef that transforms in the braise pot. Low heat, long time, and suddenly you've got fork-tender beef in a rich sauce. This is comfort food that knows what it's doing.",
+    "choices": {
+      "yes_with_pounds": "You're in for a treat. There's nothing better than fork-tender beef that's been braising all day in a rich sauce. Let us know how many pounds you want set aside.",
+      "no": "No problem \u2014 stew requires patience. Plenty of faster beef out there if you're hungry now."
+    }
+  },
+  "tenderized_round": {
+    "intro": "Tenderized round has been worked before it gets to you \u2014 breaking down the fibers so a lean cut eats surprisingly tender. A light pound on your end, a flour dredge, and a quick sear and you've got a solid weeknight steak.",
+    "choices": {
+      "yes": "Excellent. A light pound on your end, a flour dredge, and a quick sear \u2014 you've got a tender steak that eats like it costs twice as much.",
+      "no": "Round steaks straight are fine too \u2014 just need a little more respect in the pan."
+    }
+  },
+  "organs": {
+    "intro": "Organ meats are the nose-to-tail tradition \u2014 nutrient-dense, flavorful, and a mark of serious cooks who don't waste. Tongue, heart, liver \u2014 each one's got its own character and its own way of cooking.",
+    "choices": {
+      "tongue": "Beef tongue is surprisingly sweet and rich \u2014 slow-simmer it 6-8 hours until it's tender, skin it, slice it thin. It's a delicacy most people never try.",
+      "heart": "Beef heart is lean and surprisingly tender \u2014 roast it whole or slice and pan-fry. High in nutrients, deep beefy flavor, and proof that the whole animal feeds you.",
+      "liver": "Beef liver is iron-rich and intense \u2014 sear it quick over high heat, and it's butter-soft. Soak it in milk first if the flavor's too strong for you.",
+      "none": "No organs this time \u2014 completely fine. These are acquired tastes, and they're not for everybody."
+    }
+  },
+  "bones": {
+    "intro": "Bones are liquid gold \u2014 marrow, collagen, gelatin. They simmer into bone broth that's worth every hour, or they go straight to the dogs raw for pure joy. Don't waste a single one.",
+    "choices": {
+      "dog": "Your dog's getting a treat that lasts \u2014 raw bones are safe, satisfying, and nutrition that keeps them healthy. Rawhide's got nothing on this.",
+      "soup": "You're making broth \u2014 24 hours slow and low extracts everything. Beef bones make a dark, rich, gelatinous broth that's pure liquid livestock.",
+      "none": "No bones this time \u2014 we'll trim them off. But if you change your mind, ask for them. Too good to waste."
+    }
+  },
+  "packing": {
+    "intro": "Last stop \u2014 your ground beef. You've already told us your steak thickness and roast sizes as you went. Here we just need to know how you want your burger packed: fat percentage, how many pounds per package, and how many packages per pack. Get this right and burger night is always exactly what you wanted."
+  }
+}
