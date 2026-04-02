@@ -63,18 +63,18 @@ function BeefCowDiagram({
 
   // Multiple paths can share the same sectionId (e.g. bones = front + rear shanks)
   const regions = [
-    { id: 'chuck', path: 'M242,62 L241,111 L241,156 L245,193 L132,182 L145,128 L154,102 L175,61 Z' },
-    { id: 'rib', path: 'M250,62 L295,64 L358,72 L366,117 L367,177 L368,204 L248,191 L245,132 Z' },
-    { id: 'short_loin', path: 'M363,72 L432,69 L437,95 L444,98 L501,95 L507,122 L441,125 L441,166 L436,215 L405,206 L373,205 L374,134 Z' },
-    { id: 'sirloin', path: 'M437,67 L464,61 L497,56 L503,91 L467,90 L441,95 Z' },
-    { id: 'sirloin', path: 'M446,131 L446,158 L444,189 L441,217 L469,230 L488,245 L508,262 L513,218 L513,163 L506,128 Z' },
-    { id: 'round', path: 'M501,58 L512,130 L517,186 L518,232 L511,262 L541,270 L574,265 L572,201 L576,161 L580,113 L552,108 L539,86 L535,61 Z' },
-    { id: 'brisket', path: 'M132,187 L243,198 L251,233 L261,270 L219,271 L196,276 L181,284 L158,270 L144,245 L131,205 Z' },
-    { id: 'short_ribs', path: 'M250,199 L260,249 L365,259 L367,210 Z' },
-    { id: 'flank', path: 'M372,209 L369,278 L400,279 L436,267 L461,286 L494,303 L508,267 L469,239 L439,221 Z' },
-    { id: 'skirt', path: 'M260,251 L267,268 L297,267 L340,275 L363,279 L364,260 Z' },
-    { id: 'bones', path: 'M185,286 L221,278 L259,275 L262,293 L265,310 L262,364 L240,366 L235,338 L225,309 L218,333 L216,361 L192,361 L193,314 L193,295 Z' },
-    { id: 'bones', path: 'M511,267 L537,274 L575,270 L580,300 L573,366 L549,373 L550,333 L534,307 L524,331 L509,369 L487,369 L495,334 L493,310 L508,285 Z' },
+    { id: 'chuck', path: 'M240,56 L239,101 L239,142 L243,175 L131,165 L144,116 L153,93 L174,55 Z' },
+    { id: 'rib', path: 'M248,56 L293,58 L355,65 L363,106 L364,161 L365,185 L246,174 L243,120 Z' },
+    { id: 'short_loin', path: 'M360,65 L428,63 L433,86 L440,89 L497,86 L503,111 L437,114 L437,151 L432,195 L402,187 L370,186 L371,122 Z' },
+    { id: 'sirloin', path: 'M433,61 L460,55 L493,51 L499,83 L463,82 L437,86 Z' },
+    { id: 'sirloin', path: 'M442,119 L442,144 L440,172 L437,197 L465,209 L484,223 L504,238 L509,198 L509,148 L502,116 Z' },
+    { id: 'round', path: 'M497,53 L508,118 L513,169 L514,211 L507,238 L536,245 L569,241 L567,183 L571,146 L575,103 L547,98 L535,78 L531,55 Z' },
+    { id: 'brisket', path: 'M131,170 L241,180 L249,212 L259,245 L217,246 L194,251 L179,258 L157,245 L143,223 L130,186 Z' },
+    { id: 'short_ribs', path: 'M248,181 L258,226 L362,235 L364,191 Z' },
+    { id: 'flank', path: 'M369,190 L366,253 L397,254 L432,243 L457,260 L490,275 L504,243 L465,217 L435,201 Z' },
+    { id: 'skirt', path: 'M258,228 L265,244 L295,243 L337,250 L360,254 L361,236 Z' },
+    { id: 'bones', path: 'M183,260 L219,253 L257,250 L260,266 L263,282 L260,331 L238,333 L233,307 L223,281 L216,303 L214,328 L190,328 L191,285 L191,268 Z' },
+    { id: 'bones', path: 'M507,243 L533,249 L570,245 L575,273 L568,333 L544,339 L545,303 L530,279 L520,301 L505,335 L483,335 L491,304 L489,282 L504,259 Z' },
   ];
 
   return (
@@ -94,30 +94,18 @@ function BeefCowDiagram({
         />
 
         {/* Clickable overlay regions */}
-        {regions.map((region, i) => {
-          const style = getStyle(region.id);
-          return (
-            <path
-              key={`${region.id}-${i}`}
-              d={region.path}
-              fill={style.fill}
-              opacity={style.opacity}
-              className="cursor-pointer transition-all duration-200"
-              onClick={() => onSectionClick(region.id)}
-              onMouseEnter={(e) => {
-                if (activeSection !== region.id) {
-                  (e.target as SVGPathElement).style.fill = '#E85D24';
-                  (e.target as SVGPathElement).style.opacity = '0.3';
-                }
-              }}
-              onMouseLeave={(e) => {
-                const s = getStyle(region.id);
-                (e.target as SVGPathElement).style.fill = s.fill;
-                (e.target as SVGPathElement).style.opacity = String(s.opacity);
-              }}
-            />
-          );
-        })}
+        {regions.map((region, i) => (
+          <path
+            key={`${region.id}-${i}`}
+            d={region.path}
+            className="cursor-pointer transition-all duration-200"
+            style={{
+              fill: getStyle(region.id).fill,
+              opacity: getStyle(region.id).opacity,
+            }}
+            onClick={() => onSectionClick(region.id)}
+          />
+        ))}
       </svg>
 
       {/* Legend */}
