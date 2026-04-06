@@ -176,10 +176,10 @@ export default function WrappedPage() {
             Share with Friends 🐄
           </button>
           <button
-            onClick={() => router.push(`/session/${uuid}`)}
+            onClick={() => router.push('/')}
             className="w-full py-3 rounded-xl border border-white/20 text-white/60 text-sm font-medium"
           >
-            View My Order
+            Home
           </button>
         </div>
       ),
