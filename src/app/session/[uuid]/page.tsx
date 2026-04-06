@@ -23,13 +23,13 @@ type StatusInfo = {
 
 const statusInfo = (status: string): StatusInfo => {
   switch (status) {
-    case 'draft':       return { label: 'Not started',           badgeClass: 'bg-gray-100 text-gray-600' };
+    case 'draft':       return { label: 'Not started',           badgeClass: 'bg-gray-100 text-brand-gray' };
     case 'in_progress': return { label: 'Cut sheet in progress', badgeClass: 'bg-blue-100 text-blue-700' };
     case 'complete':    return { label: 'Cut sheet complete',    badgeClass: 'bg-green-100 text-green-700' };
     case 'locked':      return { label: 'Submitted ✓',          badgeClass: 'bg-green-100 text-green-700' };
     case 'processing':  return { label: 'At the butcher',        badgeClass: 'bg-amber-100 text-amber-700' };
     case 'beef_ready':  return { label: 'Ready for pickup!',     badgeClass: 'bg-green-100 text-green-800' };
-    default:            return { label: status,                  badgeClass: 'bg-gray-100 text-gray-600' };
+    default:            return { label: status,                  badgeClass: 'bg-gray-100 text-brand-gray' };
   }
 };
 
@@ -56,7 +56,7 @@ function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: stri
       return (
         <Link
           href={`/session/${uuid}/cuts`}
-          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+          className="block w-full text-center bg-brand-green text-white font-semibold py-4 px-6 rounded-xl hover:bg-brand-dark transition-colors text-base"
         >
           Continue your cut sheet →
         </Link>
@@ -65,7 +65,7 @@ function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: stri
       return (
         <Link
           href={`/session/${uuid}/review`}
-          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+          className="block w-full text-center bg-brand-green text-white font-semibold py-4 px-6 rounded-xl hover:bg-brand-dark transition-colors text-base"
         >
           Review your choices →
         </Link>
@@ -74,14 +74,14 @@ function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: stri
       return (
         <Link
           href={`/session/${uuid}/review`}
-          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+          className="block w-full text-center bg-brand-green text-white font-semibold py-4 px-6 rounded-xl hover:bg-brand-dark transition-colors text-base"
         >
           View your order →
         </Link>
       );
     case 'processing':
       return (
-        <p className="text-center text-gray-500 text-sm py-2">
+        <p className="text-center text-brand-gray text-sm py-2">
           🥩 Your beef is being processed
         </p>
       );
@@ -89,7 +89,7 @@ function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: stri
       return (
         <Link
           href={`/session/${uuid}/status`}
-          className="block w-full text-center bg-[#2D5016] text-white font-semibold py-4 px-6 rounded-xl hover:bg-[#3a6620] transition-colors text-base"
+          className="block w-full text-center bg-brand-green text-white font-semibold py-4 px-6 rounded-xl hover:bg-brand-dark transition-colors text-base"
         >
           Schedule your pickup →
         </Link>
@@ -143,14 +143,14 @@ export default async function SessionPage({ params }: PageProps) {
         </div>
 
         {/* Welcome */}
-        <p className="text-gray-600 text-center mb-6 text-sm">
-          Welcome back, <span className="font-semibold text-gray-900">{firstName}</span>
+        <p className="text-brand-gray text-center mb-6 text-sm">
+          Welcome back, <span className="font-semibold text-brand-dark">{firstName}</span>
         </p>
 
         {/* Order Card */}
         <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-4">
           {/* Animal Name Header */}
-          <div className="bg-[#2D5016] px-6 py-5">
+          <div className="bg-brand-green px-6 py-5">
             <p className="text-[#C4A46B] text-xs uppercase tracking-widest mb-1">Your Beef Order</p>
             <h2 className="text-white text-2xl font-serif font-bold">
               {session.animal?.name ?? 'Your Animal'}
@@ -165,7 +165,7 @@ export default async function SessionPage({ params }: PageProps) {
             />
             <DetailRow
               label="Type"
-              value={session.slot ? slotTypeLabel(session.slot.slot_type) : session.purchase_type ?? '—'}
+              value={session.slot ? slotTypeLabel(session.slot.slot_type) : session.purchase_type ? session.purchase_type.charAt(0).toUpperCase() + session.purchase_type.slice(1) + ' Beef' : '—'}
             />
             <DetailRow
               label="Butcher Date"
@@ -177,7 +177,7 @@ export default async function SessionPage({ params }: PageProps) {
             />
             <DetailRow
               label="Price"
-              value={session.animal?.price_per_lb ? `$${session.animal.price_per_lb.toFixed(2)}/lb hanging weight` : '—'}
+              value={session.price_per_lb ? `$${Number(session.price_per_lb).toFixed(2)}/lb hanging weight` : session.animal?.price_per_lb ? `$${Number(session.animal.price_per_lb).toFixed(2)}/lb hanging weight` : '—'}
               highlight
             />
           </div>
@@ -189,7 +189,7 @@ export default async function SessionPage({ params }: PageProps) {
           <div className="px-6 py-5">
             {/* Status Badge */}
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-sm text-gray-500 font-medium">Status:</span>
+              <span className="text-sm text-brand-gray font-medium">Status:</span>
               <span className={`text-xs font-semibold px-3 py-1 rounded-full ${info.badgeClass}`}>
                 {info.label}
               </span>
@@ -202,11 +202,11 @@ export default async function SessionPage({ params }: PageProps) {
 
         {/* Order reference */}
         <div className="bg-white/60 rounded-xl px-4 py-2.5 flex items-center justify-between mb-6">
-          <span className="text-xs text-gray-400 font-medium">Order ref</span>
-          <span className="text-xs font-mono text-gray-500">{session.id}</span>
+          <span className="text-xs text-brand-gray font-medium">Order ref</span>
+          <span className="text-xs font-mono text-brand-gray">{session.id}</span>
         </div>
 
-        <p className="text-center text-xs text-gray-400">
+        <p className="text-center text-xs text-brand-gray">
           Questions? Contact Legacy Land &amp; Cattle directly.
         </p>
       </div>
@@ -227,10 +227,10 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-1 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-500 shrink-0">{label}</span>
+      <span className="text-sm text-brand-gray shrink-0">{label}</span>
       <span
         className={`text-sm text-right font-semibold ${
-          highlight ? 'text-[#2D5016] text-base' : 'text-gray-900'
+          highlight ? 'text-brand-dark text-base' : 'text-brand-dark'
         }`}
       >
         {value}
