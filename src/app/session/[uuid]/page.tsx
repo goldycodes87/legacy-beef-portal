@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import QuarterCutSheetCard from '@/components/QuarterCutSheetCard';
@@ -133,18 +134,13 @@ export default async function SessionPage({ params }: PageProps) {
         {/* Brand wordmark */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <h1 className="font-display font-bold text-2xl text-brand-green">
-              Legacy Land &amp; Cattle
-            </h1>
-            <p className="font-body text-xs text-brand-gold uppercase tracking-widest mt-0.5">
-              Customer Portal
-            </p>
+            <Image src="/images/LLC_Logo_color.svg" alt="Legacy Land & Cattle" width={160} height={72} className="h-14 w-auto mx-auto" />
           </Link>
         </div>
 
         {/* Welcome */}
-        <p className="text-brand-gray text-center mb-6 text-sm">
-          Welcome back, <span className="font-semibold text-brand-dark">{firstName}</span>
+        <p className="text-brand-gray text-center mb-6 text-lg">
+          Welcome back, <span className="font-bold text-brand-dark text-xl">{firstName}</span>
         </p>
 
         {/* Order Card */}

@@ -95,12 +95,16 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Create session record (slot_id is nullable per block7 migration)
+    const priceMap: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
+    const price_per_lb = priceMap[purchase_type] ?? 8.25;
+
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('sessions')
       .insert({
         customer_id:     customerId,
         animal_id:       animal_id,
         purchase_type:   purchase_type,
+        price_per_lb,
         status:          'draft',
         partner_approved: false,
         owner_approved:   false,
