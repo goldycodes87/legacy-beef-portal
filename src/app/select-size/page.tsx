@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 
 type SizeOption = 'whole' | 'half' | 'quarter';
 type SplitChoice = 'no' | 'yes';
-type CutSheetChoice = 'separate' | 'shared';
+type CutSheetChoice = 'separate' | 'shared' | 'master' | 'none';
 
 interface Inventory {
   whole_available: number;
@@ -54,6 +54,7 @@ export default function SelectSizePage() {
   const [groupSize, setGroupSize] = useState<number>(2);
   const [cutSheet, setCutSheet] = useState<CutSheetChoice>('shared');
   const [partnerEmail, setPartnerEmail] = useState<string>('');
+  const [partnerEmails4, setPartnerEmails4] = useState(['', '', '']);
 
   // UI state
   const [splitVisible, setSplitVisible] = useState(false);
@@ -87,6 +88,7 @@ export default function SelectSizePage() {
     setSelectedSize(size);
     setSplitChoice(null);
     setPartnerEmail('');
+    setPartnerEmails4(['', '', '']);
     setGroupSize(2);
     setCutSheet('shared');
 
@@ -155,15 +157,23 @@ export default function SelectSizePage() {
 
     // Build data to persist
     const isSplitting = splitChoice === 'yes' && selectedSize !== 'quarter';
-    const emails: string[] = isSplitting && partnerEmail.trim() ? [partnerEmail.trim()] : [];
+    let emails: string[];
+    if (isSplitting && selectedSize === 'whole' && groupSize === 4) {
+      emails = partnerEmails4.filter(e => e.trim());
+    } else if (isSplitting && partnerEmail.trim()) {
+      emails = [partnerEmail.trim()];
+    } else {
+      emails = [];
+    }
 
     sessionStorage.setItem('selectedSize', selectedSize);
     sessionStorage.setItem('isSplitting', String(isSplitting));
     sessionStorage.setItem('partnerEmails', JSON.stringify(emails));
     sessionStorage.setItem('groupSize', String(isSplitting ? groupSize : 1));
+    // cutSheetChoice: for half splits use the user-selected cutSheet value
     const cutSheetDerived = selectedSize === 'whole' && groupSize === 4 ? 'shared' :
       selectedSize === 'whole' && groupSize === 2 ? 'separate' :
-      selectedSize === 'half' ? 'shared' : 'none';
+      selectedSize === 'half' && isSplitting ? cutSheet : 'none';
     sessionStorage.setItem('cutSheetChoice', cutSheetDerived);
     if (isSplitting) {
       const groupId = crypto.randomUUID();
@@ -311,19 +321,40 @@ export default function SelectSizePage() {
                     </select>
                   </div>
 
-                  {/* Partner email */}
-                  <div>
-                    <label className="block text-sm font-semibold text-brand-dark mb-1">
-                      Partner&apos;s email address
-                    </label>
-                    <input
-                      type="email"
-                      value={partnerEmail}
-                      onChange={(e) => setPartnerEmail(e.target.value)}
-                      placeholder="partner@example.com"
-                      className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
-                    />
-                  </div>
+                  {/* Partner email(s) */}
+                  {groupSize === 4 ? (
+                    [0, 1, 2].map(i => (
+                      <div key={i}>
+                        <label className="block text-sm font-semibold text-brand-dark mb-1">
+                          Partner {i + 1} email address
+                        </label>
+                        <input
+                          type="email"
+                          value={partnerEmails4[i]}
+                          onChange={(e) => {
+                            const updated = [...partnerEmails4];
+                            updated[i] = e.target.value;
+                            setPartnerEmails4(updated);
+                          }}
+                          placeholder={`partner${i + 1}@example.com`}
+                          className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-semibold text-brand-dark mb-1">
+                        Partner&apos;s email address
+                      </label>
+                      <input
+                        type="email"
+                        value={partnerEmail}
+                        onChange={(e) => setPartnerEmail(e.target.value)}
+                        placeholder="partner@example.com"
+                        className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                      />
+                    </div>
+                  )}
 
                   {/* Disclosure */}
                   <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray leading-relaxed">
@@ -361,10 +392,37 @@ export default function SelectSizePage() {
                     />
                   </div>
 
+                  {/* Cut sheet preference */}
+                  <div>
+                    <label className="block text-sm font-semibold text-brand-dark mb-1">
+                      Cut sheet preference
+                    </label>
+                    <div className="flex gap-3">
+                      {(['master', 'shared'] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setCutSheet(opt)}
+                          className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors duration-150
+                            ${cutSheet === opt
+                              ? 'border-brand-orange bg-[#FFF5F0] text-brand-dark'
+                              : 'border-[#E5E7EB] text-brand-gray hover:border-brand-orange/50'
+                            }`}
+                        >
+                          {opt === 'master' ? "I'll do the cut sheet" : "We'll decide together"}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-brand-gray mt-2">
+                      {cutSheet === 'master'
+                        ? 'You fill out the cut sheet. Your partner receives a copy when locked.'
+                        : 'Both of you can edit the cut sheet. You get final say if you disagree.'}
+                    </p>
+                  </div>
+
                   {/* Disclosure */}
-                  <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray">
-                    <span className="font-semibold text-brand-dark">Each pays $500 deposit at $8.25/lb.</span>{' '}
-                    Cut sheet is shared between both parties.
+                  <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray leading-relaxed">
+                    <span className="font-semibold text-brand-dark">Each person pays $250 deposit.</span>{' '}
+                    Your final cost will be calculated at the Half Beef price of $8.25/lb.
                   </div>
                 </div>
               )}

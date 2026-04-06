@@ -52,10 +52,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { group_id } = await params;
   const { name, email, phone, address, city, state, zip } = await request.json();
 
-  // Load owner session to get animal_id, purchase_type, price_per_lb
+  // Load owner session to get animal_id, purchase_type, price_per_lb, cut_sheet_choice
   const { data: ownerSession } = await supabase
     .from('sessions')
-    .select('animal_id, purchase_type, price_per_lb, group_size')
+    .select('id, animal_id, purchase_type, price_per_lb, group_size, cut_sheet_choice')
     .eq('group_id', group_id)
     .eq('group_role', 'owner')
     .single();
@@ -94,6 +94,36 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (sessionError) {
     return NextResponse.json({ error: sessionError.message }, { status: 500 });
+  }
+
+  // Link sessions for split half collaboration
+  if (partnerSession && ownerSession.id) {
+    // Set owner's partner reference
+    await supabase
+      .from('sessions')
+      .update({ cut_sheet_partner_session_id: partnerSession.id })
+      .eq('id', ownerSession.id);
+
+    // Set partner's owner reference
+    await supabase
+      .from('sessions')
+      .update({ cut_sheet_partner_session_id: ownerSession.id })
+      .eq('id', partnerSession.id);
+
+    // Set cut sheet roles based on choice
+    if (ownerSession.cut_sheet_choice === 'shared') {
+      // Both can edit
+      await supabase
+        .from('sessions')
+        .update({ cut_sheet_role: 'partner' })
+        .eq('id', partnerSession.id);
+    } else if (ownerSession.cut_sheet_choice === 'master') {
+      // Owner fills out, partner is read-only
+      await supabase
+        .from('sessions')
+        .update({ cut_sheet_role: 'readonly' })
+        .eq('id', partnerSession.id);
+    }
   }
 
   return NextResponse.json({ session_id: partnerSession.id });

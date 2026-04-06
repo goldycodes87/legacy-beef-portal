@@ -1,17 +1,10 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getPricePerLb, getDepositAmount } from '@/lib/config';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
-function depositAmount(purchaseType: string): number {
-  switch (purchaseType) {
-    case 'whole':   return 850;
-    case 'half':    return 500;
-    case 'quarter': return 250;
-    default:        return 500;
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,12 +89,11 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Create session record (slot_id is nullable per block7 migration)
-    const standardPrices: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
-    const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
-    const isWagyu = animal.animal_type === 'wagyu';
-    const price_per_lb = isWagyu ? (wagyuPrices[purchase_type] ?? 9.50) : (standardPrices[purchase_type] ?? 8.25);
-    // Override for whole beef splits — each person pays split price
-    const effective_price = (is_splitting && purchase_type === 'whole') ? 8.00 : price_per_lb;
+    const config = await getConfig();
+    const price_per_lb = getPricePerLb(config, purchase_type, animal.animal_type, is_splitting, group_size);
+    const deposit = getDepositAmount(config, purchase_type, is_splitting, group_size);
+    void deposit; // stored for reference; Stripe uses create-intent
+    const effective_price = price_per_lb;
 
     // Generate group_id for split bookings
     const group_id = is_splitting ? crypto.randomUUID() : null;

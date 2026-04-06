@@ -11,6 +11,7 @@ interface Session {
   purchase_type: 'whole' | 'half' | 'quarter';
   status: string;
   cut_sheet_role: string;
+  cut_sheet_choice: string;
   group_size: number;
   is_splitting: boolean;
   cut_sheet_complete: boolean;
@@ -192,6 +193,10 @@ function SectionDotPath({
 function IntroScreen({ session, onStart }: { session: Session; onStart: () => void }) {
   const purchaseLabel = session.purchase_type === 'whole' ? 'Whole Beef' : session.purchase_type === 'half' ? 'Half Beef' : 'Quarter Beef';
   const isPartner = session.cut_sheet_role === 'partner';
+  const isMaster = session.cut_sheet_role === 'master';
+  const isShared = session.cut_sheet_choice === 'shared';
+  const isSplitHalf = session.is_splitting && session.purchase_type === 'half';
+  const isReadonly = session.cut_sheet_role === 'readonly';
 
   return (
     <div className="max-w-[600px] mx-auto px-4 py-10 text-center">
@@ -205,6 +210,40 @@ function IntroScreen({ session, onStart }: { session: Session; onStart: () => vo
           : `Tell our butcher exactly how you want your ${purchaseLabel} processed. Every choice is yours — from steak thickness to roast size to what to do with the bones.`
         }
       </p>
+
+      {/* Split half collaboration banners */}
+      {isSplitHalf && isShared && isMaster && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-blue-900 text-sm">
+            <strong>You and your partner can both edit this cut sheet.</strong>{' '}
+            You get final say if you disagree by butcher week.
+          </p>
+        </div>
+      )}
+      {isSplitHalf && isShared && !isMaster && !isReadonly && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-blue-900 text-sm">
+            <strong>Your partner started this cut sheet.</strong>{' '}
+            You can edit any section. If you disagree on something, they get final say by butcher week.
+          </p>
+        </div>
+      )}
+      {isSplitHalf && !isShared && isMaster && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-blue-900 text-sm">
+            <strong>You&apos;re filling out the cut sheet for both of you.</strong>{' '}
+            Your partner will receive a copy when you lock it in.
+          </p>
+        </div>
+      )}
+      {isSplitHalf && !isShared && isReadonly && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-blue-900 text-sm">
+            <strong>Your partner is filling out the cut sheet.</strong>{' '}
+            You&apos;ll receive a copy by email once it&apos;s locked.
+          </p>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 text-left space-y-4">
         <div className="flex items-start gap-3">
@@ -237,12 +276,14 @@ function IntroScreen({ session, onStart }: { session: Session; onStart: () => vo
         </div>
       </div>
 
-      <button
-        onClick={onStart}
-        className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-4 rounded-xl font-semibold text-lg transition-colors"
-      >
-        {isPartner ? 'Review Cut Sheet →' : 'Get Started →'}
-      </button>
+      {!isReadonly && (
+        <button
+          onClick={onStart}
+          className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-4 rounded-xl font-semibold text-lg transition-colors"
+        >
+          {isPartner ? 'Review Cut Sheet →' : 'Get Started →'}
+        </button>
+      )}
     </div>
   );
 }

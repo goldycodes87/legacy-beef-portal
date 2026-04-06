@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getDepositAmount } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -16,8 +17,11 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 });
 
   // Get deposit amount from config
-  const depositMap: Record<string, number> = { whole: 850, half: 500, quarter: 250 };
-  let depositCents = (depositMap[session.purchase_type] ?? 500) * 100;
+  const config = await getConfig();
+  const isSplitting = session.is_splitting || false;
+  const groupSize = session.group_size || 1;
+  const originalDepositAmount = getDepositAmount(config, session.purchase_type, isSplitting, groupSize);
+  let depositCents = originalDepositAmount * 100;
 
   // Apply coupon if provided
   let couponId = null;
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest) {
     amount_cents: depositCents,
     surcharge_cents: surchargeCents,
     discount_cents: discountCents,
-    original_cents: (depositMap[session.purchase_type] ?? 500) * 100,
+    original_cents: originalDepositAmount * 100,
     waived: false,
   });
 }
