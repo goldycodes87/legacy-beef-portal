@@ -64,6 +64,10 @@ function formatAnswers(section: string, answers: Record<string, unknown>): strin
   if (answers.house_default) return 'House default';
   if (answers.choice === 'skipped') return 'N/A (Round not steaks)';
 
+  if (typeof answers.choice === 'boolean') {
+    return answers.choice ? 'Yes' : 'No / Skip';
+  }
+
   const parts: string[] = [];
   if (answers.choice) {
     const choice = answers.choice as string;
@@ -71,7 +75,7 @@ function formatAnswers(section: string, answers: Record<string, unknown>): strin
   }
   if (answers.choices) {
     const choices = answers.choices as string[];
-    parts.push(choices.map(c => c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', '));
+    parts.push(choices.filter(c => typeof c === 'string').map(c => c.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())).join(', '));
   }
   if (answers.thickness) parts.push(`${answers.thickness} thick`);
   if (answers.tbone_thickness) parts.push(`T-Bone: ${answers.tbone_thickness}`);
