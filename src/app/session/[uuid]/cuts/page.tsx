@@ -824,11 +824,10 @@ function getSectionContent(
     const choice = (answers.choices as string[]) || [];
     const cd = cutDescriptions.organs;
 
-    const handleOrgans = (id: string | string[]) => {
-      const singleId = id as string;
-      let newChoice = choice.includes(singleId) ? choice.filter(x => x !== singleId) : [...choice, singleId];
-      if (singleId === 'none') {
-        newChoice = choice.includes('none') ? [] : ['none'];
+    const handleOrgans = (v: string | string[]) => {
+      let newChoice = v as string[];
+      if (newChoice.includes('none') && !choice.includes('none')) {
+        newChoice = ['none'];
       } else {
         newChoice = newChoice.filter(x => x !== 'none');
       }
@@ -843,6 +842,7 @@ function getSectionContent(
             { id: 'tongue', label: 'Tongue' },
             { id: 'heart', label: 'Heart' },
             { id: 'liver', label: 'Liver' },
+            { id: 'oxtail', label: 'Oxtail' },
             { id: 'none', label: 'No organs' },
           ]}
           value={choice}
