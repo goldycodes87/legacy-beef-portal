@@ -95,8 +95,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Create session record (slot_id is nullable per block7 migration)
-    const priceMap: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
-    const price_per_lb = priceMap[purchase_type] ?? 8.25;
+    const standardPrices: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
+    const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
+    const isWagyu = animal.animal_type === 'wagyu';
+    const price_per_lb = isWagyu ? (wagyuPrices[purchase_type] ?? 9.50) : (standardPrices[purchase_type] ?? 8.25);
 
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('sessions')
