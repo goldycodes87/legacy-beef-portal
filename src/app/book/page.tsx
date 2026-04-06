@@ -110,6 +110,12 @@ export default function BookPage() {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [animalType, setAnimalType] = useState<string>('no_preference');
 
+  // Split state
+  const [isSplitting, setIsSplitting] = useState(false);
+  const [partnerEmails, setPartnerEmails] = useState<string[]>([]);
+  const [groupSize, setGroupSize] = useState(1);
+  const [cutSheetChoice, setCutSheetChoice] = useState('none');
+
   // Per-size pricing (matches API config, with hardcoded fallback)
   const PRICE_PER_LB: Record<string, number> = {
     whole:   8.00,
@@ -165,6 +171,16 @@ export default function BookPage() {
 
     setSelectedSize(size);
     setAnimalType(aType);
+
+    // Read split data from sessionStorage
+    const splitting = sessionStorage.getItem('isSplitting') === 'true';
+    const partners = JSON.parse(sessionStorage.getItem('partnerEmails') || '[]');
+    const gSize = parseInt(sessionStorage.getItem('groupSize') || '1');
+    const cutSheetChoice = sessionStorage.getItem('cutSheetChoice') || 'none';
+    setIsSplitting(splitting);
+    setPartnerEmails(partners);
+    setGroupSize(gSize);
+    setCutSheetChoice(cutSheetChoice);
 
     // Set initial price based on animal type preference
     const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
@@ -270,6 +286,10 @@ export default function BookPage() {
           zip:           form.zip,
           animal_id:     selectedSlot.id,
           purchase_type: selectedSize,
+          is_splitting:  isSplitting,
+          partner_emails: partnerEmails,
+          group_size:    groupSize,
+          cut_sheet_choice: cutSheetChoice,
         }),
       });
 

@@ -16,7 +16,8 @@ function depositAmount(purchaseType: string): number {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, phone, address, city, state, zip, animal_id, purchase_type } = body;
+    const { name, email, phone, address, city, state, zip, animal_id, purchase_type,
+      is_splitting, partner_emails, group_size, cut_sheet_choice } = body;
 
     // Validate required fields
     if (!name || !email || !phone || !address || !animal_id || !purchase_type) {
@@ -99,6 +100,11 @@ export async function POST(request: NextRequest) {
     const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
     const isWagyu = animal.animal_type === 'wagyu';
     const price_per_lb = isWagyu ? (wagyuPrices[purchase_type] ?? 9.50) : (standardPrices[purchase_type] ?? 8.25);
+    // Override for whole beef splits — each person pays split price
+    const effective_price = (is_splitting && purchase_type === 'whole') ? 8.00 : price_per_lb;
+
+    // Generate group_id for split bookings
+    const group_id = is_splitting ? crypto.randomUUID() : null;
 
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('sessions')
@@ -106,11 +112,18 @@ export async function POST(request: NextRequest) {
         customer_id:     customerId,
         animal_id:       animal_id,
         purchase_type:   purchase_type,
-        price_per_lb,
+        price_per_lb:    effective_price,
         status:          'draft',
         partner_approved: false,
         owner_approved:   false,
         last_saved:       new Date().toISOString(),
+        is_splitting:     is_splitting || false,
+        group_role:       is_splitting ? 'owner' : 'solo',
+        group_size:       group_size || 1,
+        partner_emails:   partner_emails || [],
+        cut_sheet_role:   cut_sheet_choice === 'separate' ? 'owner' : cut_sheet_choice === 'shared' ? 'master' : 'solo',
+        invite_expires_at: is_splitting ? new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() : null,
+        group_id,
       })
       .select('id')
       .single();

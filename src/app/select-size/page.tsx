@@ -161,9 +161,10 @@ export default function SelectSizePage() {
     sessionStorage.setItem('isSplitting', String(isSplitting));
     sessionStorage.setItem('partnerEmails', JSON.stringify(emails));
     sessionStorage.setItem('groupSize', String(isSplitting ? groupSize : 1));
-    if (selectedSize === 'whole') {
-      sessionStorage.setItem('cutSheetChoice', cutSheet);
-    }
+    const cutSheetDerived = selectedSize === 'whole' && groupSize === 4 ? 'shared' :
+      selectedSize === 'whole' && groupSize === 2 ? 'separate' :
+      selectedSize === 'half' ? 'shared' : 'none';
+    sessionStorage.setItem('cutSheetChoice', cutSheetDerived);
     if (isSplitting) {
       const groupId = crypto.randomUUID();
       sessionStorage.setItem('group_id', groupId);
@@ -304,32 +305,10 @@ export default function SelectSizePage() {
                       onChange={(e) => setGroupSize(Number(e.target.value))}
                       className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
                     >
-                      {[2, 3, 4].map((n) => (
-                        <option key={n} value={n}>{n} people</option>
+                      {[2, 4].map((n) => (
+                        <option key={n} value={n}>{n === 2 ? '2 people (2 Halves)' : '4 people (4 Quarters)'}</option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Cut sheet choice */}
-                  <div>
-                    <label className="block text-sm font-semibold text-brand-dark mb-1">
-                      Cut sheet preference
-                    </label>
-                    <div className="flex gap-3">
-                      {(['shared', 'separate'] as CutSheetChoice[]).map((opt) => (
-                        <button
-                          key={opt}
-                          onClick={() => setCutSheet(opt)}
-                          className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-colors duration-150
-                            ${cutSheet === opt
-                              ? 'border-brand-orange bg-[#FFF5F0] text-brand-dark'
-                              : 'border-[#E5E7EB] text-brand-gray hover:border-brand-orange/50'
-                            }`}
-                        >
-                          {opt === 'shared' ? 'Shared cut sheet' : 'Separate cut sheets'}
-                        </button>
-                      ))}
-                    </div>
                   </div>
 
                   {/* Partner email */}
@@ -348,9 +327,19 @@ export default function SelectSizePage() {
 
                   {/* Disclosure */}
                   <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray leading-relaxed">
-                    <span className="font-semibold text-brand-dark">Each pays $500 deposit.</span>{' '}
-                    Both pay within 48 hrs → $8.00/lb for both{' '}
-                    <span className="text-brand-green font-semibold">(~$90 savings each)</span>.
+                    {groupSize === 4 ? (
+                      <>
+                        <span className="font-semibold text-brand-dark">Each pays $250 deposit.</span>{' '}
+                        All 4 pay within 48 hrs → $8.00/lb for all{' '}
+                        <span className="text-brand-green font-semibold">(~$90 savings each)</span>. One master cut sheet.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-brand-dark">Each pays $500 deposit.</span>{' '}
+                        Both pay within 48 hrs → $8.00/lb for both{' '}
+                        <span className="text-brand-green font-semibold">(~$90 savings each)</span>.
+                      </>
+                    )}
                   </div>
                 </div>
               )}
