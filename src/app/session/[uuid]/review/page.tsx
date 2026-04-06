@@ -31,7 +31,7 @@ const SECTION_LABELS: Record<string, string> = {
   tenderized_round: 'Tenderized Round',
   organs: 'Organs',
   bones: 'Bones',
-  packing: 'Packing Info',
+  packing: 'Ground Beef',
 };
 
 const SECTION_ICONS: Record<string, string> = {
@@ -48,7 +48,7 @@ const SECTION_ICONS: Record<string, string> = {
   tenderized_round: '🥩',
   organs: '🫀',
   bones: '🦴',
-  packing: '📦',
+  packing: '🥩',
 };
 
 const SECTIONS_ORDER = [

@@ -43,7 +43,7 @@ const SECTIONS = [
   { id: 'tenderized_round', label: 'Tenderized Round', icon: '🥩', cowPart: null },
   { id: 'organs', label: 'Organs', icon: '🫀', cowPart: null },
   { id: 'bones', label: 'Bones', icon: '🦴', cowPart: null },
-  { id: 'packing', label: 'Packing Info', icon: '📦', cowPart: null },
+  { id: 'packing', label: 'Ground Beef', icon: '🥩', cowPart: null },
 ];
 
 // ─── House Defaults ────────────────────────────────────────────────────────
