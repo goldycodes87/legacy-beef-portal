@@ -132,9 +132,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Update session status to 'deposit_paid'
+    // For quarter buyers, also auto-complete the cut sheet (they use the house cut sheet)
+    const sessionUpdate: Record<string, unknown> = { status: 'deposit_paid' };
+    if (session.purchase_type === 'quarter') {
+      sessionUpdate.cut_sheet_complete = true;
+    }
+
     const { error: updateError } = await supabaseAdmin
       .from('sessions')
-      .update({ status: 'deposit_paid' })
+      .update(sessionUpdate)
       .eq('id', session_id);
 
     if (updateError) {

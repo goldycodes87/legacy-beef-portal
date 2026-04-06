@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import HouseCutSheetModal from '@/components/HouseCutSheetModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -127,6 +128,10 @@ export default function ESignContract({
 }: ESignContractProps) {
   const router = useRouter();
 
+  // Quarter-buyer state
+  const [houseCutSheetOpen, setHouseCutSheetOpen] = useState(false);
+  const [quarterAcknowledged, setQuarterAcknowledged] = useState(false);
+
   // Checkbox state
   const [clause1, setClause1] = useState(false);
   const [clause2, setClause2] = useState(false);
@@ -166,7 +171,8 @@ export default function ESignContract({
 
   const allChecked = clause1 && clause2 && clause3;
   const sigMatch = sigInput.trim().toLowerCase() === customer.name.trim().toLowerCase();
-  const canSubmit = allChecked && sigInput.trim().length > 0 && sigMatch && !submitting;
+  const quarterOk = session.purchase_type !== 'quarter' || quarterAcknowledged;
+  const canSubmit = allChecked && sigInput.trim().length > 0 && sigMatch && quarterOk && !submitting;
 
   // Show splitting info box?
   const showSplitBox =
@@ -267,6 +273,38 @@ export default function ESignContract({
             half. Please have the other party call us and we will do their contract and cut sheet separately
             from yours. Whole beef pricing will apply to both of you.
           </p>
+        </section>
+      )}
+
+      {/* Quarter Buyer: House Cut Sheet Acknowledgment */}
+      {session.purchase_type === 'quarter' && (
+        <section className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+          <h2
+            className="text-lg font-bold text-brand-dark mb-1"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Your Cut Sheet
+          </h2>
+          <p className="text-sm text-brand-gray mb-4 leading-relaxed">
+            Quarter beef orders are cut to our House Cut Sheet. You&apos;ll receive approximately one
+            quarter of each cut produced.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setHouseCutSheetOpen(true)}
+            className="mb-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-brand-orange text-brand-orange font-semibold text-sm hover:bg-orange-50 transition-colors"
+          >
+            🥩 View House Cut Sheet
+          </button>
+
+          <ClauseCheckbox
+            id="quarter-ack"
+            checked={quarterAcknowledged}
+            onChange={setQuarterAcknowledged}
+          >
+            I understand my quarter beef will be cut to Legacy Land &amp; Cattle&apos;s house specifications.
+          </ClauseCheckbox>
         </section>
       )}
 
@@ -414,11 +452,18 @@ export default function ESignContract({
       {/* Helper text when disabled */}
       {!canSubmit && !submitting && (
         <p className="text-center text-xs text-brand-gray mt-2">
-          {!allChecked && 'Check all 3 boxes above. '}
+          {session.purchase_type === 'quarter' && !quarterAcknowledged && 'Acknowledge the house cut sheet above. '}
+          {!allChecked && 'Check all 3 agreement boxes. '}
           {allChecked && sigInput.trim().length === 0 && 'Enter your full name to sign. '}
           {allChecked && sigInput.trim().length > 0 && !sigMatch && 'Name must match your account name. '}
         </p>
       )}
+
+      {/* House Cut Sheet Modal */}
+      <HouseCutSheetModal
+        open={houseCutSheetOpen}
+        onClose={() => setHouseCutSheetOpen(false)}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
+import QuarterCutSheetCard from '@/components/QuarterCutSheetCard';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -43,7 +44,12 @@ const formatDate = (dateStr: string) => {
 
 // ─── CTA Button ─────────────────────────────────────────────────────────────
 
-function SessionCTA({ status, uuid }: { status: string; uuid: string }) {
+function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: string; purchaseType?: string }) {
+  // Quarter buyers don't fill out a cut sheet — show house cut sheet card instead
+  if (purchaseType === 'quarter' && (status === 'draft' || status === 'in_progress' || status === 'complete')) {
+    return <QuarterCutSheetCard />;
+  }
+
   switch (status) {
     case 'draft':
     case 'in_progress':
@@ -190,7 +196,7 @@ export default async function SessionPage({ params }: PageProps) {
             </div>
 
             {/* Action Button */}
-            <SessionCTA status={session.status} uuid={session.id} />
+            <SessionCTA status={session.status} uuid={session.id} purchaseType={session.purchase_type} />
           </div>
         </div>
 
