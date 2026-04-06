@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.legacylandandcattleco.com';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -22,9 +22,6 @@ export async function GET(request: NextRequest) {
       .from('sessions')
       .update({
         status: 'deposit_paid',
-        deposit_paid: true,
-        deposit_paid_at: new Date().toISOString(),
-        payment_method: 'card',
       })
       .eq('id', sessionId);
 

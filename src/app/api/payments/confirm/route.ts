@@ -131,10 +131,10 @@ export async function POST(request: NextRequest) {
       console.warn('Payment record upsert warning:', paymentError.message);
     }
 
-    // 3. Update session status to 'draft' (will be 'deposit_paid' after DB migration)
+    // 3. Update session status to 'deposit_paid'
     const { error: updateError } = await supabaseAdmin
       .from('sessions')
-      .update({ status: 'draft' })
+      .update({ status: 'deposit_paid' })
       .eq('id', session_id);
 
     if (updateError) {
