@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import cutDescriptions from '@/lib/cut-descriptions.json';
+import HouseCutSheetModal from '@/components/HouseCutSheetModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -190,7 +191,9 @@ function SectionDotPath({
 
 // ─── Intro Screen ─────────────────────────────────────────────────────────────
 
-function IntroScreen({ session, onStart }: { session: Session; onStart: () => void }) {
+function IntroScreen({ session, onStart }: { session: Session; onStart: (useHouse?: boolean) => void }) {
+  const [useHouseSheet, setUseHouseSheet] = useState(false);
+  const [showHouseModal, setShowHouseModal] = useState(false);
   const purchaseLabel = session.purchase_type === 'whole' ? 'Whole Beef' : session.purchase_type === 'half' ? 'Half Beef' : 'Quarter Beef';
   const isPartner = session.cut_sheet_role === 'partner';
   const isMaster = session.cut_sheet_role === 'master';
@@ -276,14 +279,47 @@ function IntroScreen({ session, onStart }: { session: Session; onStart: () => vo
         </div>
       </div>
 
+      {session.purchase_type !== 'quarter' && (
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 text-left">
+          <div className="flex items-start gap-3 mb-4">
+            <span className="text-2xl">🏠</span>
+            <div>
+              <p className="font-semibold text-brand-dark">Not sure how you want it cut?</p>
+              <p className="text-sm text-brand-gray mt-0.5">
+                Use our House Cut Sheet — our recommended cuts for a well-rounded selection.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowHouseModal(true)}
+            className="text-brand-orange text-sm font-semibold hover:underline mb-4 block"
+          >
+            View House Cut Sheet →
+          </button>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={useHouseSheet}
+              onChange={(e) => setUseHouseSheet(e.target.checked)}
+              className="w-5 h-5 rounded border-brand-gray-light accent-brand-orange"
+            />
+            <span className="text-sm font-medium text-brand-dark">
+              Use the House Cut Sheet for my beef
+            </span>
+          </label>
+        </div>
+      )}
+
       {!isReadonly && (
         <button
-          onClick={onStart}
+          onClick={useHouseSheet ? () => onStart(true) : () => onStart(false)}
           className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-4 rounded-xl font-semibold text-lg transition-colors"
         >
           {isPartner ? 'Review Cut Sheet →' : 'Get Started →'}
         </button>
       )}
+
+      <HouseCutSheetModal open={showHouseModal} onClose={() => setShowHouseModal(false)} />
     </div>
   );
 }
@@ -1346,7 +1382,28 @@ export default function CutsPage() {
       </header>
 
       {showIntro ? (
-        <IntroScreen session={session} onStart={() => setShowIntro(false)} />
+        <IntroScreen session={session} onStart={async (useHouse) => {
+          if (useHouse) {
+            const sections = ['chuck','brisket','skirt','rib','short_ribs','sirloin',
+              'round','short_loin','flank','stew_meat','tenderized_round',
+              'organs','bones','packing'];
+            await Promise.all(sections.map(section =>
+              fetch(`/api/cut-sheet/${uuid}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  session_id: uuid,
+                  section,
+                  answers: { ...HOUSE_DEFAULTS[section], house_default: true },
+                  completed: true,
+                }),
+              })
+            ));
+            router.push(`/session/${uuid}/review`);
+          } else {
+            setShowIntro(false);
+          }
+        }} />
       ) : (
         <>
           {/* Cow diagram */}

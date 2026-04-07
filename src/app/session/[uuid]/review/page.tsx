@@ -178,8 +178,8 @@ export default function ReviewPage() {
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-2xl">{SECTION_ICONS[sectionId]}</span>
                   <div className="flex-1">
-                    <p className="font-semibold text-brand-dark text-sm">{SECTION_LABELS[sectionId]}</p>
-                    <p className="text-xs text-brand-gray mt-0.5">{displayText}</p>
+                    <p className="font-semibold text-brand-dark text-base">{SECTION_LABELS[sectionId]}</p>
+                    <p className="text-sm text-brand-dark mt-0.5 font-medium">{displayText}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
