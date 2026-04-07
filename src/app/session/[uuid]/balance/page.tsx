@@ -77,7 +77,7 @@ export default function BalancePage() {
       setLoading(false);
 
       if (data.balance_paid) {
-        router.push(`/session/${uuid}`);
+        router.push(`/session/${uuid}/pickup`);
       }
     };
     fetchSession();
