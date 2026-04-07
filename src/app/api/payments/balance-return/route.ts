@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const response = NextResponse.redirect(new URL(`/session/${sessionId}?balance=paid`, request.url));
+    const response = NextResponse.redirect(new URL(`/session/${sessionId}/pickup`, request.url));
     return response;
   }
 

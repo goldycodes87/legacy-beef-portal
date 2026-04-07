@@ -208,7 +208,7 @@ export default function BalancePage() {
           {/* Check/cash — continue button */}
           {paymentMethod === 'check' && (
             <button
-              onClick={() => router.push(`/session/${uuid}`)}
+              onClick={() => handleCashCheck()}
               className="w-full mt-6 bg-brand-orange text-white py-3 rounded-lg font-semibold hover:opacity-90"
             >
               Continue to Pickup
