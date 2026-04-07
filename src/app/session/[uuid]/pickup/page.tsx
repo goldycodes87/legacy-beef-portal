@@ -98,7 +98,7 @@ export default function PickupPage() {
           alt="Legacy Land & Cattle"
           width={240}
           height={108}
-          className="h-24 w-auto mx-auto mb-8"
+          className="h-40 w-auto mx-auto block mb-4"
         />
         <div className="text-6xl mb-6">🎉</div>
         <h1 className="font-display font-bold text-4xl text-brand-dark mb-3">
@@ -124,13 +124,34 @@ export default function PickupPage() {
           alt="Legacy Land & Cattle"
           width={240}
           height={108}
-          className="h-24 w-auto mx-auto block"
+          className="h-40 w-auto mx-auto block mb-4"
         />
       </div>
 
-      <p className="text-center text-brand-gray text-lg mb-8">
-        Welcome, <span className="font-bold text-brand-dark">{session?.customer?.name?.split(' ')[0]}</span>
+      <p className="text-center text-2xl text-brand-gray mb-2">
+        <span className="font-bold text-brand-dark">
+          {session?.customer?.name?.split(' ')[0]}
+        </span>, your beef is ready! 🎉
       </p>
+
+      {session?.balance_due > 0 && !session?.balance_paid && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 mb-6 text-center max-w-2xl mx-auto">
+          <p className="font-display font-bold text-xl text-brand-dark mb-1">
+            Balance Due: ${session.balance_due.toFixed(2)}
+          </p>
+          <p className="text-sm text-amber-700">
+            Please bring payment to pickup or{' '}
+            <a href={`/session/${uuid}/balance`} className="underline font-semibold">
+              pay online now
+            </a>.
+          </p>
+        </div>
+      )}
+      {session?.balance_paid && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 mb-6 text-center max-w-2xl mx-auto">
+          <p className="font-semibold text-green-700">✓ Balance paid — you&apos;re all set!</p>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto pb-12">
 
@@ -145,6 +166,11 @@ export default function PickupPage() {
                 Choose a pickup time that works for you.
               </p>
             </div>
+
+            <p className="text-brand-gray text-center text-base mb-6 leading-relaxed">
+              Beef pickup is always a good day! Select the pickup date that works best for you. If something comes up last minute, please call us and we&apos;ll work with you to get your beef.
+            </p>
+
             <div className="space-y-4">
               {windows.map((w) => (
                 <button
@@ -207,16 +233,14 @@ export default function PickupPage() {
                 </div>
               </div>
 
-              {session.is_splitting && (
-                <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAlternate}
-                    onChange={(e) => setIsAlternate(e.target.checked)}
-                  />
-                  <span className="font-semibold text-brand-dark">Someone else is picking up my beef</span>
-                </label>
-              )}
+              <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAlternate}
+                  onChange={(e) => setIsAlternate(e.target.checked)}
+                />
+                <span className="font-semibold text-brand-dark">Someone else is picking up my beef</span>
+              </label>
 
               {isAlternate && (
                 <div className="mt-6 space-y-3 p-4 bg-brand-warm border-2 border-brand-green rounded-lg">
@@ -261,8 +285,8 @@ export default function PickupPage() {
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(1)} className="flex-1 px-4 py-3 bg-brand-gray text-white rounded-lg">Back</button>
-              <button onClick={() => setStep(3)} className="flex-1 px-4 py-3 bg-brand-orange text-white rounded-lg">Next</button>
+              <button onClick={() => setStep(1)} className="flex-1 px-4 py-4 bg-brand-gray text-white rounded-xl font-bold text-lg transition-colors">Back</button>
+              <button onClick={() => setStep(3)} className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-bold text-lg transition-colors">Next</button>
             </div>
           </>
         )}
@@ -295,8 +319,8 @@ export default function PickupPage() {
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(2)} className="flex-1 px-4 py-3 bg-brand-gray text-white rounded-lg">Back</button>
-              <button onClick={handleConfirm} className="flex-1 px-4 py-3 bg-brand-orange text-white rounded-lg font-bold">Confirm Pickup</button>
+              <button onClick={() => setStep(2)} className="flex-1 px-4 py-4 bg-brand-gray text-white rounded-xl font-bold text-lg transition-colors">Back</button>
+              <button onClick={handleConfirm} className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-bold text-lg transition-colors">Confirm Pickup</button>
             </div>
           </>
         )}
