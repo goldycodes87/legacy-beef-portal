@@ -33,12 +33,6 @@ export default function PickupPage() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      // Check for order_access cookie
-      const hasCookie = document.cookie.includes('order_access');
-      if (!hasCookie) {
-        router.push(`/session/${uuid}`);
-        return;
-      }
 
       const res = await fetch(`/api/session/${uuid}`);
       const data = await res.json();
