@@ -100,9 +100,9 @@ export default function PickupPage() {
         <Image
           src="/images/LLC_Logo.svg"
           alt="Legacy Land & Cattle"
-          width={160}
-          height={72}
-          className="h-14 w-auto"
+          width={240}
+          height={108}
+          className="h-24 w-auto mx-auto block"
         />
       </div>
 
