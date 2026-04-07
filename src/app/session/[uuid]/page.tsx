@@ -89,7 +89,7 @@ function SessionCTA({ status, uuid, purchaseType }: { status: string; uuid: stri
     case 'beef_ready':
       return (
         <Link
-          href={`/session/${uuid}/status`}
+          href={`/session/${uuid}/pickup`}
           className="block w-full text-center bg-brand-green text-white font-semibold py-4 px-6 rounded-xl hover:bg-brand-dark transition-colors text-base"
         >
           Schedule your pickup →
