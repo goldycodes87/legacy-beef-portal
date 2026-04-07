@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface PickupWindow {
   id: string;
@@ -12,6 +16,50 @@ interface PickupWindow {
   end_time: string;
   appointment_count: number;
   max_slots: number;
+}
+
+function BalancePaymentForm({ amount, onSuccess }: { amount: number; onSuccess: () => void }) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const uuid = params.uuid as string;
+
+  const handlePay = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setPaying(true);
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/api/payments/balance-return?session_id=${uuid}`,
+      },
+      redirect: 'if_required',
+    });
+
+    if (error) {
+      setError(error.message || 'Payment failed');
+      setPaying(false);
+    } else {
+      onSuccess();
+    }
+  };
+
+  return (
+    <form onSubmit={handlePay} className="mt-4">
+      <PaymentElement />
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      <button
+        type="submit"
+        disabled={!stripe || paying}
+        className="w-full mt-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-body font-bold text-lg disabled:opacity-50 transition-colors"
+      >
+        {paying ? 'Processing…' : `Pay $${amount.toFixed(2)}`}
+      </button>
+    </form>
+  );
 }
 
 export default function PickupPage() {
@@ -30,6 +78,10 @@ export default function PickupPage() {
     phone: '',
     waiverSigned: false,
   });
+  const [balanceMethod, setBalanceMethod] = useState<'card' | 'cash' | null>(null);
+  const [balanceClientSecret, setBalanceClientSecret] = useState<string | null>(null);
+  const [loadingIntent, setLoadingIntent] = useState(false);
+  const [balancePaying, setBalancePaying] = useState(false);
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -79,6 +131,30 @@ export default function PickupPage() {
     if (res.ok) {
       router.push(`/session/${uuid}?pickup=scheduled`);
     }
+  };
+
+  const handleSelectCard = async () => {
+    setBalanceMethod('card');
+    if (balanceClientSecret) return;
+
+    setLoadingIntent(true);
+    const res = await fetch('/api/payments/create-balance-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: uuid }),
+    });
+    const data = await res.json();
+    setBalanceClientSecret(data.client_secret);
+    setLoadingIntent(false);
+  };
+
+  const handleCashBalance = async () => {
+    setBalanceMethod('cash');
+    await fetch(`/api/session/${uuid}/mark-cash-balance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    setSession({ ...session, balance_paid: true, balance_payment_method: 'cash' });
   };
 
   function formatTime(time: string): string {
@@ -167,21 +243,53 @@ export default function PickupPage() {
         {/* Balance card — floats over the transition */}
         {session?.balance_due > 0 && !session?.balance_paid && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-l-4 border-brand-orange">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-body text-brand-gray text-sm">Balance Due</p>
-                <p className="font-display font-bold text-3xl text-brand-dark">
-                  ${session.balance_due.toFixed(2)}
+            <p className="font-body text-brand-gray text-sm">Balance Due</p>
+            <p className="font-display font-bold text-3xl text-brand-dark mb-4">
+              ${session.balance_due.toFixed(2)}
+            </p>
+            <p className="font-body text-brand-gray text-sm mb-4">
+              Your balance must be settled before selecting a pickup time.
+            </p>
+
+            <div className="flex gap-3 mb-4">
+              <button
+                onClick={handleSelectCard}
+                className={`flex-1 py-3 rounded-xl border-2 font-body font-semibold text-sm transition-colors ${balanceMethod === 'card'
+                  ? 'border-brand-orange bg-brand-orange-light text-brand-dark'
+                  : 'border-brand-gray-light text-brand-gray hover:border-brand-orange'}`}
+              >
+                💳 Pay by Card
+              </button>
+              <button
+                onClick={handleCashBalance}
+                className={`flex-1 py-3 rounded-xl border-2 font-body font-semibold text-sm transition-colors ${balanceMethod === 'cash'
+                  ? 'border-brand-orange bg-brand-orange-light text-brand-dark'
+                  : 'border-brand-gray-light text-brand-gray hover:border-brand-orange'}`}
+              >
+                💵 Cash/Check at Pickup
+              </button>
+            </div>
+
+            {balanceMethod === 'card' && (
+              loadingIntent ? (
+                <div className="text-center py-4 text-brand-gray">Loading payment form…</div>
+              ) : balanceClientSecret ? (
+                <Elements stripe={stripePromise} options={{ clientSecret: balanceClientSecret }}>
+                  <BalancePaymentForm
+                    amount={session.balance_due}
+                    onSuccess={() => setSession({ ...session, balance_paid: true })}
+                  />
+                </Elements>
+              ) : null
+            )}
+
+            {balanceMethod === 'cash' && (
+              <div className="bg-brand-green-pale border border-green-200 rounded-xl p-4 mt-2">
+                <p className="font-body font-semibold text-brand-green text-sm">
+                  ✓ Got it — please bring ${session.balance_due.toFixed(2)} cash or check to pickup.
                 </p>
               </div>
-              <a href={`/session/${uuid}/balance`}
-                className="bg-brand-orange text-white px-5 py-3 rounded-xl font-body font-semibold text-sm hover:bg-brand-orange-hover transition-colors">
-                Pay Online →
-              </a>
-            </div>
-            <p className="font-body text-brand-gray text-sm mt-3">
-              Or bring cash/check to pickup. Balance is due before beef leaves the ranch.
-            </p>
+            )}
           </div>
         )}
 
@@ -199,6 +307,12 @@ export default function PickupPage() {
             <h2 className="font-display font-bold text-2xl text-brand-dark mb-4">
               Choose Your Pickup Time
             </h2>
+            {session?.balance_due > 0 && !session?.balance_paid && balanceMethod !== 'cash' && (
+              <p className="font-body text-amber-600 text-sm mb-4 font-semibold">
+                ⚠️ Please resolve your balance above before selecting a pickup time.
+              </p>
+            )}
+            <div className={session?.balance_due > 0 && !session?.balance_paid && balanceMethod !== 'cash' ? 'opacity-40 pointer-events-none' : ''}>
             {windows.map((w) => (
               <button key={w.id} onClick={() => handleSelectWindow(w)}
                 className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all border-2 border-transparent hover:border-brand-orange group">
@@ -222,6 +336,7 @@ export default function PickupPage() {
                 </div>
               </button>
             ))}
+            </div>
           </div>
         )}
 
