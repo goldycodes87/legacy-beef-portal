@@ -103,6 +103,14 @@ export default function BalancePage() {
     fetchIntent().catch(() => setLoadingIntent(false));
   }, [paymentMethod, session, uuid]);
 
+  const handleCashCheck = async () => {
+    await fetch(`/api/session/${uuid}/mark-cash-balance`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    router.push(`/session/${uuid}/pickup`);
+  };
+
   if (loading) return <div className="text-center py-12">Loading...</div>;
   if (!session) return <div className="text-center py-12">Session not found</div>;
 
