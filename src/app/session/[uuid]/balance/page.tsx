@@ -116,7 +116,7 @@ export default function BalancePage() {
           alt="Legacy Land & Cattle"
           width={160}
           height={72}
-          className="h-14 w-auto"
+          className="h-28 w-auto mx-auto block"
         />
       </div>
 
