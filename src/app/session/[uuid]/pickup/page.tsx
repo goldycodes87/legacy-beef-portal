@@ -92,238 +92,303 @@ export default function PickupPage() {
 
   if (step === 99) {
     return (
-      <div className="min-h-screen bg-brand-warm flex flex-col items-center justify-center p-4 text-center">
+      <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center p-4 text-center">
         <Image
-          src="/images/LLC_Logo.svg"
+          src="/images/LLC_Logo_white.svg"
           alt="Legacy Land & Cattle"
-          width={240}
-          height={108}
-          className="h-40 w-auto mx-auto block mb-4"
+          width={300}
+          height={130}
+          className="h-32 w-auto mx-auto mb-8"
         />
         <div className="text-6xl mb-6">🎉</div>
-        <h1 className="font-display font-bold text-4xl text-brand-dark mb-3">
+        <h1 className="font-display font-black text-white mb-3"
+          style={{ fontSize: 'clamp(2rem, 8vw, 3rem)' }}>
           You&apos;re All Set!
         </h1>
-        <p className="text-brand-gray text-lg max-w-sm">
-          Your pickup is scheduled. We&apos;ll see you soon with your beef!
+        <p className="font-body text-white/70 text-lg max-w-sm mb-8">
+          Your pickup is confirmed. We&apos;ll see you soon with your beef!
         </p>
-        <div className="mt-8 bg-white rounded-2xl shadow-sm p-6 max-w-sm w-full">
-          <p className="text-brand-gray text-sm">Pickup Address</p>
-          <p className="font-bold text-brand-dark mt-1">6105 Burgess Rd</p>
-          <p className="text-brand-dark">Colorado Springs, CO 80908</p>
+        <div className="bg-white/10 rounded-2xl p-6 max-w-sm w-full">
+          <p className="font-body text-white/60 text-sm mb-1">Pickup Address</p>
+          <p className="font-display font-bold text-white text-lg">
+            6105 Burgess Rd
+          </p>
+          <p className="font-body text-white/80">Colorado Springs, CO 80908</p>
+          <a href="tel:7194595151"
+            className="font-body text-brand-orange mt-3 block">
+            719.459.5151
+          </a>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-brand-warm p-4">
-      <div className="flex justify-center pt-8 mb-2">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={240}
-          height={108}
-          className="h-40 w-auto mx-auto block mb-4"
-        />
+    <div className="min-h-screen bg-brand-warm">
+      {/* Dark hero header */}
+      <div className="bg-brand-dark px-4 pt-12 pb-16 text-center relative overflow-hidden">
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
+
+        <div className="relative z-10">
+          {/* White logo — large */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LLC_Logo_white.svg"
+              alt="Legacy Land & Cattle"
+              width={300}
+              height={130}
+              className="h-32 md:h-40 w-auto"
+              priority
+            />
+          </div>
+
+          {/* Greeting */}
+          <p className="font-body text-white/70 text-lg mb-2">
+            {session?.customer?.name?.split(' ')[0]}, your beef is ready!
+          </p>
+
+          {/* Hero headline */}
+          <h1 className="font-display font-black text-white mb-4"
+            style={{ fontSize: 'clamp(2rem, 8vw, 3rem)' }}>
+            Time to Pick Up Your Beef 🥩
+          </h1>
+
+          <p className="font-body text-white/70 text-base max-w-md mx-auto">
+            Beef pickup is always a good day. Select a time that works
+            for you — if anything comes up, just give us a call.
+          </p>
+        </div>
       </div>
 
-      <p className="text-center text-2xl text-brand-gray mb-2">
-        <span className="font-bold text-brand-dark">
-          {session?.customer?.name?.split(' ')[0]}
-        </span>, your beef is ready! 🎉
-      </p>
+      {/* Content area — cream background */}
+      <div className="max-w-2xl mx-auto px-4 -mt-6 pb-16">
 
-      {session?.balance_due > 0 && !session?.balance_paid && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 mb-6 text-center max-w-2xl mx-auto">
-          <p className="font-display font-bold text-xl text-brand-dark mb-1">
-            Balance Due: ${session.balance_due.toFixed(2)}
-          </p>
-          <p className="text-sm text-amber-700">
-            Please bring payment to pickup or{' '}
-            <a href={`/session/${uuid}/balance`} className="underline font-semibold">
-              pay online now
-            </a>.
-          </p>
-        </div>
-      )}
-      {session?.balance_paid && (
-        <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 mb-6 text-center max-w-2xl mx-auto">
-          <p className="font-semibold text-green-700">✓ Balance paid — you&apos;re all set!</p>
-        </div>
-      )}
-
-      <div className="max-w-2xl mx-auto pb-12">
-
-        {step === 1 && (
-          <>
-            <div className="text-center mb-10">
-              <div className="text-5xl mb-4">🥩</div>
-              <h1 className="font-display font-bold text-4xl text-brand-dark mb-3">
-                Your Beef is Ready!
-              </h1>
-              <p className="text-brand-gray text-lg">
-                Choose a pickup time that works for you.
-              </p>
+        {/* Balance card — floats over the transition */}
+        {session?.balance_due > 0 && !session?.balance_paid && (
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-l-4 border-brand-orange">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-body text-brand-gray text-sm">Balance Due</p>
+                <p className="font-display font-bold text-3xl text-brand-dark">
+                  ${session.balance_due.toFixed(2)}
+                </p>
+              </div>
+              <a href={`/session/${uuid}/balance`}
+                className="bg-brand-orange text-white px-5 py-3 rounded-xl font-body font-semibold text-sm hover:bg-brand-orange-hover transition-colors">
+                Pay Online →
+              </a>
             </div>
-
-            <p className="text-brand-gray text-center text-base mb-6 leading-relaxed">
-              Beef pickup is always a good day! Select the pickup date that works best for you. If something comes up last minute, please call us and we&apos;ll work with you to get your beef.
+            <p className="font-body text-brand-gray text-sm mt-3">
+              Or bring cash/check to pickup. Balance is due before beef leaves the ranch.
             </p>
-
-            <div className="space-y-4">
-              {windows.map((w) => (
-                <button
-                  key={w.id}
-                  onClick={() => handleSelectWindow(w)}
-                  className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all border-2 border-transparent hover:border-brand-orange active:scale-[0.99]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-display font-bold text-xl text-brand-dark">
-                        {new Date(w.pickup_date + 'T00:00:00').toLocaleDateString(
-                          'en-US',
-                          { weekday: 'long', month: 'long', day: 'numeric' }
-                        )}
-                      </p>
-                      <p className="text-brand-gray text-base mt-1">
-                        {formatTime(w.start_time)} – {formatTime(w.end_time)} MST
-                      </p>
-                      <p className="text-brand-orange font-semibold text-sm mt-1">
-                        {w.label}
-                      </p>
-                    </div>
-                    <span className="text-3xl">→</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-8 bg-brand-green rounded-2xl p-6 text-white text-center">
-              <p className="font-display font-bold text-lg mb-1">Pickup Address</p>
-              <p className="text-white/80">6105 Burgess Rd</p>
-              <p className="text-white/80">Colorado Springs, CO 80908</p>
-            </div>
-          </>
+          </div>
         )}
 
+        {session?.balance_paid && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-green-500">
+            <p className="font-body font-semibold text-green-700">
+              ✓ Balance paid — you&apos;re all set!
+            </p>
+          </div>
+        )}
+
+        {/* Step 1 — Schedule Selection */}
+        {step === 1 && (
+          <div className="space-y-4">
+            <h2 className="font-display font-bold text-2xl text-brand-dark mb-4">
+              Choose Your Pickup Time
+            </h2>
+            {windows.map((w) => (
+              <button key={w.id} onClick={() => handleSelectWindow(w)}
+                className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all border-2 border-transparent hover:border-brand-orange group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-display font-bold text-xl text-brand-dark">
+                      {new Date(w.pickup_date + 'T00:00:00').toLocaleDateString(
+                        'en-US', { weekday: 'long', month: 'long', day: 'numeric' }
+                      )}
+                    </p>
+                    <p className="font-body text-brand-gray text-base mt-1">
+                      {formatTime(w.start_time)} – {formatTime(w.end_time)} MST
+                    </p>
+                    <p className="font-body text-brand-orange font-semibold text-sm mt-1">
+                      {w.label}
+                    </p>
+                  </div>
+                  <div className="bg-brand-orange group-hover:bg-brand-orange-hover text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors text-lg">
+                    →
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Step 2 — Who's Picking Up? */}
         {step === 2 && (
           <>
-            <div className="text-center mb-8">
-              <div className="text-4xl mb-3">👋</div>
-              <h1 className="font-display font-bold text-3xl text-brand-dark">
-                Who&apos;s Picking Up?
-              </h1>
-              <p className="text-brand-gray mt-2">
-                We&apos;ll have your order ready when you arrive.
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-              <div className="space-y-3 mb-6">
-                <div>
-                  <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Name</label>
-                  <input type="text" value={session.customer.name} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
-                </div>
-                <div>
-                  <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Email</label>
-                  <input type="email" value={session.customer.email} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
-                </div>
-                <div>
-                  <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Phone</label>
-                  <input type="tel" value={session.customer.phone} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
-                </div>
-              </div>
+            <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">
+              Who&apos;s Picking Up?
+            </h2>
+            <p className="font-body text-brand-gray mb-6">
+              We&apos;ll have your order ready when you arrive.
+            </p>
 
-              <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Name</label>
                 <input
-                  type="checkbox"
-                  checked={isAlternate}
-                  onChange={(e) => setIsAlternate(e.target.checked)}
+                  type="text"
+                  value={session?.customer?.name || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light font-body text-brand-dark"
                 />
-                <span className="font-semibold text-brand-dark">Someone else is picking up my beef</span>
-              </label>
-
-              {isAlternate && (
-                <div className="mt-6 space-y-3 p-4 bg-brand-warm border-2 border-brand-green rounded-lg">
-                  <div>
-                    <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Pickup Person Name</label>
-                    <input
-                      type="text"
-                      value={alternateData.name}
-                      onChange={(e) => setAlternateData({ ...alternateData, name: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Email</label>
-                    <input
-                      type="email"
-                      value={alternateData.email}
-                      onChange={(e) => setAlternateData({ ...alternateData, email: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Phone</label>
-                    <input
-                      type="tel"
-                      value={alternateData.phone}
-                      onChange={(e) => setAlternateData({ ...alternateData, phone: e.target.value })}
-                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
-                    />
-                  </div>
-                  <label className="flex items-start gap-3 p-3 bg-white border rounded mt-4">
-                    <input
-                      type="checkbox"
-                      checked={alternateData.waiverSigned}
-                      onChange={(e) => setAlternateData({ ...alternateData, waiverSigned: e.target.checked })}
-                      className="mt-1"
-                    />
-                    <span className="text-sm text-brand-dark">I understand that once beef is released to the designated person, Legacy Land &amp; Cattle is not responsible for condition or handling. The pickup person accepts full responsibility upon collection.</span>
-                  </label>
-                </div>
-              )}
+              </div>
+              <div>
+                <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Email</label>
+                <input
+                  type="email"
+                  value={session?.customer?.email || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light font-body text-brand-dark"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={session?.customer?.phone || ''}
+                  disabled
+                  className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light font-body text-brand-dark"
+                />
+              </div>
             </div>
 
-            <div className="flex gap-4">
-              <button onClick={() => setStep(1)} className="flex-1 px-4 py-4 bg-brand-gray text-white rounded-xl font-bold text-lg transition-colors">Back</button>
-              <button onClick={() => setStep(3)} className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-bold text-lg transition-colors">Next</button>
+            <label className="flex items-center gap-3 p-4 bg-white border-2 border-brand-gray-light rounded-xl cursor-pointer hover:border-brand-orange transition-colors mt-4">
+              <input
+                type="checkbox"
+                checked={isAlternate}
+                onChange={(e) => setIsAlternate(e.target.checked)}
+                className="w-5 h-5 accent-brand-orange"
+              />
+              <span className="font-body font-semibold text-brand-dark">
+                Someone else is picking up my beef
+              </span>
+            </label>
+
+            {isAlternate && (
+              <div className="mt-6 space-y-3 p-4 bg-white rounded-xl border-2 border-brand-gray-light">
+                <div>
+                  <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Pickup Person Name</label>
+                  <input
+                    type="text"
+                    value={alternateData.name}
+                    onChange={(e) => setAlternateData({ ...alternateData, name: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl font-body text-brand-dark focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={alternateData.email}
+                    onChange={(e) => setAlternateData({ ...alternateData, email: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl font-body text-brand-dark focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-body text-brand-dark font-semibold mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={alternateData.phone}
+                    onChange={(e) => setAlternateData({ ...alternateData, phone: e.target.value })}
+                    className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl font-body text-brand-dark focus:outline-none focus:border-brand-orange"
+                  />
+                </div>
+                <label className="flex items-start gap-3 p-3 bg-white border-2 border-brand-gray-light rounded-xl mt-4">
+                  <input
+                    type="checkbox"
+                    checked={alternateData.waiverSigned}
+                    onChange={(e) => setAlternateData({ ...alternateData, waiverSigned: e.target.checked })}
+                    className="mt-1 w-5 h-5 accent-brand-orange"
+                  />
+                  <span className="font-body text-sm text-brand-dark">
+                    I understand that once beef is released to the designated person, Legacy Land &amp; Cattle is not responsible for condition or handling. The pickup person accepts full responsibility upon collection.
+                  </span>
+                </label>
+              </div>
+            )}
+
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={() => setStep(1)}
+                className="flex-1 px-4 py-4 border-2 border-brand-gray-light text-brand-gray rounded-xl font-body font-semibold">
+                Back
+              </button>
+              <button
+                onClick={() => setStep(3)}
+                className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-body font-bold text-lg transition-colors">
+                Next
+              </button>
             </div>
           </>
         )}
 
+        {/* Step 3 — Confirm Pickup */}
         {step === 3 && (
           <>
-            <div className="text-center mb-8">
-              <div className="text-4xl mb-3">✅</div>
-              <h1 className="font-display font-bold text-3xl text-brand-dark">
-                Confirm Your Pickup
-              </h1>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-brand-gray">Date</p>
-                  <p className="text-xl font-bold text-brand-dark">{selectedWindow && new Date(selectedWindow.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-brand-gray">Time</p>
-                  <p className="text-xl font-bold text-brand-dark">
-                    {formatTime(selectedWindow?.start_time ?? '')} – {formatTime(selectedWindow?.end_time ?? '')} MST
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-brand-gray">Pickup Person</p>
-                  <p className="text-xl font-bold text-brand-dark">{isAlternate ? alternateData.name : session.customer.name}</p>
-                </div>
+            <h2 className="font-display font-bold text-2xl text-brand-dark mb-6">
+              Confirm Your Pickup
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <p className="font-body text-brand-gray text-sm">Date</p>
+                <p className="font-display font-bold text-xl text-brand-dark">
+                  {selectedWindow ? new Date(selectedWindow.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}
+                </p>
+              </div>
+              <div>
+                <p className="font-body text-brand-gray text-sm">Time</p>
+                <p className="font-display font-bold text-xl text-brand-dark">
+                  {selectedWindow ? `${formatTime(selectedWindow.start_time)} – ${formatTime(selectedWindow.end_time)} MST` : ''}
+                </p>
+              </div>
+              <div>
+                <p className="font-body text-brand-gray text-sm">Pickup Person</p>
+                <p className="font-display font-bold text-xl text-brand-dark">
+                  {isAlternate ? alternateData.name : session?.customer?.name}
+                </p>
               </div>
             </div>
 
             <div className="flex gap-4">
-              <button onClick={() => setStep(2)} className="flex-1 px-4 py-4 bg-brand-gray text-white rounded-xl font-bold text-lg transition-colors">Back</button>
-              <button onClick={handleConfirm} className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-bold text-lg transition-colors">Confirm Pickup</button>
+              <button
+                onClick={() => setStep(2)}
+                className="flex-1 px-4 py-4 border-2 border-brand-gray-light text-brand-gray rounded-xl font-body font-semibold">
+                Back
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="flex-1 px-4 py-4 bg-brand-orange hover:bg-brand-orange-hover text-white rounded-xl font-body font-bold text-lg transition-colors">
+                Confirm Pickup
+              </button>
             </div>
           </>
         )}
+
+        {/* Pickup address card — always visible */}
+        <div className="mt-8 bg-brand-dark rounded-2xl p-6 text-white text-center">
+          <p className="font-display font-bold text-lg mb-2">📍 Pickup Address</p>
+          <p className="font-body text-white/80">6105 Burgess Rd</p>
+          <p className="font-body text-white/80">Colorado Springs, CO 80908</p>
+          <a href="tel:7194595151"
+            className="font-body text-brand-orange mt-3 block text-sm">
+            719.459.5151
+          </a>
+        </div>
+
       </div>
     </div>
   );
