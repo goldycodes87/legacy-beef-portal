@@ -127,31 +127,51 @@ export default async function SessionPage({ params }: PageProps) {
   const info = statusInfo(session.status);
   const firstName = session.customer?.name?.split(' ')[0] ?? 'there';
 
+  const heroHeadline = () => {
+    if (session.status === 'beef_ready') return 'Your Beef is Ready! 🥩';
+    if (session.status === 'locked') return 'Your Cut Sheet is Locked 🔒';
+    if (session.status === 'deposit_paid' || session.status === 'in_progress') return 'Your Reservation is Confirmed ✓';
+    return 'Your Beef Reservation';
+  };
+
   return (
-    <main className="min-h-screen px-4 py-12 bg-brand-warm">
-      <div className="max-w-lg mx-auto">
+    <main className="min-h-screen bg-brand-warm">
+      {/* Dark hero header */}
+      <div className="bg-brand-dark px-4 pt-12 pb-16 text-center relative overflow-hidden">
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
 
-        {/* Brand wordmark */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <Image src="/images/LLC_Logo_color.svg" alt="Legacy Land & Cattle" width={160} height={72} className="h-14 w-auto mx-auto" />
-          </Link>
+        <div className="relative z-10">
+          {/* White logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LLC_Logo_white.svg"
+              alt="Legacy Land & Cattle"
+              width={300}
+              height={130}
+              className="h-32 md:h-40 w-auto"
+              priority
+            />
+          </div>
+
+          {/* Greeting */}
+          <p className="font-body text-white/70 text-lg mb-2">
+            Welcome back, {firstName}
+          </p>
+
+          {/* Hero headline — varies by status */}
+          <h1 className="font-display font-black text-white mb-4"
+            style={{ fontSize: 'clamp(1.75rem, 6vw, 2.5rem)' }}>
+            {heroHeadline()}
+          </h1>
         </div>
+      </div>
 
-        {/* Welcome */}
-        <p className="text-brand-gray text-center mb-6 text-lg">
-          Welcome back, <span className="font-bold text-brand-dark text-xl">{firstName}</span>
-        </p>
+      {/* Content area */}
+      <div className="max-w-lg mx-auto px-4 mt-6 pb-16">
 
         {/* Order Card */}
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden mb-4">
-          {/* Animal Name Header */}
-          <div className="bg-brand-green px-6 py-5">
-            <p className="text-[#C4A46B] text-xs uppercase tracking-widest mb-1">Your Beef Order</p>
-            <h2 className="text-white text-2xl font-serif font-bold">
-              {session.animal?.name ?? 'Your Animal'}
-            </h2>
-          </div>
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
 
           {/* Details */}
           <div className="px-6 py-5 space-y-3">

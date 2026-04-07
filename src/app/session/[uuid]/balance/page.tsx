@@ -110,50 +110,54 @@ export default function BalancePage() {
 
   return (
     <div className="min-h-screen bg-brand-warm">
-      <div className="flex justify-center pt-8 mb-8">
-        <Image
-          src="/images/LLC_Logo.svg"
-          alt="Legacy Land & Cattle"
-          width={160}
-          height={72}
-          className="h-28 w-auto mx-auto block"
-        />
+      {/* Dark hero header */}
+      <div className="bg-brand-dark px-4 pt-12 pb-16 text-center relative overflow-hidden">
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" />
+
+        <div className="relative z-10">
+          {/* White logo */}
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/images/LLC_Logo_white.svg"
+              alt="Legacy Land & Cattle"
+              width={300}
+              height={130}
+              className="h-32 md:h-40 w-auto"
+              priority
+            />
+          </div>
+
+          {/* Greeting */}
+          <p className="font-body text-white/70 text-lg mb-2">
+            Hi {session?.customer?.name?.split(' ')[0]},
+          </p>
+
+          {/* Hero headline */}
+          <h1 className="font-display font-black text-white mb-4"
+            style={{ fontSize: 'clamp(2rem, 8vw, 3rem)' }}>
+            Your Balance is Due
+          </h1>
+
+          <p className="font-body text-white/70 text-base max-w-md mx-auto">
+            Pay online now or bring cash/check to pickup.
+          </p>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto pb-12 px-4">
+      {/* Content area */}
+      <div className="max-w-2xl mx-auto px-4 mt-6 pb-16">
 
-        {/* Balance Summary */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8">
-          <h2 className="text-2xl font-display font-bold text-brand-dark mb-4">Balance Due</h2>
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between">
-              <span className="text-brand-gray">Animal</span>
-              <span className="font-semibold text-brand-dark">{session.animal?.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-brand-gray">Purchase Type</span>
-              <span className="font-semibold text-brand-dark capitalize">{session.purchase_type}</span>
-            </div>
-            {session.hanging_weight_lbs && (
-              <div className="flex justify-between">
-                <span className="text-brand-gray">Hanging Weight</span>
-                <span className="font-semibold text-brand-dark">{session.hanging_weight_lbs} lbs</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span className="text-brand-gray">Price per lb</span>
-              <span className="font-semibold text-brand-dark">${session.price_per_lb?.toFixed(2)}</span>
-            </div>
-            <hr className="my-2" />
-            <div className="flex justify-between text-lg">
-              <span className="font-bold text-brand-dark">Balance Due</span>
-              <span className="font-bold text-brand-orange text-2xl">${balanceDue.toFixed(2)}</span>
-            </div>
-          </div>
+        {/* Balance summary card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-l-4 border-brand-orange">
+          <p className="font-body text-brand-gray text-sm mb-2">Balance Due</p>
+          <p className="font-display font-bold text-4xl text-brand-dark">
+            ${balanceDue.toFixed(2)}
+          </p>
         </div>
 
         {/* Payment Options */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-display font-bold text-brand-dark mb-4">Payment Method</h3>
 
           <div className="space-y-4">
