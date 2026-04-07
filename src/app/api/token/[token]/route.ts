@@ -18,8 +18,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.redirect(new URL('/access-expired', request.url));
   }
 
+  const destination = 
+    session.status === 'beef_ready' ? `/session/${session.id}/pickup` :
+    session.status === 'locked' ? `/session/${session.id}/review` :
+    `/session/${session.id}/cuts`;
   const response = NextResponse.redirect(
-    new URL(`/session/${session.id}/cuts`, request.url)
+    new URL(destination, request.url)
   );
   response.cookies.set('order_access', session.id, {
     httpOnly: true, secure: true, sameSite: 'lax',
