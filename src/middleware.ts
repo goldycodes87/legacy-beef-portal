@@ -5,7 +5,7 @@ import { createServerClient } from '@supabase/ssr';
 const PROTECTED_ROUTES = ['/session'];
 
 // Routes that are always public
-const PUBLIC_ROUTES = ['/auth', '/book', '/api', '/payment-success', '/token', '/'];
+const PUBLIC_ROUTES = ['/auth', '/book', '/api', '/payment-success', '/token', '/api/token', '/'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
