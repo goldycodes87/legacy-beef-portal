@@ -87,6 +87,7 @@ export default function SelectSizePage() {
 
     setSelectedSize(size);
     setSplitChoice(null);
+    if (size === 'quarter') setSplitChoice('no');
     setPartnerEmail('');
     setPartnerEmails4(['', '', '']);
     setGroupSize(2);
@@ -257,50 +258,24 @@ export default function SelectSizePage() {
           }`}
           style={{ transform: splitVisible ? 'translateY(0)' : 'translateY(-8px)' }}
         >
-          {selectedSize && (
+          {selectedSize && selectedSize !== 'quarter' && (
             <div className="bg-[#FAFAFA] border border-[#E5E7EB] rounded-2xl p-6 mb-6">
               <h2 className="font-display font-bold text-lg text-brand-dark mb-4">
                 Are you splitting with someone?
               </h2>
 
-              {/* Quarter → no split allowed */}
-              {selectedSize === 'quarter' ? (
-                <>
-                  <div className="flex gap-3 mb-4">
-                    <SplitButton
-                      label="No, just me"
-                      active={splitChoice === 'no'}
-                      onClick={() => setSplitChoice('no')}
-                    />
-                    {/* Disabled "yes" for quarter */}
-                    <button
-                      disabled
-                      className="flex-1 py-3 rounded-xl border-2 border-[#E5E7EB] text-[#9CA3AF] text-sm font-semibold cursor-not-allowed bg-white"
-                    >
-                      Yes, splitting with someone
-                    </button>
-                  </div>
-                  <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray">
-                    <span className="font-semibold text-brand-dark">Quarter beef is individual.</span>{' '}
-                    Contact us for group purchases.
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex gap-3 mb-4">
-                    <SplitButton
-                      label="No, just me"
-                      active={splitChoice === 'no'}
-                      onClick={() => setSplitChoice('no')}
-                    />
-                    <SplitButton
-                      label="Yes, splitting with someone"
-                      active={splitChoice === 'yes'}
-                      onClick={() => setSplitChoice('yes')}
-                    />
-                  </div>
-                </>
-              )}
+              <div className="flex gap-3 mb-4">
+                <SplitButton
+                  label="No, just me"
+                  active={splitChoice === 'no'}
+                  onClick={() => setSplitChoice('no')}
+                />
+                <SplitButton
+                  label="Yes, splitting with someone"
+                  active={splitChoice === 'yes'}
+                  onClick={() => setSplitChoice('yes')}
+                />
+              </div>
 
               {/* ── Whole Beef + Splitting ── */}
               {selectedSize === 'whole' && splitChoice === 'yes' && (
