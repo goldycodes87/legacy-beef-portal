@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function BalancePage() {
   const params = useParams();
@@ -42,30 +43,40 @@ export default function BalancePage() {
   const balanceDue = session.balance_due || 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
-      <div className="max-w-2xl mx-auto py-12">
+    <div className="min-h-screen bg-brand-warm">
+      <div className="flex justify-center pt-8 mb-8">
+        <Image
+          src="/images/LLC_Logo.svg"
+          alt="Legacy Land & Cattle"
+          width={160}
+          height={72}
+          className="h-14 w-auto"
+        />
+      </div>
+
+      <div className="max-w-2xl mx-auto pb-12 px-4">
         
         {/* Balance Summary */}
-        <div className="bg-white rounded-lg p-6 mb-8 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Balance Due</h2>
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8">
+          <h2 className="text-2xl font-display font-bold text-brand-dark mb-4">Balance Due</h2>
           <div className="space-y-3 mb-6">
             <div className="flex justify-between">
-              <span className="text-gray-600">Animal</span>
-              <span className="font-semibold text-gray-900">{session.animal?.name}</span>
+              <span className="text-brand-gray">Animal</span>
+              <span className="font-semibold text-brand-dark">{session.animal?.name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Purchase Type</span>
-              <span className="font-semibold text-gray-900 capitalize">{session.purchase_type}</span>
+              <span className="text-brand-gray">Purchase Type</span>
+              <span className="font-semibold text-brand-dark capitalize">{session.purchase_type}</span>
             </div>
             {session.hanging_weight_lbs && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Hanging Weight</span>
-                <span className="font-semibold text-gray-900">{session.hanging_weight_lbs} lbs</span>
+                <span className="text-brand-gray">Hanging Weight</span>
+                <span className="font-semibold text-brand-dark">{session.hanging_weight_lbs} lbs</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-gray-600">Price per lb</span>
-              <span className="font-semibold text-gray-900">${session.price_per_lb?.toFixed(2)}</span>
+              <span className="text-brand-gray">Price per lb</span>
+              <span className="font-semibold text-brand-dark">${session.price_per_lb?.toFixed(2)}</span>
             </div>
             <hr className="my-2" />
             <div className="flex justify-between text-lg">
@@ -76,8 +87,8 @@ export default function BalancePage() {
         </div>
 
         {/* Payment Options */}
-        <div className="bg-white rounded-lg p-6 border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Payment Method</h3>
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <h3 className="text-xl font-display font-bold text-brand-dark mb-4">Payment Method</h3>
           
           <div className="space-y-4">
             <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer" style={{borderColor: paymentMethod === 'card' ? '#E85D24' : '#e5e7eb'}}>
@@ -87,8 +98,8 @@ export default function BalancePage() {
                 onChange={() => setPaymentMethod('card')}
               />
               <div>
-                <p className="font-semibold text-gray-900">Credit/Debit Card</p>
-                <p className="text-sm text-gray-600">3% processing fee included</p>
+                <p className="font-semibold text-brand-dark">Credit/Debit Card</p>
+                <p className="text-sm text-brand-gray">3% processing fee included</p>
               </div>
             </label>
 
@@ -99,8 +110,8 @@ export default function BalancePage() {
                 onChange={() => setPaymentMethod('check')}
               />
               <div>
-                <p className="font-semibold text-gray-900">Check or Cash at Pickup</p>
-                <p className="text-sm text-gray-600">Pay ${balanceDue.toFixed(2)} at pickup</p>
+                <p className="font-semibold text-brand-dark">Check or Cash at Pickup</p>
+                <p className="text-sm text-brand-gray">Pay ${balanceDue.toFixed(2)} at pickup</p>
               </div>
             </label>
           </div>
