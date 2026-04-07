@@ -162,7 +162,7 @@ export default function PickupPage() {
       </div>
 
       {/* Content area — cream background */}
-      <div className="max-w-2xl mx-auto px-4 -mt-6 pb-16">
+      <div className="max-w-2xl mx-auto px-4 mt-6 pb-16">
 
         {/* Balance card — floats over the transition */}
         {session?.balance_due > 0 && !session?.balance_paid && (
