@@ -123,9 +123,16 @@ export async function POST(request: NextRequest) {
       paymentRecord.amount_cents = amount_cents;
     }
 
-    const { error: paymentError } = await supabaseAdmin
+    // Check if payment already exists for this intent
+    const { data: existing } = await supabaseAdmin
       .from('payments')
-      .upsert(paymentRecord, { onConflict: 'stripe_payment_intent_id' });
+      .select('id')
+      .eq('stripe_payment_intent_id', stripe_payment_intent_id)
+      .single();
+    
+    const { error: paymentError } = existing 
+      ? { error: null }
+      : await supabaseAdmin.from('payments').insert(paymentRecord);
 
     if (paymentError) {
       console.warn('Payment record upsert warning:', paymentError.message);
