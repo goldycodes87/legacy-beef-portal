@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       amountCents = paymentIntent.amount;
 
-      await fetch(`${APP_URL}/api/payments/confirm`, {
+      const confirmRes = await fetch(`${APP_URL}/api/payments/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -40,6 +40,19 @@ export async function GET(request: NextRequest) {
           amount_cents: amountCents,
         }),
       });
+      if (!confirmRes.ok) {
+        // confirm failed — write payment record directly as fallback
+        console.error('payments/confirm failed, writing fallback record');
+        await supabaseAdmin.from('payments').upsert({
+          session_id: sessionId,
+          type: 'deposit',
+          method: 'card',
+          status: 'paid',
+          amount_cents: amountCents,
+          stripe_payment_intent_id: paymentIntentId,
+          paid_at: new Date().toISOString(),
+        }, { onConflict: 'stripe_payment_intent_id' });
+      }
     } catch (err) {
       console.error('Failed to call payments/confirm:', err);
       // Still redirect to success — payment was captured, just log the error
