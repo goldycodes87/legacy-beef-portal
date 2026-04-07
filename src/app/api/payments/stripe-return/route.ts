@@ -42,6 +42,21 @@ export async function GET(request: NextRequest) {
       });
     } catch (err) {
       console.error('Failed to call payments/confirm:', err);
+      // Still redirect to success — payment was captured, just log the error
+      // Write payment record directly as fallback
+      try {
+        await supabaseAdmin.from('payments').upsert({
+          session_id: sessionId,
+          type: 'deposit',
+          method: 'card',
+          status: 'paid',
+          amount_cents: (await stripe.paymentIntents.retrieve(paymentIntentId)).amount,
+          stripe_payment_intent_id: paymentIntentId,
+          paid_at: new Date().toISOString(),
+        }, { onConflict: 'stripe_payment_intent_id' });
+      } catch (fallbackErr) {
+        console.error('Fallback payment record failed:', fallbackErr);
+      }
     }
 
     const response = NextResponse.redirect(new URL(`/payment-success?session_id=${sessionId}`, request.url));
