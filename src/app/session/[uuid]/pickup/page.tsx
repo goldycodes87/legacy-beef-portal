@@ -69,9 +69,9 @@ export default function PickupPage() {
       body: JSON.stringify({
         window_id: selectedWindow?.id,
         is_alternate: isAlternate,
-        pickup_person_name: isAlternate ? alternateData.name : session.customers.name,
-        pickup_person_email: isAlternate ? alternateData.email : session.customers.email,
-        pickup_person_phone: isAlternate ? alternateData.phone : session.customers.phone,
+        pickup_person_name: isAlternate ? alternateData.name : session.customer.name,
+        pickup_person_email: isAlternate ? alternateData.email : session.customer.email,
+        pickup_person_phone: isAlternate ? alternateData.phone : session.customer.phone,
         waiver_signed: isAlternate ? alternateData.waiverSigned : true,
       }),
     });
@@ -81,14 +81,36 @@ export default function PickupPage() {
     }
   };
 
+  function formatTime(time: string): string {
+    const [h, m] = time.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return m === 0 ? `${hour}${period}` : `${hour}:${String(m).padStart(2, '0')}${period}`;
+  }
+
   if (!session) return <div className="text-center py-12">Loading...</div>;
 
   if (step === 99) {
     return (
-      <div className="min-h-screen bg-brand-warm flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md text-center">
-          <p className="text-xl font-bold text-brand-dark mb-2">Pickup Scheduled ✓</p>
-          <p className="text-brand-gray">Your pickup time has been confirmed. See you then!</p>
+      <div className="min-h-screen bg-brand-warm flex flex-col items-center justify-center p-4 text-center">
+        <Image
+          src="/images/LLC_Logo.svg"
+          alt="Legacy Land & Cattle"
+          width={240}
+          height={108}
+          className="h-24 w-auto mx-auto mb-8"
+        />
+        <div className="text-6xl mb-6">🎉</div>
+        <h1 className="font-display font-bold text-4xl text-brand-dark mb-3">
+          You&apos;re All Set!
+        </h1>
+        <p className="text-brand-gray text-lg max-w-sm">
+          Your pickup is scheduled. We&apos;ll see you soon with your beef!
+        </p>
+        <div className="mt-8 bg-white rounded-2xl shadow-sm p-6 max-w-sm w-full">
+          <p className="text-brand-gray text-sm">Pickup Address</p>
+          <p className="font-bold text-brand-dark mt-1">6105 Burgess Rd</p>
+          <p className="text-brand-dark">Colorado Springs, CO 80908</p>
         </div>
       </div>
     );
@@ -96,7 +118,7 @@ export default function PickupPage() {
 
   return (
     <div className="min-h-screen bg-brand-warm p-4">
-      <div className="flex justify-center pt-8 mb-8">
+      <div className="flex justify-center pt-8 mb-2">
         <Image
           src="/images/LLC_Logo.svg"
           alt="Legacy Land & Cattle"
@@ -106,48 +128,82 @@ export default function PickupPage() {
         />
       </div>
 
+      <p className="text-center text-brand-gray text-lg mb-8">
+        Welcome, <span className="font-bold text-brand-dark">{session?.customer?.name?.split(' ')[0]}</span>
+      </p>
+
       <div className="max-w-2xl mx-auto pb-12">
-        
+
         {step === 1 && (
           <>
-            <h1 className="text-3xl font-display font-bold text-brand-dark mb-8">Schedule Your Pickup</h1>
+            <div className="text-center mb-10">
+              <div className="text-5xl mb-4">🥩</div>
+              <h1 className="font-display font-bold text-4xl text-brand-dark mb-3">
+                Your Beef is Ready!
+              </h1>
+              <p className="text-brand-gray text-lg">
+                Choose a pickup time that works for you.
+              </p>
+            </div>
             <div className="space-y-4">
               {windows.map((w) => (
                 <button
                   key={w.id}
                   onClick={() => handleSelectWindow(w)}
-                  className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-lg transition border-2 border-transparent hover:border-2 hover:border-brand-orange"
+                  className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all border-2 border-transparent hover:border-brand-orange active:scale-[0.99]"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-bold text-brand-dark">{new Date(w.pickup_date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
-                      <p className="text-brand-gray">{w.start_time} – {w.end_time}</p>
-                      <p className="text-brand-orange font-semibold">{w.label}</p>
+                      <p className="font-display font-bold text-xl text-brand-dark">
+                        {new Date(w.pickup_date + 'T00:00:00').toLocaleDateString(
+                          'en-US',
+                          { weekday: 'long', month: 'long', day: 'numeric' }
+                        )}
+                      </p>
+                      <p className="text-brand-gray text-base mt-1">
+                        {formatTime(w.start_time)} – {formatTime(w.end_time)} MST
+                      </p>
+                      <p className="text-brand-orange font-semibold text-sm mt-1">
+                        {w.label}
+                      </p>
                     </div>
-                    <span className="text-brand-gray">{w.appointment_count}/{w.max_slots}</span>
+                    <span className="text-3xl">→</span>
                   </div>
                 </button>
               ))}
+            </div>
+            <div className="mt-8 bg-brand-green rounded-2xl p-6 text-white text-center">
+              <p className="font-display font-bold text-lg mb-1">Pickup Address</p>
+              <p className="text-white/80">6105 Burgess Rd</p>
+              <p className="text-white/80">Colorado Springs, CO 80908</p>
             </div>
           </>
         )}
 
         {step === 2 && (
           <>
-            <h1 className="text-3xl font-display font-bold text-brand-dark mb-8">Who&apos;s Picking Up?</h1>
+            <div className="text-center mb-8">
+              <div className="text-4xl mb-3">👋</div>
+              <h1 className="font-display font-bold text-3xl text-brand-dark">
+                Who&apos;s Picking Up?
+              </h1>
+              <p className="text-brand-gray mt-2">
+                We&apos;ll have your order ready when you arrive.
+              </p>
+            </div>
             <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
               <div className="space-y-3 mb-6">
                 <div>
                   <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Name</label>
-                  <input type="text" value={session.customers.name} disabled className="w-full px-4 py-2 bg-gray-100 rounded border" />
+                  <input type="text" value={session.customer.name} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
                 </div>
                 <div>
                   <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Email</label>
-                  <input type="email" value={session.customers.email} disabled className="w-full px-4 py-2 bg-gray-100 rounded border" />
+                  <input type="email" value={session.customer.email} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
                 </div>
                 <div>
                   <label className="block text-sm font-display font-semibold text-brand-dark mb-1">Phone</label>
-                  <input type="tel" value={session.customers.phone} disabled className="w-full px-4 py-2 bg-gray-100 rounded border" />
+                  <input type="tel" value={session.customer.phone} disabled className="w-full px-4 py-3 bg-brand-gray-pale rounded-xl border border-brand-gray-light text-brand-dark" />
                 </div>
               </div>
 
@@ -170,7 +226,7 @@ export default function PickupPage() {
                       type="text"
                       value={alternateData.name}
                       onChange={(e) => setAlternateData({ ...alternateData, name: e.target.value })}
-                      className="w-full px-4 py-2 border rounded"
+                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
                     />
                   </div>
                   <div>
@@ -179,7 +235,7 @@ export default function PickupPage() {
                       type="email"
                       value={alternateData.email}
                       onChange={(e) => setAlternateData({ ...alternateData, email: e.target.value })}
-                      className="w-full px-4 py-2 border rounded"
+                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
                     />
                   </div>
                   <div>
@@ -188,7 +244,7 @@ export default function PickupPage() {
                       type="tel"
                       value={alternateData.phone}
                       onChange={(e) => setAlternateData({ ...alternateData, phone: e.target.value })}
-                      className="w-full px-4 py-2 border rounded"
+                      className="w-full px-4 py-3 border-2 border-brand-gray-light rounded-xl focus:outline-none focus:border-brand-orange text-brand-dark"
                     />
                   </div>
                   <label className="flex items-start gap-3 p-3 bg-white border rounded mt-4">
@@ -213,20 +269,27 @@ export default function PickupPage() {
 
         {step === 3 && (
           <>
-            <h1 className="text-3xl font-display font-bold text-brand-dark mb-8">Confirm Pickup</h1>
+            <div className="text-center mb-8">
+              <div className="text-4xl mb-3">✅</div>
+              <h1 className="font-display font-bold text-3xl text-brand-dark">
+                Confirm Your Pickup
+              </h1>
+            </div>
             <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-brand-gray">Date</p>
-                  <p className="text-xl font-bold text-brand-dark">{selectedWindow && new Date(selectedWindow.pickup_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                  <p className="text-xl font-bold text-brand-dark">{selectedWindow && new Date(selectedWindow.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div>
                   <p className="text-sm text-brand-gray">Time</p>
-                  <p className="text-xl font-bold text-brand-dark">{selectedWindow?.start_time} – {selectedWindow?.end_time}</p>
+                  <p className="text-xl font-bold text-brand-dark">
+                    {formatTime(selectedWindow?.start_time ?? '')} – {formatTime(selectedWindow?.end_time ?? '')} MST
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-brand-gray">Pickup Person</p>
-                  <p className="text-xl font-bold text-brand-dark">{isAlternate ? alternateData.name : session.customers.name}</p>
+                  <p className="text-xl font-bold text-brand-dark">{isAlternate ? alternateData.name : session.customer.name}</p>
                 </div>
               </div>
             </div>
