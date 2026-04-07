@@ -26,8 +26,21 @@ export default function AccessPage() {
         setError(data.error || 'Could not verify your email.');
         return;
       }
-      // Set access cookie and redirect
-      router.push(`/session/${sessionId}/cuts`);
+      // Fetch session status to determine correct redirect
+      try {
+        const sessionRes = await fetch(`/api/session/${sessionId}`);
+        const sessionData = await sessionRes.json();
+        const status = sessionData?.status || '';
+        if (status === 'beef_ready') {
+          router.push(`/session/${sessionId}/pickup`);
+        } else if (status === 'locked') {
+          router.push(`/session/${sessionId}/review`);
+        } else {
+          router.push(`/session/${sessionId}/cuts`);
+        }
+      } catch {
+        router.push(`/session/${sessionId}/cuts`);
+      }
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
