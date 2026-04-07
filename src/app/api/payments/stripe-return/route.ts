@@ -25,11 +25,11 @@ export async function GET(request: NextRequest) {
       })
       .eq('id', sessionId);
 
-    // Call confirm to create payment record and send confirmation email
+    // Fetch payment intent once — used by both confirm call and fallback
+    let amountCents = 0;
     try {
-      // Fetch amount from Stripe so confirm can record it
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      const amountCents = paymentIntent.amount;
+      amountCents = paymentIntent.amount;
 
       await fetch(`${APP_URL}/api/payments/confirm`, {
         method: 'POST',
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
           type: 'deposit',
           method: 'card',
           status: 'paid',
-          amount_cents: (await stripe.paymentIntents.retrieve(paymentIntentId)).amount,
+          amount_cents: amountCents,
           stripe_payment_intent_id: paymentIntentId,
           paid_at: new Date().toISOString(),
         }, { onConflict: 'stripe_payment_intent_id' });
