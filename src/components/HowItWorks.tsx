@@ -1,6 +1,8 @@
 'use client';
 import Image from 'next/image';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import FadeIn from '@/components/ui/FadeIn';
 
 const steps = [
   {
@@ -50,7 +52,7 @@ Pay your remaining balance at pickup — cash, check, or card accepted.`,
 ];
 
 export default function HowItWorks() {
-  const [hovered, setHovered] = useState<number | null>(null);
+  const [active, setActive] = useState<number | null>(null);
   const [adults, setAdults] = useState(2);
   const [kids, setKids] = useState(2);
   const [mealsPerWeek, setMealsPerWeek] = useState(3);
@@ -67,199 +69,235 @@ export default function HowItWorks() {
   const rec = calcRecommendation();
 
   return (
-    <section id="how-it-works" className="bg-brand-warm py-20 px-4">
-      <div className="max-w-wide mx-auto">
-        <h2 className="font-display font-bold text-4xl text-brand-dark text-center mb-4">
-          How It Works
-        </h2>
-        <p className="font-body text-brand-gray text-center text-lg mb-16 max-w-xl mx-auto">
-          From pasture to your freezer — here's exactly what to expect.
-        </p>
+    <section id="how-it-works" className="bg-brand-dark py-24 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Section header */}
+        <FadeIn>
+          <p className="font-body text-brand-orange text-sm font-semibold tracking-widest uppercase text-center mb-4">
+            The Process
+          </p>
+          <h2 className="font-display font-black text-white text-center mb-4" style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)' }}>
+            From Pasture to Freezer
+          </h2>
+          <p className="font-body text-white/50 text-center text-lg mb-16 max-w-lg mx-auto">
+            We handle everything. Here's exactly what happens after you reserve.
+          </p>
+        </FadeIn>
 
-        <div className="grid md:grid-cols-4 gap-6">
+        {/* Step cards — vertical accordion */}
+        <div className="space-y-3">
           {steps.map((step, i) => (
-            <div
-              key={step.num}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-              className={`relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 ease-in-out ${
-                hovered === i ? 'shadow-2xl scale-[1.02]' : 'shadow-md scale-100'
-              }`}
-              style={{ minHeight: hovered === i ? '480px' : '220px' }}
-            >
-              {/* Background image */}
-              <div className="absolute inset-0">
-                <Image
-                  src={step.image}
-                  alt={step.title}
-                  fill
-                  className="object-cover"
-                />
-                <div
-                  className={`absolute inset-0 transition-all duration-500 ${
-                    hovered === i ? 'bg-brand-dark/80' : 'bg-brand-dark/50'
-                  }`}
-                />
-              </div>
-
-              {/* Content */}
-              <div className="relative z-10 p-6 h-full flex flex-col justify-end">
-                {/* Number circle */}
-                <div className="w-12 h-12 rounded-full bg-brand-orange text-white font-body font-bold flex items-center justify-center mb-4 text-lg">
-                  {step.num}
-                </div>
-
-                <h3 className="font-display font-bold text-xl text-white mb-2">
-                  {step.title}
-                </h3>
-
-                <p className="font-body text-white/80 text-sm mb-3">
-                  {step.short}
-                </p>
-
-                {/* Expanded detail on hover */}
-                <div
-                  className={`overflow-hidden transition-all duration-500 ${
-                    hovered === i ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                  }`}
-                >
-                  <div className="border-t border-white/20 pt-4 mt-1">
-                    {step.detail.split('\n\n').map((para, j) => (
-                      <p key={j} className="font-body text-white/70 text-sm leading-relaxed mb-3">
-                        {para}
-                      </p>
-                    ))}
+            <FadeIn key={step.num} delay={i * 0.1}>
+              <motion.div
+                layout
+                onClick={() => setActive(active === i ? null : i)}
+                className="relative overflow-hidden rounded-2xl cursor-pointer border border-white/10 hover:border-white/20 transition-colors"
+                style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                {/* Always-visible header row */}
+                <div className="flex items-center gap-6 p-6">
+                  <div className="w-12 h-12 rounded-full bg-brand-orange text-white font-display font-bold flex items-center justify-center text-lg flex-shrink-0">
+                    {step.num}
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-display font-bold text-xl text-white">
+                      {step.title}
+                    </h3>
+                    <p className="font-body text-white/50 text-sm mt-0.5">
+                      {step.short}
+                    </p>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: active === i ? 45 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center flex-shrink-0"
+                  >
+                    <span className="text-white/60 text-lg leading-none">+</span>
+                  </motion.div>
                 </div>
 
-                {/* Hover hint */}
-                {hovered !== i && (
-                  <p className="font-body text-white/40 text-xs">
-                    Hover to learn more →
-                  </p>
-                )}
-              </div>
-            </div>
+                {/* Expandable content */}
+                <AnimatePresence initial={false}>
+                  {active === i && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{
+                        height: { duration: 0.5 },
+                        opacity: { duration: 0.3, delay: 0.1 }
+                      }}
+                    >
+                      <div className="px-6 pb-6">
+                        <div className="grid md:grid-cols-2 gap-6 border-t border-white/10 pt-6">
+                          {/* Photo */}
+                          <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="relative rounded-xl overflow-hidden"
+                            style={{ minHeight: '240px' }}
+                          >
+                            <Image
+                              src={step.image}
+                              alt={step.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </motion.div>
+
+                          {/* Text */}
+                          <motion.div
+                            initial={{ x: 20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.25 }}
+                            className="flex flex-col justify-center"
+                          >
+                            {step.detail.split('\n\n').map((para, j) => (
+                              <p key={j} className="font-body text-white/70 text-sm leading-relaxed mb-4 last:mb-0">
+                                {para}
+                              </p>
+                            ))}
+                          </motion.div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </FadeIn>
           ))}
         </div>
 
         {/* Calculator */}
-        <div className="max-w-lg mx-auto mt-16 mb-8 bg-white rounded-2xl shadow-lg overflow-hidden">
-          <button
-            onClick={() => setShowCalc(!showCalc)}
-            className="w-full px-8 py-5 flex items-center justify-between bg-brand-dark text-white font-display font-bold text-xl hover:bg-brand-dark/90 transition-colors"
-          >
-            <span>🧮 How much beef do I need?</span>
-            <span className="text-brand-orange text-2xl">
-              {showCalc ? '−' : '+'}
-            </span>
-          </button>
+        <FadeIn delay={0.2}>
+          <div className="max-w-lg mx-auto mt-16 mb-8 rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+            <button
+              onClick={() => setShowCalc(!showCalc)}
+              className="w-full px-8 py-5 flex items-center justify-between bg-white/5 hover:bg-white/10 text-white font-display font-bold text-xl transition-colors"
+            >
+              <span>🧮 How much beef do I need?</span>
+              <span className="text-brand-orange text-2xl">
+                {showCalc ? '−' : '+'}
+              </span>
+            </button>
 
-          {showCalc && (
-            <div className="p-8">
-              <p className="font-body text-brand-gray text-sm mb-6">
-                Tell us about your household and we'll recommend the right size.
-              </p>
+            {showCalc && (
+              <div className="p-8 border-t border-white/10">
+                <p className="font-body text-white/70 text-sm mb-6">
+                  Tell us about your household and we'll recommend the right size.
+                </p>
 
-              <div className="space-y-5">
-                <div>
-                  <label className="font-body font-semibold text-brand-dark text-sm block mb-2">
-                    Number of adults
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setAdults(Math.max(1, adults - 1))}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      −
-                    </button>
-                    <span className="font-display font-bold text-2xl text-brand-dark w-8 text-center">
-                      {adults}
-                    </span>
-                    <button
-                      onClick={() => setAdults(adults + 1)}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      +
-                    </button>
+                <div className="space-y-5">
+                  <div>
+                    <label className="font-body font-semibold text-white text-sm block mb-2">
+                      Number of adults
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setAdults(Math.max(1, adults - 1))}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        −
+                      </button>
+                      <span className="font-display font-bold text-2xl text-white w-8 text-center">
+                        {adults}
+                      </span>
+                      <button
+                        onClick={() => setAdults(adults + 1)}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-body font-semibold text-white text-sm block mb-2">
+                      Number of kids
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setKids(Math.max(0, kids - 1))}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        −
+                      </button>
+                      <span className="font-display font-bold text-2xl text-white w-8 text-center">
+                        {kids}
+                      </span>
+                      <button
+                        onClick={() => setKids(kids + 1)}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-body font-semibold text-white text-sm block mb-2">
+                      Beef meals per week
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={() => setMealsPerWeek(Math.max(1, mealsPerWeek - 1))}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        −
+                      </button>
+                      <span className="font-display font-bold text-2xl text-white w-8 text-center">
+                        {mealsPerWeek}
+                      </span>
+                      <button
+                        onClick={() => setMealsPerWeek(mealsPerWeek + 1)}
+                        className="w-10 h-10 rounded-full border-2 border-white/20 font-bold text-white hover:border-brand-orange transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="font-body font-semibold text-brand-dark text-sm block mb-2">
-                    Number of kids
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setKids(Math.max(0, kids - 1))}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      −
-                    </button>
-                    <span className="font-display font-bold text-2xl text-brand-dark w-8 text-center">
-                      {kids}
-                    </span>
-                    <button
-                      onClick={() => setKids(kids + 1)}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="font-body font-semibold text-brand-dark text-sm block mb-2">
-                    Beef meals per week
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => setMealsPerWeek(Math.max(1, mealsPerWeek - 1))}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      −
-                    </button>
-                    <span className="font-display font-bold text-2xl text-brand-dark w-8 text-center">
-                      {mealsPerWeek}
-                    </span>
-                    <button
-                      onClick={() => setMealsPerWeek(mealsPerWeek + 1)}
-                      className="w-10 h-10 rounded-full border-2 border-brand-gray-light font-bold text-brand-dark hover:border-brand-orange transition-colors"
-                    >
-                      +
-                    </button>
-                  </div>
+                {/* Result */}
+                <div className="mt-8 bg-white/5 rounded-xl p-6 text-center border border-white/10">
+                  <p className="font-body text-white/50 text-sm mb-1">
+                    We recommend
+                  </p>
+                  <p className="font-display font-bold text-3xl text-white mb-1">
+                    {rec.size}
+                  </p>
+                  <p className="font-body text-brand-orange font-semibold text-sm mb-2">
+                    {rec.lbs} finished cuts
+                  </p>
+                  <p className="font-body text-white/70 text-sm mb-6">
+                    {rec.desc}
+                  </p>
+                  <a
+                    href="/weight-explainer"
+                    className="inline-block bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-semibold px-8 py-3 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Reserve a {rec.size} →
+                  </a>
                 </div>
               </div>
-
-              {/* Result */}
-              <div className="mt-8 bg-brand-warm rounded-xl p-6 text-center">
-                <p className="font-body text-brand-gray text-sm mb-1">
-                  We recommend
-                </p>
-                <p className="font-display font-bold text-3xl text-brand-dark mb-1">
-                  {rec.size}
-                </p>
-                <p className="font-body text-brand-orange font-semibold text-sm mb-2">
-                  {rec.lbs} finished cuts
-                </p>
-                <p className="font-body text-brand-gray text-sm mb-6">
-                  {rec.desc}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </FadeIn>
 
         {/* CTA */}
-        <div className="text-center mt-16">
-          <a
-            href="/weight-explainer"
-            className="inline-block bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-bold text-lg px-10 py-4 rounded-xl transition-colors"
-          >
-            Reserve Your Beef →
-          </a>
-        </div>
+        {!showCalc && (
+          <FadeIn delay={0.3}>
+            <div className="text-center mt-12">
+              <a
+                href="/weight-explainer"
+                className="inline-block bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-bold text-lg px-10 py-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Reserve Your Beef →
+              </a>
+            </div>
+          </FadeIn>
+        )}
       </div>
     </section>
   );
