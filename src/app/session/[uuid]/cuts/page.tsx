@@ -1369,7 +1369,7 @@ export default function CutsPage() {
     <div className="min-h-screen bg-brand-warm">
       {/* Header */}
       <header className="bg-brand-dark px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <Image src="/images/LLC_Logo_white.svg" alt="Legacy Land & Cattle" width={100} height={45} className="h-8 w-auto"/>
+        <Image src="/images/LLC_Logo_white.svg" alt="Legacy Land & Cattle" width={160} height={72} className="h-14 w-auto"/>
         <div className="flex items-center gap-3">
           {saving && <span className="text-xs text-white/60 animate-pulse">Saving…</span>}
           <button
