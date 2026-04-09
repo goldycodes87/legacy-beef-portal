@@ -6,14 +6,14 @@ import { emailBase, ctaButton, orderCard } from '@/lib/email-templates';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const supabase = getSupabaseAdmin();
   const { uuid } = await params;
-  const { window_id, is_alternate, pickup_person_name, pickup_person_email, pickup_person_phone, waiver_signed } = await request.json();
+  const { pickup_window_id: window_id, is_alternate, pickup_person_name, pickup_person_email, pickup_person_phone, waiver_signed } = await request.json();
 
   // Create appointment
   const { data: appointment, error } = await supabase
     .from('pickup_appointments')
     .insert({
       session_id: uuid,
-      window_id,
+      pickup_window_id: window_id,
       is_alternate_pickup: is_alternate,
       pickup_person_name,
       pickup_person_email,
