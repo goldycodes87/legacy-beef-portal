@@ -246,12 +246,6 @@ export default function HowItWorks() {
                 <p className="font-body text-brand-gray text-sm mb-6">
                   {rec.desc}
                 </p>
-                <a
-                  href="/weight-explainer"
-                  className="inline-block bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-semibold px-8 py-3 rounded-xl transition-colors"
-                >
-                  Reserve a {rec.size} →
-                </a>
               </div>
             </div>
           )}
