@@ -1,6 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
+import ScrollButton from '@/components/ui/ScrollButton';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Local Colorado Beef | Legacy Land & Cattle',
@@ -59,6 +62,9 @@ export default function HomePage() {
           <Link href="/weight-explainer" className="font-body text-white/60 text-sm underline underline-offset-4 hover:text-white/80 transition-colors">
             Ready to reserve? Skip ahead →
           </Link>
+
+          {/* Scroll Button */}
+          <ScrollButton />
 
           {/* Small Text */}
           <p className="font-body text-white/60 text-sm mt-4">
