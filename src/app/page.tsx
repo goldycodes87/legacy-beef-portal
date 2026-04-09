@@ -51,12 +51,6 @@ export default function HomePage() {
           </p>
 
           {/* CTA Button */}
-          <button
-            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
-            className="px-8 py-3 bg-brand-orange text-white rounded-lg font-body font-semibold hover:bg-brand-orange-hover transition-colors mb-6 max-w-xs mx-auto block"
-          >
-            See How It Works →
-          </button>
 
           {/* Secondary skip link */}
           <Link href="/weight-explainer" className="font-body text-white/60 text-sm underline underline-offset-4 hover:text-white/80 transition-colors">
