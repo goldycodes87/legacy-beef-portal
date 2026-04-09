@@ -170,7 +170,11 @@ export default function HowItWorks() {
         {/* Step cards — vertical accordion with glass effect */}
         <div className="space-y-3">
           {steps.map((step, i) => (
-            <FadeIn key={step.num} delay={i * 0.1}>
+            <div
+              key={step.num}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}
+            >
               <GlassCard
                 className="rounded-2xl border border-white/10 hover:border-white/25"
                 onMouseEnter={() => handleMouseEnter(i)}
@@ -254,7 +258,7 @@ export default function HowItWorks() {
                   )}
                 </AnimatePresence>
               </GlassCard>
-            </FadeIn>
+            </div>
           ))}
         </div>
 
