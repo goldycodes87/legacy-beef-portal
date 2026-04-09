@@ -7,7 +7,6 @@ import ReservationProgress from '@/components/ReservationProgress';
 import BeefCalculator from '@/components/BeefCalculator';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Timeline } from '@/components/ui/modern-timeline';
 
 export default function WeightExplainerPage() {
@@ -28,7 +27,9 @@ export default function WeightExplainerPage() {
 
       <main className="max-w-[700px] mx-auto px-4 py-10">
 
-        {/* SECTION 1 — Page Heading */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 1: Know Before You Buy */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="mb-10 text-center">
           <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-4">
             Know Your Beef Before You Buy
@@ -38,48 +39,93 @@ export default function WeightExplainerPage() {
           </p>
         </section>
 
-        {/* SECTION 2 — Weight Explainer */}
-        <section className="mb-12">
+        {/* Things to Know Card */}
+        <div className="bg-brand-dark rounded-2xl p-6 mb-8">
+          <h3 className="font-display font-bold text-lg text-white mb-4">
+            📋 Things to Know Before You Buy
+          </h3>
+          <div className="space-y-3">
+            {[
+              {
+                icon: '⚖️',
+                title: 'Price is charged on hanging weight',
+                desc: 'Not live weight, not finished cuts. Hanging weight is what remains after the animal is harvested and cleaned.',
+              },
+              {
+                icon: '💰',
+                title: 'Pricing varies by purchase size',
+                desc: 'Whole beef: $8.00/lb · Half beef: $8.25/lb · Quarter beef: $8.50/lb. The more you buy, the better the price.',
+              },
+              {
+                icon: '🚛',
+                title: 'Transportation & processing included',
+                desc: 'Your price covers everything — raising, transport to the butcher, processing, vacuum sealing, and labeling. No hidden fees.',
+              },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-4 pb-3 border-b border-white/10 last:border-0 last:pb-0">
+                <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                <div>
+                  <p className="font-body font-semibold text-white text-sm">{item.title}</p>
+                  <p className="font-body text-white/60 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Helper Text */}
+        <p className="font-body text-brand-gray text-sm text-center mb-4">
+          👇 Adjust the slider below to estimate your cost based on animal size.
+        </p>
+
+        {/* Weight Explainer */}
+        <section className="mb-16">
           <div className="overflow-x-auto max-w-full">
             <WeightExplainer />
           </div>
         </section>
 
-        {/* SECTION 3 — Beef Calculator */}
-        <section className="mb-12">
-          <h2 className="font-display font-bold text-2xl text-brand-dark mb-2 text-center">
-            Not sure how much you need?
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 2: Tools */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <div className="mt-16 mb-8 text-center">
+          <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">
+            Find Your Size
           </h2>
-          <p className="font-body text-brand-gray text-sm text-center mb-4">
-            Tell us about your household and we'll recommend the right size.
+          <p className="font-body text-brand-gray text-sm">
+            Use these tools to figure out what's right for your household.
           </p>
-          <BeefCalculator />
-        </section>
+        </div>
 
-        {/* SECTION 4 — Freezer Video */}
-        <section className="mb-12">
-          <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
-            Will It Fit In My Freezer?
-          </h2>
-          <p className="font-body text-brand-gray text-base mb-5 text-center">
-            Watch this quick video to see exactly how much space your beef will take up.
-          </p>
-          <div className="flex justify-center">
+        <div className="space-y-10 mb-16">
+          {/* Beef Calculator */}
+          <BeefCalculator />
+
+          {/* Freezer Video */}
+          <div>
+            <h3 className="font-display font-bold text-xl text-brand-dark mb-2 text-center">
+              Will It Fit In My Freezer?
+            </h3>
+            <p className="font-body text-brand-gray text-sm mb-4 text-center">
+              Watch this quick video to see exactly how much freezer space you'll need.
+            </p>
             <video
               controls
               preload="metadata"
               poster="/images/hero_pasture.jpg"
-              className="w-full max-w-[750px]"
+              className="w-full max-w-[750px] mx-auto block"
               style={{ borderRadius: '12px' }}
             >
               <source src="/videos/Freezervideo.mp4" type="video/mp4" />
               Your browser does not support video playback.
             </video>
           </div>
-        </section>
+        </div>
 
-        {/* SECTION 5 — Beef Journey Timeline */}
-        <section className="mb-10">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 3: Beef Journey Timeline */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="mb-12">
           <h2 className="font-display font-bold text-2xl text-brand-dark text-center mb-2">
             Your Beef Journey
           </h2>
@@ -126,10 +172,12 @@ export default function WeightExplainerPage() {
           ]} />
         </section>
 
-        {/* SECTION 6 — Checkbox + CTA */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 4: Checkbox + CTA */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="mb-12">
-          {/* Checkbox */}
-          <label className="flex items-start gap-4 cursor-pointer mb-6 group">
+          {/* Enhanced Checkbox */}
+          <label className="flex items-start gap-4 cursor-pointer mb-8 group p-5 bg-white rounded-2xl shadow-sm border-2 border-brand-gray-light hover:border-brand-orange transition-colors">
             <div className="relative flex-shrink-0 mt-0.5">
               <input
                 type="checkbox"
@@ -138,23 +186,33 @@ export default function WeightExplainerPage() {
                 className="sr-only"
               />
               <div
-                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
+                className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors ${
                   checked
                     ? 'bg-brand-orange border-brand-orange'
-                    : 'bg-white border-brand-gray group-hover:border-brand-orange'
+                    : 'border-brand-gray-light group-hover:border-brand-orange'
                 }`}
-                style={{ minWidth: '24px', minHeight: '24px' }}
               >
                 {checked && (
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={3}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 )}
               </div>
             </div>
-            <span className="font-body text-sm text-brand-dark leading-relaxed">
-              I understand that my final price is based on hanging weight and will vary based on animal size.
-            </span>
+            <div>
+              <p className="font-display font-bold text-brand-dark text-lg leading-tight mb-1">
+                I understand how beef pricing works
+              </p>
+              <p className="font-body text-brand-gray text-sm leading-relaxed">
+                My final price is based on <strong>hanging weight</strong> — not live weight and not finished cuts. The hanging weight will vary by animal and I'll be notified of the exact weight before my balance is due.
+              </p>
+            </div>
           </label>
 
           {/* CTA Button */}
