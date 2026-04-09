@@ -42,9 +42,9 @@ export function PageHeader({
           <Image
             src="/images/LLC_Logo_white.svg"
             alt="Legacy Land & Cattle"
-            width={160}
-            height={70}
-            className="h-12 w-auto"
+            width={200}
+            height={88}
+            className="h-16 w-auto"
           />
         </Link>
       </div>
