@@ -8,6 +8,7 @@ import BeefCalculator from '@/components/BeefCalculator';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Timeline } from '@/components/ui/modern-timeline';
 
 export default function WeightExplainerPage() {
   const router = useRouter();
@@ -37,74 +38,92 @@ export default function WeightExplainerPage() {
           </p>
         </section>
 
-        {/* SECTION 2 + 3 — Calculator and Video */}
+        {/* SECTION 2 — Weight Explainer */}
         <section className="mb-12">
-          <div className="flex flex-col gap-8 w-full">
-            {/* Interactive Weight Calculator */}
-            <div className="overflow-x-auto max-w-full flex-1">
-              <WeightExplainer />
-            </div>
-
-            {/* Freezer Video */}
-            <div className="flex-1">
-              <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
-                Will It Fit In My Freezer?
-              </h2>
-              <p className="font-body text-brand-gray text-base mb-5 text-center">
-                Watch this quick video to see exactly how much space your beef will take up.
-              </p>
-              <div className="flex justify-center">
-                <video
-                  controls
-                  preload="metadata"
-                  poster="/images/hero_pasture.jpg"
-                  className="w-full max-w-[750px]"
-                  style={{ borderRadius: '12px' }}
-                >
-                  <source src="/videos/Freezervideo.mp4" type="video/mp4" />
-                  Your browser does not support video playback.
-                </video>
-              </div>
-            </div>
+          <div className="overflow-x-auto max-w-full">
+            <WeightExplainer />
           </div>
         </section>
 
-        {/* SECTION 4 — Key Info Card */}
+        {/* SECTION 3 — Beef Calculator */}
+        <section className="mb-12">
+          <h2 className="font-display font-bold text-2xl text-brand-dark mb-2 text-center">
+            Not sure how much you need?
+          </h2>
+          <p className="font-body text-brand-gray text-sm text-center mb-4">
+            Tell us about your household and we'll recommend the right size.
+          </p>
+          <BeefCalculator />
+        </section>
+
+        {/* SECTION 4 — Freezer Video */}
+        <section className="mb-12">
+          <h2 className="font-display font-bold text-2xl text-brand-dark mb-3 text-center">
+            Will It Fit In My Freezer?
+          </h2>
+          <p className="font-body text-brand-gray text-base mb-5 text-center">
+            Watch this quick video to see exactly how much space your beef will take up.
+          </p>
+          <div className="flex justify-center">
+            <video
+              controls
+              preload="metadata"
+              poster="/images/hero_pasture.jpg"
+              className="w-full max-w-[750px]"
+              style={{ borderRadius: '12px' }}
+            >
+              <source src="/videos/Freezervideo.mp4" type="video/mp4" />
+              Your browser does not support video playback.
+            </video>
+          </div>
+        </section>
+
+        {/* SECTION 5 — Beef Journey Timeline */}
         <section className="mb-10">
-          <Card variant="dark" padding="md">
-            <h3 className="font-display font-bold text-lg text-white mb-4">
-              What You Need to Know
-            </h3>
-            <ul className="space-y-3">
-              {[
-                'Your final cost is based on <strong>HANGING weight</strong> — not live weight and not finished cuts',
-                'Legacy Land &amp; Cattle will notify you of the exact hanging weight before your balance is due',
-                'A chest freezer (7 cu ft) holds a quarter beef. A half needs ~14 cu ft.',
-                'Your beef is dry aged 21-24 days for maximum tenderness and flavor — this process reduces yield slightly but dramatically improves quality.',
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-brand-orange" />
-                  <span
-                    className="font-body text-sm leading-relaxed text-white/90"
-                    dangerouslySetInnerHTML={{ __html: item }}
-                  />
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </section>
-
-        {/* SECTION 5 — Calculator CTA */}
-        <section className="mb-12">
-          <div className="mt-12">
-            <h2 className="font-display font-bold text-2xl text-brand-dark text-center mb-2">
-              Not sure how much you need?
-            </h2>
-            <p className="font-body text-brand-gray text-center text-sm mb-6">
-              Use our calculator to find the right size for your household.
-            </p>
-            <BeefCalculator />
-          </div>
+          <h2 className="font-display font-bold text-2xl text-brand-dark text-center mb-2">
+            Your Beef Journey
+          </h2>
+          <p className="font-body text-brand-gray text-center text-sm mb-6">
+            From our ranch to your freezer — here's exactly what happens.
+          </p>
+          <Timeline items={[
+            {
+              icon: '🐄',
+              title: 'Reserve Your Spot',
+              date: 'Day 1',
+              description: 'Pay your deposit to lock in your slot. Choose your size — whole, half, or quarter. Your price per pound is set at this point.',
+            },
+            {
+              icon: '✂️',
+              title: 'Fill Out Your Cut Sheet',
+              date: 'Before butcher date',
+              description: 'Tell the butcher exactly how you want your beef cut — steak thickness, roast size, ground beef ratio, and more. You have until 1 week before butcher day.',
+            },
+            {
+              icon: '🚛',
+              title: 'We Transport to T-K Processing',
+              date: 'Butcher day',
+              description: 'We transport the cattle to T-K Processing in Cañon City and drop off your cut sheet in person. You don\'t lift a finger.',
+            },
+            {
+              icon: '🥩',
+              title: 'Dry Age 21–24 Days',
+              date: '3 weeks later',
+              description: 'Your beef is dry-aged for 21–24 days for maximum tenderness and flavor. During this time, yield reduces slightly — this is normal and expected.',
+            },
+            {
+              icon: '📦',
+              title: 'Cut, Vacuum-Sealed & Labeled',
+              date: 'After aging',
+              description: 'Everything is cut to your specs, vacuum-sealed, and labeled. A half beef fills about 4 boxes. We pick it up and bring it back to the ranch.',
+            },
+            {
+              icon: '❄️',
+              title: 'You Pick It Up',
+              date: 'Est. 4–5 weeks after butcher',
+              description: 'Schedule your pickup at 6105 Burgess Rd, Colorado Springs CO 80908. Pay your remaining balance and load up. Your beef is frozen solid and ready to go.',
+            },
+          ]} />
         </section>
 
         {/* SECTION 6 — Checkbox + CTA */}
