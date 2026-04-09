@@ -155,6 +155,14 @@ export async function POST(request: NextRequest) {
       console.error('Error updating session status:', updateError);
     }
 
+    // Generate access token for one-click email link
+    const { createAccessToken } = await import('@/lib/access-token');
+    const butcherDate = animal?.butcher_date 
+      ? new Date(animal.butcher_date) 
+      : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    const accessToken = await createAccessToken(session_id, butcherDate);
+    const accessLink = `${APP_URL}/api/token/${accessToken}`;
+
     // 4. Send comprehensive confirmation email
     // No magic link needed — email contains permanent /access/[session_id] link
     const magicLinkSent = true;
@@ -182,8 +190,8 @@ export async function POST(request: NextRequest) {
             pricePerLb: Number(animal.price_per_lb),
             depositPaid,
             stripeReceiptId: stripe_receipt_id || stripe_payment_intent_id || null,
-            magicLink: sessionUrl,
-            sessionUrl,
+            magicLink: accessLink,
+            sessionUrl: accessLink,
             sessionId: session_id,
           }),
         });

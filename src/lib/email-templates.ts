@@ -53,7 +53,7 @@ export function emailBase(content: string, preheader?: string): string {
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: ${COLORS.WARM};
+      background-color: #ffffff;
       margin: 0;
       padding: 20px;
     }
@@ -66,47 +66,56 @@ export function emailBase(content: string, preheader?: string): string {
     }
   </style>
 </head>
-<body style="background-color: ${COLORS.WARM}; margin: 0; padding: 20px; font-family: Arial, sans-serif;">
+<body style="background-color: #ffffff; margin: 0; padding: 20px; font-family: Arial, sans-serif;">
   ${
     preheader
-      ? `<div style="font-size: 0; color: ${COLORS.WARM}; display: none; max-height: 0; line-height: 0; opacity: 0; overflow: hidden; mso-hide: all;">
+      ? `<div style="font-size: 0; color: #ffffff; display: none; max-height: 0; line-height: 0; opacity: 0; overflow: hidden; mso-hide: all;">
     ${preheader}
   </div>`
       : ''
   }
 
-  <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
-    <!-- Header -->
+  <table role="presentation" style="width: 100%; max-width: 600px; margin: 0 auto; background: #f4f4f4; border-radius: 16px; overflow: hidden;">
     <tr>
-      <td style="background-color: ${COLORS.GREEN}; padding: 40px 20px; text-align: center;">
-        <h1 style="font-family: Georgia, serif; color: white; font-size: 28px; margin: 0 0 8px; font-weight: normal;">
-          Legacy Land & Cattle
-        </h1>
-        <p style="color: ${COLORS.GOLD}; font-size: 12px; margin: 0; font-family: Arial, sans-serif; letter-spacing: 1px;">
-          Ranch Direct · Colorado Springs, CO
-        </p>
-      </td>
-    </tr>
+      <td style="padding: 20px; background: #f4f4f4;">
+        <table role="presentation" style="width: 100%; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: ${COLORS.GREEN}; padding: 40px 20px; text-align: center;">
+              <div style="margin-bottom:16px;">
+                <img src="https://www.legacylandandcattleco.com/images/LLC_Logo_white.svg" alt="Legacy Land & Cattle" width="140" height="60" style="width:140px;height:auto;display:block;margin:0 auto;" />
+              </div>
+              <h1 style="font-family: Georgia, serif; color: white; font-size: 28px; margin: 0 0 8px; font-weight: normal;">
+                Legacy Land & Cattle
+              </h1>
+              <p style="color: ${COLORS.GOLD}; font-size: 12px; margin: 0; font-family: Arial, sans-serif; letter-spacing: 1px;">
+                Ranch Direct · Colorado Springs, CO
+              </p>
+            </td>
+          </tr>
 
-    <!-- Content -->
-    <tr>
-      <td style="padding: 40px; color: ${COLORS.DARK}; font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6;">
-        ${content}
-      </td>
-    </tr>
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px; color: ${COLORS.DARK}; font-family: Arial, sans-serif; font-size: 15px; line-height: 1.6;">
+              ${content}
+            </td>
+          </tr>
 
-    <!-- Footer -->
-    <tr>
-      <td style="background-color: ${COLORS.VERY_LIGHT_GRAY}; padding: 30px 20px; text-align: center; border-top: 1px solid ${COLORS.LIGHT_GRAY};">
-        <p style="font-size: 12px; color: ${COLORS.GRAY}; margin: 0 0 8px; font-family: Arial, sans-serif;">
-          <strong>Legacy Land & Cattle</strong><br>
-          6105 Burgess Rd, Colorado Springs, CO 80908
-        </p>
-        <p style="font-size: 12px; color: ${COLORS.GRAY}; margin: 0; font-family: Arial, sans-serif;">
-          <a href="mailto:orders@legacylandandcattleco.com" style="color: ${COLORS.ORANGE}; text-decoration: none;">
-            orders@legacylandandcattleco.com
-          </a>
-        </p>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: ${COLORS.VERY_LIGHT_GRAY}; padding: 30px 20px; text-align: center; border-top: 1px solid ${COLORS.LIGHT_GRAY};">
+              <p style="font-size: 12px; color: ${COLORS.GRAY}; margin: 0 0 8px; font-family: Arial, sans-serif;">
+                <strong>Legacy Land & Cattle</strong><br>
+                6105 Burgess Rd, Colorado Springs, CO 80908
+              </p>
+              <p style="font-size: 12px; color: ${COLORS.GRAY}; margin: 0; font-family: Arial, sans-serif;">
+                <a href="mailto:orders@legacylandandcattleco.com" style="color: ${COLORS.ORANGE}; text-decoration: none;">
+                  orders@legacylandandcattleco.com
+                </a>
+              </p>
+            </td>
+          </tr>
+        </table>
       </td>
     </tr>
   </table>
@@ -161,7 +170,7 @@ export function orderCard(
     <tr>
       <td style="
         padding: 12px 0;
-        border-bottom: 1px solid ${COLORS.LIGHT_GRAY};
+        border-bottom: 1px solid #eeeeee;
         font-size: 13px;
         color: ${COLORS.GRAY};
         font-family: Arial, sans-serif;
@@ -171,7 +180,7 @@ export function orderCard(
       </td>
       <td style="
         padding: 12px 0;
-        border-bottom: 1px solid ${COLORS.LIGHT_GRAY};
+        border-bottom: 1px solid #eeeeee;
         font-size: 13px;
         color: ${COLORS.DARK};
         font-weight: bold;
@@ -186,14 +195,7 @@ export function orderCard(
     )
     .join('');
 
-  return `<table role="presentation" style="
-    width: 100%;
-    background-color: ${COLORS.WARM};
-    border-radius: 10px;
-    padding: 20px 24px;
-    margin: 20px 0;
-    border-collapse: collapse;
-  ">
+  return `<table role="presentation" style="background:#f9f9f9;border-radius:10px;margin:20px 0;border-left:4px solid #E85D24;width:100%;padding:20px 24px;border-collapse:collapse;">
     <tbody>
       ${rows}
     </tbody>
@@ -271,7 +273,7 @@ export function cutSheetSummary(
     <tr>
       <td style="
         padding: 12px 0;
-        border-bottom: 1px solid ${COLORS.LIGHT_GRAY};
+        border-bottom: 1px solid #eeeeee;
         font-size: 13px;
         color: ${COLORS.DARK};
         font-family: Arial, sans-serif;
@@ -281,7 +283,7 @@ export function cutSheetSummary(
       </td>
       <td style="
         padding: 12px 0;
-        border-bottom: 1px solid ${COLORS.LIGHT_GRAY};
+        border-bottom: 1px solid #eeeeee;
         font-size: 13px;
         color: ${COLORS.DARK};
         font-weight: bold;
@@ -296,14 +298,7 @@ export function cutSheetSummary(
     })
     .join('');
 
-  return `<table role="presentation" style="
-    width: 100%;
-    background-color: ${COLORS.WARM};
-    border-radius: 10px;
-    padding: 20px 24px;
-    margin: 20px 0;
-    border-collapse: collapse;
-  ">
+  return `<table role="presentation" style="background:#f9f9f9;border-radius:10px;margin:20px 0;border-left:4px solid #E85D24;width:100%;padding:20px 24px;border-collapse:collapse;">
     <tbody>
       ${rows}
     </tbody>
