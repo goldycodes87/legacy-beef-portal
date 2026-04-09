@@ -48,6 +48,7 @@ export default function SelectAnimalPage() {
   const [selected, setSelected] = useState<AnimalType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWagyuModal, setShowWagyuModal] = useState(false);
+  const [showDiffModal, setShowDiffModal] = useState(false);
   // Only wagyu visibility is conditional — all other cards always show
   const [wagyuActive, setWagyuActive] = useState(false);
 
@@ -94,9 +95,15 @@ export default function SelectAnimalPage() {
         <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-3">
           How was your beef raised?
         </h1>
-        <p className="font-body text-brand-gray mb-8 text-base">
+        <p className="font-body text-brand-gray mb-2 text-base">
           Your choice determines which animals and dates are available.
         </p>
+        <button
+          onClick={() => setShowDiffModal(true)}
+          className="text-brand-orange text-sm font-semibold underline underline-offset-2 hover:text-brand-orange-hover mb-8"
+        >
+          What&apos;s the difference?
+        </button>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -180,6 +187,52 @@ export default function SelectAnimalPage() {
               className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-3 rounded-xl font-semibold"
             >
               Got It — Continue
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showDiffModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
+            <h3 className="font-display font-bold text-2xl text-brand-dark mb-4 text-center">Grass-Fed vs. Grain-Finished</h3>
+
+            <div className="mb-5">
+              <p className="font-display font-bold text-lg text-brand-dark mb-2">
+                🌿 Grass-Fed & Grass-Finished
+              </p>
+              <p className="font-body text-brand-gray text-sm leading-relaxed">
+                Our grass-fed cattle spend their entire lives on pasture, eating what nature intended. The result is leaner beef with a slightly more complex, earthy flavor. Rich in omega-3s and CLA. Ideal if you prefer a traditional, old-school beef flavor that&apos;s lighter on the palate.
+              </p>
+            </div>
+
+            <div className="mb-5">
+              <p className="font-display font-bold text-lg text-brand-dark mb-2">
+                🌾 Grain-Finished
+              </p>
+              <p className="font-body text-brand-gray text-sm leading-relaxed">
+                Our grain-finished cattle are pasture-raised and then finished on a grain diet for the final months. This produces more marbling and a richer, buttery flavor that most people are familiar with from quality steakhouses. Tender, juicy, and crowd-pleasing.
+              </p>
+            </div>
+
+            <div className="mb-6 bg-brand-warm rounded-xl p-4">
+              <p className="font-display font-bold text-base text-brand-dark mb-1">
+                ✨ American Wagyu
+              </p>
+              <p className="font-body text-brand-gray text-sm leading-relaxed">
+                A cross between Japanese Wagyu and Black Angus — extraordinary marbling, rich buttery flavor, and exceptional tenderness. Available by reservation only. Premium priced at $9.50–$10.00/lb.
+              </p>
+            </div>
+
+            <p className="font-body text-brand-gray text-xs text-center mb-4">
+              Not sure? Both grass-fed and grain-finished are priced the same. Pick what sounds best to you — you can&apos;t go wrong.
+            </p>
+
+            <button
+              onClick={() => setShowDiffModal(false)}
+              className="w-full py-3 bg-brand-orange text-white rounded-xl font-body font-semibold hover:bg-brand-orange-hover transition-colors"
+            >
+              Got it
             </button>
           </div>
         </div>

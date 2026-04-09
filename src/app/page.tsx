@@ -48,14 +48,20 @@ export default function HomePage() {
           </p>
 
           {/* CTA Button */}
-          <Link href="/weight-explainer">
-            <Button size="lg" fullWidth className="mb-6 max-w-xs mx-auto">
-              Reserve Your Beef →
-            </Button>
+          <button
+            onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+            className="px-8 py-3 bg-brand-orange text-white rounded-lg font-body font-semibold hover:bg-brand-orange-hover transition-colors mb-6 max-w-xs mx-auto block"
+          >
+            See How It Works →
+          </button>
+
+          {/* Secondary skip link */}
+          <Link href="/weight-explainer" className="font-body text-white/60 text-sm underline underline-offset-4 hover:text-white/80 transition-colors">
+            Ready to reserve? Skip ahead →
           </Link>
 
           {/* Small Text */}
-          <p className="font-body text-white/60 text-sm">
+          <p className="font-body text-white/60 text-sm mt-4">
             2026 slots are filling fast. Grass-fed & grain-finished available.
           </p>
         </div>
@@ -96,7 +102,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="bg-brand-warm py-16 px-4">
+      <section id="how-it-works" className="bg-brand-warm py-16 px-4">
         <div className="max-w-wide mx-auto">
           <h2
             className="font-display font-bold text-3xl text-brand-dark text-center mb-12"
@@ -125,6 +131,14 @@ export default function HomePage() {
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Link href="/weight-explainer">
+              <Button size="lg" className="max-w-xs mx-auto">
+                Reserve Your Beef →
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
