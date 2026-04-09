@@ -77,7 +77,7 @@ export default function HowItWorks() {
   };
 
   return (
-    <section id="how-it-works" className="relative bg-brand-dark py-24 px-4 overflow-hidden">
+    <section id="how-it-works" className="relative bg-brand-dark py-24 px-4 overflow-hidden" style={{overflowAnchor: "none"}}>
       <GlassFilter />
 
       {/* Illuminated glow behind headline */}
