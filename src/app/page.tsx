@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import ScrollButton from '@/components/ui/ScrollButton';
+import HowItWorks from '@/components/HowItWorks';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,47 +102,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="bg-brand-warm py-16 px-4">
-        <div className="max-w-wide mx-auto">
-          <h2
-            className="font-display font-bold text-3xl text-brand-dark text-center mb-12"
-          >
-            How It Works
-          </h2>
-
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              { num: '1', title: 'Reserve Your Spot', desc: 'Pay deposit' },
-              { num: '2', title: 'Build Your Cut Sheet', desc: 'Customize your cuts' },
-              { num: '3', title: 'Send to Butcher', desc: 'We handle everything' },
-              { num: '4', title: 'Pick Up Your Beef', desc: 'At the ranch' },
-            ].map((step) => (
-              <div key={step.num} className="text-center">
-                <div
-                  className="w-12 h-12 rounded-full bg-brand-orange text-white font-body font-bold flex items-center justify-center mx-auto mb-4"
-                >
-                  {step.num}
-                </div>
-                <h3 className="font-display font-bold text-lg text-brand-dark mb-1">
-                  {step.title}
-                </h3>
-                <p className="font-body text-sm text-brand-gray">
-                  {step.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/weight-explainer">
-              <Button size="lg" className="max-w-xs mx-auto">
-                Reserve Your Beef →
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <HowItWorks />
     </main>
   );
 }
