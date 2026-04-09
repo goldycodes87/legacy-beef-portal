@@ -30,9 +30,16 @@ export async function GET(
     .eq('id', session.animal_id)
     .single();
 
+  const { data: pickup_appointment } = await supabaseAdmin
+    .from('pickup_appointments')
+    .select('*')
+    .eq('session_id', uuid)
+    .single();
+
   return NextResponse.json({
     ...session,
     customer: customer || null,
     animal: animal || null,
+    pickup_appointment: pickup_appointment || null,
   });
 }
