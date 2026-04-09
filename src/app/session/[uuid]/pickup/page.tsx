@@ -119,7 +119,7 @@ export default function PickupPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        window_id: selectedWindow?.id,
+        pickup_window_id: selectedWindow?.id,
         is_alternate: isAlternate,
         pickup_person_name: isAlternate ? alternateData.name : session.customer.name,
         pickup_person_email: isAlternate ? alternateData.email : session.customer.email,
