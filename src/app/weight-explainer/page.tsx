@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import WeightExplainer from '@/components/WeightExplainer';
 import ReservationProgress from '@/components/ReservationProgress';
+import BeefCalculator from '@/components/BeefCalculator';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -93,7 +94,20 @@ export default function WeightExplainerPage() {
           </Card>
         </section>
 
-        {/* SECTION 5 — Checkbox + CTA */}
+        {/* SECTION 5 — Calculator CTA */}
+        <section className="mb-12">
+          <div className="mt-12">
+            <h2 className="font-display font-bold text-2xl text-brand-dark text-center mb-2">
+              Not sure how much you need?
+            </h2>
+            <p className="font-body text-brand-gray text-center text-sm mb-6">
+              Use our calculator to find the right size for your household.
+            </p>
+            <BeefCalculator />
+          </div>
+        </section>
+
+        {/* SECTION 6 — Checkbox + CTA */}
         <section className="mb-12">
           {/* Checkbox */}
           <label className="flex items-start gap-4 cursor-pointer mb-6 group">
