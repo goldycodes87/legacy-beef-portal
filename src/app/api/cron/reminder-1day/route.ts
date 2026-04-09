@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-token';
+import { emailBase, ctaButton } from '@/lib/email-templates';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.legacylandandcattleco.com';
 
@@ -47,23 +48,40 @@ export async function POST(request: NextRequest) {
     if (!animal || !customer) continue;
 
     const token = await createAccessToken(session.id, new Date(animal.butcher_date));
+    const firstName = customer.name?.split(' ')[0] ?? 'there';
     const incompleteCount = (session.cut_sheet_answers || []).filter(a => !a.completed).length;
+    const incompleteList = incompleteCount > 0
+      ? `<p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;margin:0 0 20px;"><strong style="color:#0F0F0F;">Incomplete sections:</strong> ${incompleteCount} section(s) waiting for your attention.</p>`
+      : '';
+
+    const preheader = 'Tomorrow we lock your cut sheet automatically.';
+    const content = `
+      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
+        ${firstName}, this is your last reminder.
+      </h2>
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
+        Tomorrow your cut sheet will be locked automatically. Any sections
+        you haven't filled out will use our House Cut Sheet defaults — which
+        is a solid selection, but your preferences are always better.
+      </p>
+
+      ${incompleteList}
+
+      ${ctaButton('Complete My Cut Sheet Now →', `${APP_URL}/token/${token}`)}
+
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:14px;">
+        Don't want to fill it out? No worries — our house defaults will
+        take good care of your beef.
+      </p>
+    `;
+
+    const htmlEmail = emailBase(content, preheader);
 
     await resend.emails.send({
       from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
       to: customer.email,
-      subject: 'Last chance — your cut sheet locks tomorrow 🔒',
-      html: `
-        <p>Hi ${customer.name?.split(' ')[0]},</p>
-        <p><strong>Tomorrow</strong> we'll lock your cut sheet automatically.</p>
-        <p>Any incomplete sections will use our House Cut Sheet defaults.</p>
-        <p style="color: #d97706; font-weight: bold;">You still need to complete <strong>${incompleteCount}</strong> section(s).</p>
-        <p style="margin: 20px 0;">
-          <a href="${APP_URL}/token/${token}" style="background-color: #E85D24; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-            Finish Now →
-          </a>
-        </p>
-      `,
+      subject: 'Last call — your cut sheet locks tomorrow 🔒',
+      html: htmlEmail,
     }).catch(err => console.error('Resend error:', err));
   }
 

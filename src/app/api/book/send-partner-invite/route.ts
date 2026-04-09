@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { emailBase, ctaButton, orderCard } from '@/lib/email-templates';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.legacylandandcattleco.com';
 
@@ -34,80 +35,60 @@ export async function POST(request: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   for (const partnerEmail of (session.partner_emails as string[]) || []) {
-    const expiryTime = new Date(session.invite_expires_at).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZone: 'America/Denver'
-    });
+    const ownerFirstName = owner.name?.split(' ')[0] ?? 'Your friend';
+    const partnerFirstName = partnerEmail.split('@')[0]; // Fallback to email prefix
+    const preheader = 'Claim your spot before it expires in 48 hours.';
 
-    const htmlBody = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; background-color: #f5f0e8; margin: 0; padding: 20px;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
-    
-    <!-- Header -->
-    <tr>
-      <td style="background-color: #2D5016; padding: 30px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Legacy Land &amp; Cattle</h1>
-        <p style="color: #C4A46B; margin: 5px 0 0; font-size: 12px; letter-spacing: 2px;">GRASS-FED BEEF</p>
-      </td>
-    </tr>
+    const content = `
+      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
+        Hey ${partnerFirstName}!
+      </h2>
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
+        ${owner.name} is reserving ${purchaseLabel} of locally raised beef from
+        Legacy Land & Cattle in Colorado Springs, CO — and they want to split it with you.
+      </p>
 
-    <!-- Content -->
-    <tr>
-      <td style="padding: 30px;">
-        <h2 style="color: #2D5016; margin-top: 0;">Hey! ${owner.name?.split(' ')[0] || 'friend'}</h2>
-        <p style="color: #555; font-size: 16px; line-height: 1.6;">
-          ${owner.name} reserved you a spot for <strong>${purchaseLabel}</strong> of grass-fed beef from Legacy Land &amp; Cattle and added you as a partner.
+      <div style="background:#F0F7E8;border:1px solid #c3dfa0;border-radius:10px;padding:20px;margin:20px 0;">
+        <p style="font-weight:700;color:#1A3D2B;margin:0 0 8px;">What is this?</p>
+        <p style="color:#6B7280;font-size:13px;margin:0;line-height:1.6;">
+          Legacy Land & Cattle raises grass-fed and grain-finished beef right
+          here in Colorado Springs. You buy a share directly from the ranch —
+          custom cut exactly how you want it, frozen and ready for pickup.
+          No grocery store middleman. Just real beef from real cattle.
         </p>
+      </div>
 
-        <!-- Reservation Details -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border-radius: 8px; margin: 20px 0; border: 1px solid #eee;">
-          <tr>
-            <td style="padding: 16px;">
-              <p style="margin: 0 0 10px; color: #666; font-size: 14px;"><strong>Animal:</strong> ${animal.name}</p>
-              <p style="margin: 0 0 10px; color: #666; font-size: 14px;"><strong>Butcher Date:</strong> ${new Date(animal.butcher_date).toLocaleDateString()}</p>
-              <p style="margin: 0; color: #2D5016; font-size: 16px; font-weight: bold;"><strong>Your Deposit:</strong> $${depositAmount}</p>
-            </td>
-          </tr>
-        </table>
+      ${orderCard([
+        { label: 'Your Share', value: purchaseLabel },
+        { label: 'Animal', value: animal.name },
+        { label: 'Butcher Date', value: new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
+        { label: 'Your Deposit', value: `$${depositAmount.toFixed(2)}` },
+        { label: 'Price/lb', value: 'TBD' },
+      ])}
 
-        <p style="color: #d97706; font-weight: bold; font-size: 16px;">⏰ You have 48 hours to claim your spot (expires ${expiryTime} MT)</p>
+      <p style="color:#E85D24;font-weight:700;font-size:14px;">
+        You have 48 hours to claim your spot.
+      </p>
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;">
+        After that, it'll be released and ${ownerFirstName} will be notified.
+      </p>
 
-        <!-- CTA Button -->
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
-          <tr>
-            <td align="center">
-              <a href="${APP_URL}/join/${session.group_id}" style="background-color: #E85D24; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
-                Claim My Spot →
-              </a>
-            </td>
-          </tr>
-        </table>
+      ${ctaButton('Claim My Spot →', `${APP_URL}/join/${session.group_id}`)}
 
-        <p style="color: #999; font-size: 12px; margin-top: 20px;">
-          Questions? Reply to this email or contact us at orders@legacylandandcattleco.com
-        </p>
-      </td>
-    </tr>
-
-  </table>
-</body>
-</html>
+      <p style="font-size:12px;color:#aaa;text-align:center;font-family:Arial,sans-serif;">
+        Questions? Reply to this email or contact us at <a href="mailto:orders@legacylandandcattleco.com" style="color:#E85D24;text-decoration:none;">
+        orders@legacylandandcattleco.com
+        </a>
+      </p>
     `;
+
+    const htmlEmail = emailBase(content, preheader);
 
     await resend.emails.send({
       from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
       to: partnerEmail,
-      subject: `${owner.name?.split(' ')[0]} reserved you a spot for beef — claim it before it expires`,
-      html: htmlBody,
+      subject: `${ownerFirstName} saved you a spot for beef 🐄`,
+      html: htmlEmail,
     }).catch(err => console.error('Resend error:', err));
   }
 

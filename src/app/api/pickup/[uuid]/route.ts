@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { emailBase, ctaButton, orderCard } from '@/lib/email-templates';
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const supabase = getSupabaseAdmin();
@@ -45,22 +46,43 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   const pickupDate = new Date(window.pickup_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
-  const emailBody = `
-    <p>You're all set!</p>
-    <p><strong>${pickupDate}</strong> from <strong>${window.start_time} – ${window.end_time}</strong></p>
-    <p><strong>6105 Burgess Rd, Colorado Springs CO 80908</strong></p>
-    ${is_alternate ? `<p>Pickup person: <strong>${pickup_person_name}</strong> (${pickup_person_phone})</p>` : ''}
-    <p>Questions? Reply to this email.</p>
-  `;
+  const dayOfWeek = new Date(window.pickup_date).toLocaleDateString('en-US', { weekday: 'short' });
+  const googleCalendarLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Beef+Pickup&dates=${new Date(window.pickup_date).toISOString().split('T')[0]}/${new Date(window.pickup_date).toISOString().split('T')[0]}&details=6105%20Burgess%20Rd%2C%20Colorado%20Springs%20CO%2080908`;
 
   if (customer) {
+    const firstName = customer.name?.split(' ')[0] ?? 'there';
+    const preheader = 'Your pickup time is locked in.';
+    const content = `
+      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
+        You're all set, ${firstName}!
+      </h2>
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
+        Your pickup is confirmed. Here's what you need:
+      </p>
+
+      ${orderCard([
+        { label: 'Date', value: pickupDate },
+        { label: 'Time', value: `${window.start_time} – ${window.end_time}` },
+        { label: 'Pickup Person', value: is_alternate ? pickup_person_name : customer.name },
+        { label: 'Address', value: '6105 Burgess Rd, Colorado Springs CO 80908' },
+      ])}
+
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;">
+        <strong style="color:#0F0F0F;">What to bring:</strong> Your remaining balance if not already paid
+        (cash, check, or card). We'll have everything packaged and ready.
+      </p>
+
+      ${ctaButton('Add to Google Calendar 📅', googleCalendarLink, '#1A3D2B')}
+    `;
+
+    const htmlEmail = emailBase(content, preheader);
+
     await resend.emails.send({
       from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
       to: customer.email,
       cc: is_alternate ? pickup_person_email : undefined,
-      subject: `Pickup confirmed — see you ${new Date(window.pickup_date).toLocaleDateString('en-US', { weekday: 'short' })}! 🥩`,
-      html: emailBody,
+      subject: `Pickup confirmed — see you ${dayOfWeek}! 🥩`,
+      html: htmlEmail,
     });
   }
 

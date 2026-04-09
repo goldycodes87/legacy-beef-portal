@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { emailBase, ctaButton, cutSheetSummary } from '@/lib/email-templates';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
@@ -51,23 +52,43 @@ export async function POST(
     const partnerCustomer = partnerSession?.customers as unknown as { name: string; email: string } | null;
 
     if (partnerCustomer?.email) {
+      // Fetch cut sheet answers for summary
+      const { data: answers } = await supabase
+        .from('cut_sheet_answers')
+        .select('section, answers')
+        .eq('session_id', uuid);
+
+      const firstName = partnerCustomer.name?.split(' ')[0] ?? 'there';
+      
+      const preheader = 'Nice work — your beef order is all set.';
+      const content = `
+        <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
+          Your cut sheet is locked, ${firstName}. Nice work! 🔒
+        </h2>
+        <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;margin:0 0 20px;">
+          We've got your cutting instructions and we'll make sure they get to the
+          butcher before your animal goes in. Here's a summary of what you ordered:
+        </p>
+
+        ${cutSheetSummary(answers || [])}
+
+        <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;margin:20px 0 0;">
+          Questions or changes before butcher day? Reply to this email and we'll
+          do our best to accommodate.
+        </p>
+      `;
+
+      const htmlEmail = emailBase(content, preheader);
+
       // Send notification email to partner with cut sheet summary
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      const summaryText = `
-        <p>Hi ${partnerCustomer.name || 'there'},</p>
-        <p>Your partner has locked the cut sheet for your split beef order.</p>
-        <p>You can view the full cut sheet here:</p>
-        <p><a href="${APP_URL}/session/${session.cut_sheet_partner_session_id}/review">View Cut Sheet</a></p>
-        <p>— Legacy Land &amp; Cattle</p>
-      `;
-
       await resend.emails.send({
         from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
         to: partnerCustomer.email,
-        subject: 'Your cut sheet has been locked',
-        html: summaryText,
+        subject: 'Your cut sheet is locked in 🔒',
+        html: htmlEmail,
       });
     }
   }

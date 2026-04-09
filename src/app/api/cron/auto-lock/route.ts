@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { emailBase, cutSheetSummary } from '@/lib/email-templates';
 
 const HOUSE_DEFAULTS = {
   chuck: { choice: 'steaks', thickness: '1"', steaks_per_pack: 2 },
@@ -97,43 +98,45 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', session.id);
 
+    // Fetch all answers for summary
+    const { data: allAnswers } = await supabase
+      .from('cut_sheet_answers')
+      .select('section, answers')
+      .eq('session_id', session.id);
+
+    const firstName = customer.name?.split(' ')[0] ?? 'there';
+    const butcherDateStr = new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const preheader = 'We\'ve locked in your order with our house cut sheet.';
+    const content = `
+      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
+        Your cut sheet is locked, ${firstName}.
+      </h2>
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
+        The deadline has passed, so we've locked your cut sheet using our
+        House Cut Sheet defaults for any incomplete sections. Here's what's
+        going to the butcher:
+      </p>
+
+      ${cutSheetSummary(allAnswers || [])}
+
+      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;">
+        Questions? Reply to this email before ${butcherDateStr} and we'll
+        see what we can do.
+      </p>
+    `;
+
+    const htmlEmail = emailBase(content, preheader);
+
     // Send confirmation email
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
-
-    const summaryHtml = Object.entries(HOUSE_DEFAULTS)
-      .map(([section, defaults]) => `
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${section}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #eee;">${JSON.stringify(defaults)}</td>
-        </tr>
-      `)
-      .join('');
 
     await resend.emails.send({
       from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
       to: customer.email,
       subject: 'Your cut sheet has been locked 🔒',
-      html: `
-        <p>Hi ${customer.name?.split(' ')[0]},</p>
-        <p><strong>Your cut sheet is now locked.</strong> Here's the full summary:</p>
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-          <thead>
-            <tr style="background-color: #f5f5f5;">
-              <th style="padding: 8px; text-align: left;">Section</th>
-              <th style="padding: 8px; text-align: left;">Your Choice</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${summaryHtml}
-          </tbody>
-        </table>
-        <p style="margin-top: 20px;">
-          <a href="${APP_URL}/session/${session.id}/review" style="background-color: #2D5016; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-            View Full Cut Sheet →
-          </a>
-        </p>
-      `,
+      html: htmlEmail,
     }).catch(err => console.error('Resend error:', err));
   }
 
