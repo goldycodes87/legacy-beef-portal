@@ -10,8 +10,6 @@ export async function POST(
   const supabase = getSupabaseAdmin();
   await supabase.from('sessions').update({
     balance_payment_method: 'cash',
-    balance_paid: true,
-    balance_paid_at: new Date().toISOString(),
   }).eq('id', uuid);
   return NextResponse.json({ success: true });
 }
