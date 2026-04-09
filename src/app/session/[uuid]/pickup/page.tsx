@@ -129,7 +129,10 @@ export default function PickupPage() {
     });
 
     if (res.ok) {
-      router.push(`/session/${uuid}?pickup=scheduled`);
+      setStep(99);
+    } else {
+      const err = await res.json();
+      alert('Failed: ' + (err.error || 'Unknown error'));
     }
   };
 
