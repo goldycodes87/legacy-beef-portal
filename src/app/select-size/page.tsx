@@ -500,32 +500,25 @@ function SizeCard({
           : 'shadow-md hover:shadow-xl hover:scale-[1.01]'}
       `}
     >
-      {/* Dark header */}
-      <div className={`p-5 flex flex-col justify-end ${selected ? 'bg-brand-dark' : 'bg-brand-dark'}`} style={{minHeight: '140px'}}>
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            {badge && !soldOut && (
-              <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-brand-orange text-white mb-2">
-                {badge}
-              </span>
-            )}
-            {soldOut && (
-              <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-gray-500 text-white mb-2">
-                Sold Out
-              </span>
-            )}
-            <h3 className="font-display font-bold text-xl text-white">
-              {title}
-            </h3>
-          </div>
-          {selected && !soldOut && (
-            <div className="w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0 mt-1">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
+      {/* Dark header — fixed height so all cards align */}
+      <div className="bg-brand-dark p-5 relative" style={{minHeight: '148px'}}>
+        {/* Badge row — always takes same space */}
+        <div className="h-6 mb-2 flex items-center">
+          {badge && !soldOut && (
+            <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-brand-orange text-white">
+              {badge}
+            </span>
+          )}
+          {soldOut && (
+            <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-gray-500 text-white">
+              Sold Out
+            </span>
           )}
         </div>
+        {/* Title */}
+        <h3 className="font-display font-bold text-xl text-white mb-2">
+          {title}
+        </h3>
         {/* Price */}
         <div className="flex items-end gap-1">
           <span className="font-display font-black text-4xl text-white">
@@ -533,13 +526,21 @@ function SizeCard({
           </span>
           <span className="font-body text-white/60 text-sm pb-1 whitespace-nowrap">/lb hanging weight</span>
         </div>
+        {/* Selected checkmark */}
+        {selected && !soldOut && (
+          <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
       </div>
 
       {/* White body */}
       <div className="bg-white p-5 rounded-b-2xl flex-1">
         {/* Deposit */}
-        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
-          <span className="text-brand-orange font-body font-semibold text-sm">
+        <div className="mb-4 pb-4 border-b border-gray-100">
+          <span className="text-brand-orange font-body font-semibold text-sm leading-snug">
             {deposit}
           </span>
         </div>
