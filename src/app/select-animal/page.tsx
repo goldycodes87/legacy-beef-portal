@@ -153,7 +153,7 @@ export default function SelectAnimalPage() {
                         </h3>
                       </div>
                       {/* White body with notify form */}
-                      <div className="bg-white p-4 min-h-[200px] flex flex-col justify-between">
+                      <div className="bg-white p-4 flex flex-col justify-between" style={{minHeight: "160px"}}>
                         <p className="font-body text-brand-gray text-sm leading-relaxed mb-4">
                           50% Japanese Wagyu × Black Angus. Extraordinary marbling, buttery flavor, limited availability.
                         </p>
@@ -241,7 +241,7 @@ export default function SelectAnimalPage() {
                         )}
                       </div>
                       {/* White body */}
-                      <div className="bg-white p-4" style={{minHeight: '120px'}}>
+                      <div className="bg-white p-4" style={{minHeight: '160px'}}>
                         <p className="font-body text-brand-gray text-sm leading-relaxed">
                           {opt.description}
                         </p>
@@ -279,7 +279,7 @@ export default function SelectAnimalPage() {
                       )}
                     </div>
                     {/* White body */}
-                    <div className="bg-white p-4" style={{minHeight: '120px'}}>
+                    <div className="bg-white p-4" style={{minHeight: '160px'}}>
                       <p className="font-body text-brand-gray text-sm leading-relaxed">
                         {opt.description}
                       </p>
