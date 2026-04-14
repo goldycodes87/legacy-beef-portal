@@ -144,7 +144,7 @@ export default function SelectAnimalPage() {
                       className="rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2 border-transparent hover:border-brand-orange/40 hover:shadow-md"
                     >
                       {/* Purple header */}
-                      <div className="p-4 bg-purple-900">
+                      <div className="p-4 relative bg-purple-900">
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
                           Premium
                         </span>
@@ -161,40 +161,40 @@ export default function SelectAnimalPage() {
                           <>
                             {!wagyuNotifyOpen ? (
                               <button
-                                onClick={() => setWagyuNotifyOpen(true)}
-                                className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
+                                onClick={(e) => { e.stopPropagation(); setWagyuNotifyOpen(true); }}
+                                className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
                               >
                                 Notify Me When Available →
                               </button>
                             ) : (
-                              <div className="space-y-2">
+                              <div className="space-y-2" onClick={e => e.stopPropagation()}>
                                 <input
                                   type="text"
                                   placeholder="Your name"
                                   value={wagyuForm.name}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, name: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
                                 <input
                                   type="email"
                                   placeholder="Your email"
                                   value={wagyuForm.email}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, email: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
                                 <select
                                   value={wagyuForm.size}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, size: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 >
                                   <option value="whole">Whole Beef</option>
                                   <option value="half">Half Beef</option>
                                   <option value="quarter">Quarter Beef</option>
                                 </select>
                                 <button
-                                  onClick={handleWagyuNotify}
+                                  onClick={(e) => { e.stopPropagation(); handleWagyuNotify(); }}
                                   disabled={wagyuSubmitting || !wagyuForm.name || !wagyuForm.email}
-                                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
+                                  className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
                                 >
                                   {wagyuSubmitting ? 'Saving...' : 'Notify Me →'}
                                 </button>
@@ -223,7 +223,7 @@ export default function SelectAnimalPage() {
                         : 'border-transparent hover:border-brand-orange/40 hover:shadow-md'}`}
                     >
                       {/* Purple header */}
-                      <div className={`p-4 ${opt.headerColor}`}>
+                      <div className={`p-4 relative ${opt.headerColor}`}>
                         {opt.badge && (
                           <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
                             {opt.badge}
@@ -232,9 +232,16 @@ export default function SelectAnimalPage() {
                         <h3 className="font-display font-bold text-lg text-white">
                           {opt.title}
                         </h3>
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
                       {/* White body */}
-                      <div className="bg-white p-4 min-h-[80px] flex items-center">
+                      <div className="bg-white p-4" style={{minHeight: '120px'}}>
                         <p className="font-body text-brand-gray text-sm leading-relaxed">
                           {opt.description}
                         </p>
@@ -254,7 +261,7 @@ export default function SelectAnimalPage() {
                       : 'border-transparent hover:border-brand-orange/40 hover:shadow-md'}`}
                   >
                     {/* Colored header */}
-                    <div className={`p-4 ${opt.headerColor}`}>
+                    <div className={`p-4 relative ${opt.headerColor}`}>
                       {opt.badge && (
                         <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
                           {opt.badge}
@@ -263,9 +270,16 @@ export default function SelectAnimalPage() {
                       <h3 className="font-display font-bold text-lg text-white">
                         {opt.title}
                       </h3>
+                      {isSelected && (
+                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center">
+                          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                     {/* White body */}
-                    <div className="bg-white p-4 min-h-[80px] flex items-center">
+                    <div className="bg-white p-4" style={{minHeight: '120px'}}>
                       <p className="font-body text-brand-gray text-sm leading-relaxed">
                         {opt.description}
                       </p>
