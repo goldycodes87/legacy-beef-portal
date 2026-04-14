@@ -129,10 +129,10 @@ export default function AuthPage() {
           <p className="font-body text-center text-sm text-brand-gray mt-6">
             Need help?{' '}
             <a
-              href="tel:+17195550100"
+              href="tel:+17192581777"
               className="text-brand-orange underline"
             >
-              Call Grant at (719) 555-0100
+              Call Grant at (719) 258-1777
             </a>
           </p>
         </div>

@@ -231,8 +231,8 @@ export default async function SessionStatusPage({ params }: PageProps) {
         {/* Help footer */}
         <p className="text-center text-sm text-gray-400">
           Questions?{' '}
-          <a href="tel:+17195550100" className="text-brand-green underline">
-            Call Grant at (719) 555-0100
+          <a href="tel:+17192581777" className="text-brand-green underline">
+            Call Grant at (719) 258-1777
           </a>
         </p>
       </div>
