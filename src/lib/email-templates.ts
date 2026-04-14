@@ -111,6 +111,9 @@ export function emailBase(content: string, preheader?: string): string {
               <p style="font-size: 12px; color: ${COLORS.GRAY}; margin: 0; font-family: Arial, sans-serif;">
                 <a href="mailto:orders@legacylandandcattleco.com" style="color: ${COLORS.ORANGE}; text-decoration: none;">
                   orders@legacylandandcattleco.com
+                </a><br />
+                <a href="tel:+17192581777" style="color: ${COLORS.ORANGE}; text-decoration: none;">
+                  (719) 258-1777
                 </a>
               </p>
             </td>
