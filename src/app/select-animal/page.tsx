@@ -206,6 +206,12 @@ export default function SelectAnimalPage() {
                             ✓ You're on the list!
                           </p>
                         )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setShowWagyuModal(true); }}
+                          className="w-full mt-2 py-2 rounded-xl border border-purple-300 text-purple-700 font-body text-sm hover:bg-purple-50 transition-colors"
+                        >
+                          More About Our Wagyu →
+                        </button>
                       </div>
                     </div>
                   );
