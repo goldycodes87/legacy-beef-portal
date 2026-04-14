@@ -241,7 +241,7 @@ export default function SelectAnimalPage() {
                         )}
                       </div>
                       {/* White body */}
-                      <div className="bg-white p-4" style={{minHeight: '160px'}} className="bg-white p-4 rounded-b-2xl">
+                      <div className="bg-white p-4 rounded-b-2xl" style={{minHeight: '160px'}}>
                         <p className="font-body text-brand-gray text-sm leading-relaxed">
                           {opt.description}
                         </p>
@@ -279,7 +279,7 @@ export default function SelectAnimalPage() {
                       )}
                     </div>
                     {/* White body */}
-                    <div className="bg-white p-4" style={{minHeight: '160px'}} className="bg-white p-4 rounded-b-2xl">
+                    <div className="bg-white p-4 rounded-b-2xl" style={{minHeight: '160px'}}>
                       <p className="font-body text-brand-gray text-sm leading-relaxed">
                         {opt.description}
                       </p>
