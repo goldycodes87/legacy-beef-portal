@@ -471,6 +471,7 @@ function SizeCard({
       aria-pressed={selected}
       className={`
         relative w-full text-left rounded-2xl overflow-hidden transition-all duration-300
+        flex flex-col
         focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2
         ${soldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${selected
@@ -509,12 +510,12 @@ function SizeCard({
           <span className="font-display font-black text-4xl text-white">
             {price.replace('/lb', '')}
           </span>
-          <span className="font-body text-white/60 text-sm pb-1">/lb hanging weight</span>
+          <span className="font-body text-white/60 text-sm pb-1 whitespace-nowrap">/lb hanging weight</span>
         </div>
       </div>
 
       {/* White body */}
-      <div className="bg-white p-5">
+      <div className="bg-white p-5 rounded-b-2xl flex-1">
         {/* Deposit */}
         <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
           <span className="text-brand-orange font-body font-semibold text-sm">
