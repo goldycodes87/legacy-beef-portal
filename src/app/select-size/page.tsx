@@ -201,7 +201,7 @@ export default function SelectSizePage() {
 
       <ReservationProgress currentStep="choose" />
 
-      <main className="max-w-[680px] mx-auto px-4 py-10">
+      <main className="max-w-[960px] mx-auto px-4 py-10">
         {/* Heading */}
         <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-3">
           Choose Your Beef
