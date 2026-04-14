@@ -69,6 +69,11 @@ export async function POST(request: NextRequest) {
       customerId = newCustomer.id;
     }
 
+    // If customer was archived, unarchive them
+    await supabaseAdmin.from('customers').update({ archived_at: null })
+      .eq('id', customerId)
+      .not('archived_at', 'is', null);
+
     // 3. Check for existing draft session to prevent duplicates
     const { data: existingSession } = await supabaseAdmin
       .from('sessions')
