@@ -51,6 +51,7 @@ export default function SelectAnimalPage() {
   const [selected, setSelected] = useState<AnimalType | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWagyuModal, setShowWagyuModal] = useState(false);
+  const [wagyuAcknowledged, setWagyuAcknowledged] = useState(false);
   const [showDiffModal, setShowDiffModal] = useState(false);
   // Only wagyu visibility is conditional — all other cards always show
   const [wagyuActive, setWagyuActive] = useState(false);
@@ -326,24 +327,22 @@ export default function SelectAnimalPage() {
               <p className="font-semibold mb-1">Wagyu Pricing</p>
               <p>Whole: $9.50/lb · Half: $9.75/lb · Quarter: $10.00/lb hanging weight</p>
             </div>
-            <label className="flex items-start gap-3 mb-4 cursor-pointer">
-              <input
-                type="checkbox"
-                id="wagyu-acknowledge"
-                className="mt-1 w-5 h-5 accent-brand-orange flex-shrink-0"
-                onChange={(e) => {
-                  const btn = document.getElementById('wagyu-continue-btn') as HTMLButtonElement;
-                  if (btn) btn.disabled = !e.target.checked;
-                }}
-              />
-              <span className="font-body text-brand-dark text-sm leading-relaxed">
-                I understand that Wagyu beef is priced at <strong>$9.50–$10.00/lb hanging weight</strong> — higher than standard beef due to the breed and care required.
-              </span>
-            </label>
+            {wagyuActive && (
+              <label className="flex items-start gap-3 mb-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={wagyuAcknowledged}
+                  onChange={(e) => setWagyuAcknowledged(e.target.checked)}
+                  className="mt-1 w-5 h-5 accent-brand-orange flex-shrink-0"
+                />
+                <span className="font-body text-brand-dark text-sm leading-relaxed">
+                  I understand that Wagyu beef is priced at <strong>$9.50–$10.00/lb hanging weight</strong> — higher than standard beef due to the breed and care required.
+                </span>
+              </label>
+            )}
             <button
-              id="wagyu-continue-btn"
-              disabled
-              onClick={() => setShowWagyuModal(false)}
+              onClick={() => { setShowWagyuModal(false); setWagyuAcknowledged(false); }}
+              disabled={wagyuActive && !wagyuAcknowledged}
               className="w-full bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-40 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors"
             >
               Got It — Continue
