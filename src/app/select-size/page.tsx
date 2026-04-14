@@ -480,7 +480,7 @@ function SizeCard({
       `}
     >
       {/* Dark header */}
-      <div className={`p-5 ${selected ? 'bg-brand-dark' : 'bg-brand-dark'}`}>
+      <div className={`p-5 flex flex-col justify-end ${selected ? 'bg-brand-dark' : 'bg-brand-dark'}`} style={{minHeight: '140px'}}>
         <div className="flex items-start justify-between mb-3">
           <div>
             {badge && !soldOut && (
