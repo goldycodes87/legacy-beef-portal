@@ -216,7 +216,7 @@ export default function SelectSizePage() {
             <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
             {/* ── Whole Beef ── */}
             <SizeCard
               title="Whole Beef"
@@ -514,7 +514,7 @@ function SizeCard({
       </div>
 
       {/* White body */}
-      <div className="bg-white p-5 border-x border-b border-gray-100 rounded-b-2xl">
+      <div className="bg-white p-5">
         {/* Deposit */}
         <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
           <span className="text-brand-orange font-body font-semibold text-sm">
@@ -536,12 +536,6 @@ function SizeCard({
             <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
             <span>21–24 day dry age</span>
           </li>
-          {title === 'Quarter Beef' && (
-            <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
-              <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
-              <span>Uses Legacy house cut sheet</span>
-            </li>
-          )}
           {title !== 'Quarter Beef' && (
             <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
               <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>

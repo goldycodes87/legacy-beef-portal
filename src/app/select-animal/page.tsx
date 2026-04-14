@@ -13,33 +13,36 @@ interface CardOption {
   title: string;
   description: string;
   badge?: string;
-  badgeColor?: string;
+  headerColor: string;
 }
 
 const BASE_OPTIONS: CardOption[] = [
   {
     id: 'grass_fed',
-    title: 'Grass-Fed & Grass-Finished',
-    description: 'Pasture-raised on open land from birth to harvest. No grain, no feedlots.',
-    badge: 'Most Popular',
-    badgeColor: 'bg-brand-green text-white',
+    title: 'Grass-Fed Beef',
+    description: 'Raised on pasture. Rich, complex flavor. Leaner.',
+    badge: 'Signature',
+    headerColor: 'bg-brand-green',
   },
   {
     id: 'grain_finished',
-    title: 'Grain-Finished',
-    description: 'Grass-raised with a grain-finishing period for enhanced marbling.',
+    title: 'Grain-Finished Beef',
+    description: 'Finished on grain for marbling and tenderness.',
+    badge: 'Classic',
+    headerColor: 'bg-amber-700',
   },
   {
     id: 'wagyu',
     title: 'American Wagyu',
-    description: 'Ultra-premium marbling with rich, buttery flavor. Limited availability.',
+    description: 'Japanese Wagyu × Black Angus. Extraordinary marbling.',
     badge: 'Premium',
-    badgeColor: 'bg-brand-orange text-white',
+    headerColor: 'bg-purple-900',
   },
   {
     id: 'no_preference',
     title: 'No Preference',
-    description: 'Show me all available dates and animals.',
+    description: 'Let us choose for you.',
+    headerColor: 'bg-brand-dark',
   },
 ];
 
@@ -136,22 +139,22 @@ export default function SelectAnimalPage() {
                 // Wagyu "Coming Soon" card when unavailable
                 if (opt.id === 'wagyu' && !wagyuActive) {
                   return (
-                    <div key={opt.id} className="rounded-2xl overflow-hidden shadow-md border border-purple-200">
+                    <div
+                      key={opt.id}
+                      className="rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2 border-transparent hover:border-brand-orange/40 hover:shadow-md"
+                    >
                       {/* Purple header */}
-                      <div className="bg-gradient-to-br from-purple-900 to-brand-dark p-5">
-                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500 text-white mb-2">
-                          Coming Soon
+                      <div className="p-4 bg-purple-900">
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
+                          Premium
                         </span>
-                        <h3 className="font-display font-bold text-xl text-white">
+                        <h3 className="font-display font-bold text-lg text-white">
                           American Wagyu
                         </h3>
-                        <p className="font-body text-white/60 text-sm mt-1">
-                          $9.50–$10.00/lb · Premium marbling
-                        </p>
                       </div>
-                      {/* White body */}
-                      <div className="bg-white p-5">
-                        <p className="font-body text-brand-gray text-sm mb-4 leading-relaxed">
+                      {/* White body with notify form */}
+                      <div className="bg-white p-4 min-h-[200px] flex flex-col justify-between">
+                        <p className="font-body text-brand-gray text-sm leading-relaxed mb-4">
                           50% Japanese Wagyu × Black Angus. Extraordinary marbling, buttery flavor, limited availability.
                         </p>
                         {!wagyuSubmitted ? (
@@ -159,30 +162,30 @@ export default function SelectAnimalPage() {
                             {!wagyuNotifyOpen ? (
                               <button
                                 onClick={() => setWagyuNotifyOpen(true)}
-                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
+                                className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
                               >
                                 Notify Me When Available →
                               </button>
                             ) : (
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 <input
                                   type="text"
                                   placeholder="Your name"
                                   value={wagyuForm.name}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, name: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
                                 <input
                                   type="email"
                                   placeholder="Your email"
                                   value={wagyuForm.email}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, email: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 />
                                 <select
                                   value={wagyuForm.size}
                                   onChange={(e) => setWagyuForm({ ...wagyuForm, size: e.target.value })}
-                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
                                 >
                                   <option value="whole">Whole Beef</option>
                                   <option value="half">Half Beef</option>
@@ -191,7 +194,7 @@ export default function SelectAnimalPage() {
                                 <button
                                   onClick={handleWagyuNotify}
                                   disabled={wagyuSubmitting || !wagyuForm.name || !wagyuForm.email}
-                                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
+                                  className="w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
                                 >
                                   {wagyuSubmitting ? 'Saving...' : 'Notify Me →'}
                                 </button>
@@ -199,50 +202,75 @@ export default function SelectAnimalPage() {
                             )}
                           </>
                         ) : (
-                          <div className="text-center py-3">
-                            <p className="font-body font-semibold text-purple-600 text-sm">
-                              ✓ You're on the list! We'll email you when Wagyu is available.
-                            </p>
-                          </div>
+                          <p className="font-body font-semibold text-purple-600 text-sm text-center">
+                            ✓ You're on the list!
+                          </p>
                         )}
                       </div>
                     </div>
                   );
                 }
 
-                // Regular card (including wagyu when active)
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => { setSelected(opt.id); if (opt.id === 'wagyu') setShowWagyuModal(true); }}
-                    className={`
-                      relative text-left rounded-xl border-2 p-5 transition-all duration-150
-                      focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2
+                // Active wagyu card
+                if (opt.id === 'wagyu' && wagyuActive) {
+                  return (
+                    <div
+                      key={opt.id}
+                      onClick={() => { setSelected(opt.id); setShowWagyuModal(true); }}
+                      className={`rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2
                       ${isSelected
-                        ? 'border-brand-orange bg-[#FFF5F0]'
-                        : 'border-brand-gray-light bg-white hover:border-brand-orange hover:scale-[1.02]'
-                      }
-                    `}
-                  >
-                    {opt.badge && (
-                      <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-2 ${opt.badgeColor}`}>
-                        {opt.badge}
-                      </span>
-                    )}
-                    <h3 className="font-semibold text-brand-dark text-base mb-1">
-                      {opt.title}
-                    </h3>
-                    <p className="text-sm text-brand-gray leading-relaxed">
-                      {opt.description}
-                    </p>
-                    {isSelected && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-brand-orange flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
+                        ? 'border-brand-orange scale-[1.02] shadow-lg'
+                        : 'border-transparent hover:border-brand-orange/40 hover:shadow-md'}`}
+                    >
+                      {/* Purple header */}
+                      <div className={`p-4 ${opt.headerColor}`}>
+                        {opt.badge && (
+                          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
+                            {opt.badge}
+                          </span>
+                        )}
+                        <h3 className="font-display font-bold text-lg text-white">
+                          {opt.title}
+                        </h3>
                       </div>
-                    )}
-                  </button>
+                      {/* White body */}
+                      <div className="bg-white p-4 min-h-[80px] flex items-center">
+                        <p className="font-body text-brand-gray text-sm leading-relaxed">
+                          {opt.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Regular card (grass_fed, grain_finished, no_preference)
+                return (
+                  <div
+                    key={opt.id}
+                    onClick={() => setSelected(opt.id)}
+                    className={`rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2
+                    ${isSelected
+                      ? 'border-brand-orange scale-[1.02] shadow-lg'
+                      : 'border-transparent hover:border-brand-orange/40 hover:shadow-md'}`}
+                  >
+                    {/* Colored header */}
+                    <div className={`p-4 ${opt.headerColor}`}>
+                      {opt.badge && (
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 text-white mb-2">
+                          {opt.badge}
+                        </span>
+                      )}
+                      <h3 className="font-display font-bold text-lg text-white">
+                        {opt.title}
+                      </h3>
+                    </div>
+                    {/* White body */}
+                    <div className="bg-white p-4 min-h-[80px] flex items-center">
+                      <p className="font-body text-brand-gray text-sm leading-relaxed">
+                        {opt.description}
+                      </p>
+                    </div>
+                  </div>
                 );
               })}
             </div>
