@@ -41,7 +41,7 @@ const BASE_OPTIONS: CardOption[] = [
   {
     id: 'no_preference',
     title: 'No Preference',
-    description: 'Let us choose for you.',
+    description: 'See all animals and butcher dates available and pick the one that works best for you.',
     headerColor: 'bg-brand-dark',
   },
 ];
@@ -241,7 +241,7 @@ export default function SelectAnimalPage() {
                         )}
                       </div>
                       {/* White body */}
-                      <div className="bg-white p-4" style={{minHeight: '160px'}}>
+                      <div className="bg-white p-4" style={{minHeight: '160px'}} className="bg-white p-4 rounded-b-2xl">
                         <p className="font-body text-brand-gray text-sm leading-relaxed">
                           {opt.description}
                         </p>
@@ -279,7 +279,7 @@ export default function SelectAnimalPage() {
                       )}
                     </div>
                     {/* White body */}
-                    <div className="bg-white p-4" style={{minHeight: '160px'}}>
+                    <div className="bg-white p-4" style={{minHeight: '160px'}} className="bg-white p-4 rounded-b-2xl">
                       <p className="font-body text-brand-gray text-sm leading-relaxed">
                         {opt.description}
                       </p>
@@ -320,9 +320,25 @@ export default function SelectAnimalPage() {
               <p className="font-semibold mb-1">Wagyu Pricing</p>
               <p>Whole: $9.50/lb · Half: $9.75/lb · Quarter: $10.00/lb hanging weight</p>
             </div>
+            <label className="flex items-start gap-3 mb-4 cursor-pointer">
+              <input
+                type="checkbox"
+                id="wagyu-acknowledge"
+                className="mt-1 w-5 h-5 accent-brand-orange flex-shrink-0"
+                onChange={(e) => {
+                  const btn = document.getElementById('wagyu-continue-btn') as HTMLButtonElement;
+                  if (btn) btn.disabled = !e.target.checked;
+                }}
+              />
+              <span className="font-body text-brand-dark text-sm leading-relaxed">
+                I understand that Wagyu beef is priced at <strong>$9.50–$10.00/lb hanging weight</strong> — higher than standard beef due to the breed and care required.
+              </span>
+            </label>
             <button
+              id="wagyu-continue-btn"
+              disabled
               onClick={() => setShowWagyuModal(false)}
-              className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-3 rounded-xl font-semibold"
+              className="w-full bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-40 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold transition-colors"
             >
               Got It — Continue
             </button>
