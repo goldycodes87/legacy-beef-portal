@@ -56,6 +56,13 @@ export default function SelectSizePage() {
   const [partnerEmail, setPartnerEmail] = useState<string>('');
   const [partnerEmails4, setPartnerEmails4] = useState(['', '', '']);
 
+  // Prices
+  const [prices, setPrices] = useState({
+    whole: 8.00,
+    half: 8.25,
+    quarter: 8.50,
+  });
+
   // UI state
   const [splitVisible, setSplitVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +89,20 @@ export default function SelectSizePage() {
       });
 
 
+  }, []);
+
+  // ── Fetch prices on mount ────────────────────────────────────────────────
+  useEffect(() => {
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(data => {
+        setPrices({
+          whole: parseFloat(data.price_whole || '8.00'),
+          half: parseFloat(data.price_half || '8.25'),
+          quarter: parseFloat(data.price_quarter || '8.50'),
+        });
+      })
+      .catch(() => {}); // keep defaults on error
   }, []);
 
   // ── When size changes, reset split state and animate in question ──────────
@@ -220,7 +241,7 @@ export default function SelectSizePage() {
             {/* ── Whole Beef ── */}
             <SizeCard
               title="Whole Beef"
-              price="$8.00/lb"
+              price={`$${prices.whole.toFixed(2)}/lb`}
               deposit="$850 deposit (or $500 each if splitting)"
               yieldRange="Est. $5,200–$6,200 total | ~390–465 lbs finished cuts"
               soldOut={isSoldOut('whole')}
@@ -233,7 +254,7 @@ export default function SelectSizePage() {
               badge="Most Popular"
               badgeColor="bg-brand-orange text-white"
               title="Half Beef"
-              price="$8.25/lb"
+              price={`$${prices.half.toFixed(2)}/lb`}
               deposit="$500 deposit"
               yieldRange="Est. $2,700–$3,200 total | ~195–235 lbs finished cuts"
               soldOut={isSoldOut('half')}
@@ -244,7 +265,7 @@ export default function SelectSizePage() {
             {/* ── Quarter Beef ── */}
             <SizeCard
               title="Quarter Beef"
-              price="$8.50/lb"
+              price={`$${prices.quarter.toFixed(2)}/lb`}
               deposit="$250 deposit"
               yieldRange="Est. $1,400–$1,650 total | ~98–118 lbs finished cuts"
               note="Uses Legacy's house cut sheet"
@@ -341,13 +362,13 @@ export default function SelectSizePage() {
                     {groupSize === 4 ? (
                       <>
                         <span className="font-semibold text-brand-dark">Each pays $250 deposit.</span>{' '}
-                        All 4 pay within 48 hrs → $8.00/lb for all{' '}
+                        All 4 pay within 48 hrs → ${prices.whole.toFixed(2)}/lb for all{' '}
                         <span className="text-brand-green font-semibold">(~$90 savings each)</span>. One master cut sheet.
                       </>
                     ) : (
                       <>
                         <span className="font-semibold text-brand-dark">Each pays $500 deposit.</span>{' '}
-                        Both pay within 48 hrs → $8.00/lb for both{' '}
+                        Both pay within 48 hrs → ${prices.whole.toFixed(2)}/lb for both{' '}
                         <span className="text-brand-green font-semibold">(~$90 savings each)</span>.
                       </>
                     )}
@@ -402,7 +423,7 @@ export default function SelectSizePage() {
                   {/* Disclosure */}
                   <div className="bg-[#FFF5F0] border border-brand-orange/30 rounded-xl px-4 py-3 text-sm text-brand-gray leading-relaxed">
                     <span className="font-semibold text-brand-dark">Each person pays $250 deposit.</span>{' '}
-                    Your final cost will be calculated at the Half Beef price of $8.25/lb.
+                    Your final cost will be calculated at the Half Beef price of ${prices.half.toFixed(2)}/lb.
                   </div>
                 </div>
               )}

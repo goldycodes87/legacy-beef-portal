@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import WeightExplainer from '@/components/WeightExplainer';
 import ReservationProgress from '@/components/ReservationProgress';
 import BeefCalculator from '@/components/BeefCalculator';
@@ -12,6 +12,27 @@ import { Timeline } from '@/components/ui/modern-timeline';
 export default function WeightExplainerPage() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+
+  // Prices
+  const [prices, setPrices] = useState({
+    whole: 8.00,
+    half: 8.25,
+    quarter: 8.50,
+  });
+
+  // Fetch prices on mount
+  useEffect(() => {
+    fetch('/api/config')
+      .then(r => r.json())
+      .then(data => {
+        setPrices({
+          whole: parseFloat(data.price_whole || '8.00'),
+          half: parseFloat(data.price_half || '8.25'),
+          quarter: parseFloat(data.price_quarter || '8.50'),
+        });
+      })
+      .catch(() => {}); // keep defaults on error
+  }, []);
 
   function handleContinue() {
     if (!checked) return;
@@ -54,7 +75,7 @@ export default function WeightExplainerPage() {
               {
                 icon: '💰',
                 title: 'Pricing varies by purchase size',
-                desc: 'Whole beef: $8.00/lb · Half beef: $8.25/lb · Quarter beef: $8.50/lb. The more you buy, the better the price.',
+                desc: `Whole beef: $${prices.whole.toFixed(2)}/lb · Half beef: $${prices.half.toFixed(2)}/lb · Quarter beef: $${prices.quarter.toFixed(2)}/lb. The more you buy, the better the price.`,
               },
               {
                 icon: '🚛',
