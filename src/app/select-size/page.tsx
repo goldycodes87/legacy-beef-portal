@@ -465,66 +465,103 @@ function SizeCard({
       disabled={soldOut}
       aria-pressed={selected}
       className={`
-        relative w-full text-left rounded-2xl border-2 p-5 transition-all duration-150
+        relative w-full text-left rounded-2xl overflow-hidden transition-all duration-300
         focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2
-        ${soldOut
-          ? 'border-[#E5E7EB] bg-[#F9FAFB] opacity-60 cursor-not-allowed'
-          : selected
-          ? 'border-brand-orange bg-[#FFF5F0]'
-          : 'border-[#E5E7EB] bg-white hover:border-brand-orange/50 hover:shadow-sm cursor-pointer'
-        }
+        ${soldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+        ${selected
+          ? 'shadow-2xl scale-[1.02] ring-2 ring-brand-orange'
+          : 'shadow-md hover:shadow-xl hover:scale-[1.01]'}
       `}
     >
-      {/* Top row: badge + sold-out badge */}
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        {badge && !soldOut && (
-          <span className={`inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full ${badgeColor}`}>
-            {badge}
-          </span>
-        )}
-        {soldOut && (
-          <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#6B7280] text-white">
-            Sold Out
-          </span>
-        )}
-      </div>
-
-      {/* Title + price row */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <h3
-            className={`text-lg font-bold mb-0.5 ${soldOut ? 'text-[#9CA3AF]' : 'text-brand-dark'}`}
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            {title}
-          </h3>
-          <p className={`text-sm mb-1 ${soldOut ? 'text-[#9CA3AF]' : 'text-brand-gray'}`}>
-            {deposit}
-          </p>
-          <p className={`text-xs leading-relaxed ${soldOut ? 'text-[#9CA3AF]' : 'text-brand-gray'}`}>
-            {yieldRange}
-          </p>
-          {note && (
-            <p className={`text-xs mt-1 italic ${soldOut ? 'text-[#9CA3AF]' : 'text-brand-gray'}`}>
-              {note}
-            </p>
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="shrink-0 text-right">
-          <p className={`text-xl font-bold ${soldOut ? 'text-[#9CA3AF]' : 'text-brand-dark'}`}>
-            {price}
-          </p>
+      {/* Dark header */}
+      <div className={`p-5 ${selected ? 'bg-brand-dark' : 'bg-brand-dark'}`}>
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            {badge && !soldOut && (
+              <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-brand-orange text-white mb-2">
+                {badge}
+              </span>
+            )}
+            {soldOut && (
+              <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-gray-500 text-white mb-2">
+                Sold Out
+              </span>
+            )}
+            <h3 className="font-display font-bold text-xl text-white">
+              {title}
+            </h3>
+          </div>
           {selected && !soldOut && (
-            <div className="mt-1 flex justify-end">
-              <div className="w-5 h-5 rounded-full bg-brand-orange flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+            <div className="w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0 mt-1">
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
             </div>
           )}
+        </div>
+        {/* Price */}
+        <div className="flex items-end gap-1">
+          <span className="font-display font-black text-4xl text-white">
+            {price.replace('/lb', '')}
+          </span>
+          <span className="font-body text-white/60 text-sm pb-1">/lb hanging weight</span>
+        </div>
+      </div>
+
+      {/* White body */}
+      <div className="bg-white p-5 border-x border-b border-gray-100 rounded-b-2xl">
+        {/* Deposit */}
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-gray-100">
+          <span className="text-brand-orange font-body font-semibold text-sm">
+            {deposit}
+          </span>
+        </div>
+
+        {/* Features */}
+        <ul className="space-y-2 mb-4">
+          <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
+            <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+            <span>{yieldRange}</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
+            <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+            <span>Transport & processing included</span>
+          </li>
+          <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
+            <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+            <span>21–24 day dry age</span>
+          </li>
+          {title === 'Quarter Beef' && (
+            <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
+              <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+              <span>Uses Legacy house cut sheet</span>
+            </li>
+          )}
+          {title !== 'Quarter Beef' && (
+            <li className="flex items-start gap-2 text-sm font-body text-brand-gray">
+              <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+              <span>Custom cut sheet wizard</span>
+            </li>
+          )}
+          {note && (
+            <li className="flex items-start gap-2 text-sm font-body text-brand-gray italic">
+              <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
+              <span>{note}</span>
+            </li>
+          )}
+        </ul>
+
+        {/* CTA */}
+        <div
+          className={`w-full py-3 rounded-xl text-center text-sm font-body font-semibold transition-colors ${
+            soldOut
+              ? 'bg-gray-100 text-gray-400'
+              : selected
+              ? 'bg-brand-orange text-white'
+              : 'bg-brand-warm text-brand-dark border border-brand-gray-light'
+          }`}
+        >
+          {soldOut ? 'Sold Out' : selected ? 'Selected ✓' : `Select ${title}`}
         </div>
       </div>
     </button>
