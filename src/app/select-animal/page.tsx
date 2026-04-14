@@ -247,7 +247,7 @@ export default function SelectAnimalPage() {
                         )}
                       </div>
                       {/* White body */}
-                      <div className="bg-white p-4 rounded-b-2xl" style={{minHeight: '160px'}}>
+                      <div className="bg-white p-4 rounded-b-2xl flex-1" style={{minHeight: '160px'}}>
                         <p className="font-body text-brand-gray text-sm leading-relaxed">
                           {opt.description}
                         </p>
@@ -261,7 +261,7 @@ export default function SelectAnimalPage() {
                   <div
                     key={opt.id}
                     onClick={() => setSelected(opt.id)}
-                    className={`rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2
+                    className={`rounded-2xl overflow-hidden shadow-sm cursor-pointer transition-all duration-200 border-2 flex flex-col
                     ${isSelected
                       ? 'border-brand-orange scale-[1.02] shadow-lg'
                       : 'border-transparent hover:border-brand-orange/40 hover:shadow-md'}`}
@@ -285,7 +285,7 @@ export default function SelectAnimalPage() {
                       )}
                     </div>
                     {/* White body */}
-                    <div className="bg-white p-4 rounded-b-2xl" style={{minHeight: '160px'}}>
+                    <div className="bg-white p-4 rounded-b-2xl flex-1" style={{minHeight: '160px'}}>
                       <p className="font-body text-brand-gray text-sm leading-relaxed">
                         {opt.description}
                       </p>
