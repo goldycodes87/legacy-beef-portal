@@ -122,7 +122,7 @@ export default function AccessPage() {
         </form>
 
         <p className="text-center text-xs text-brand-gray mt-4">
-          Need help? Call Grant at <a href="tel:7194595151" className="text-brand-orange">719.459.5151</a>
+          Need help? Call Grant at <a href="tel:7192581777" className="text-brand-orange">719.258.1777</a>
         </p>
       </div>
     </div>

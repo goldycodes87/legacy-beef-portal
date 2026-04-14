@@ -193,9 +193,9 @@ export default function PickupPage() {
             6105 Burgess Rd
           </p>
           <p className="font-body text-white/80">Colorado Springs, CO 80908</p>
-          <a href="tel:7194595151"
+          <a href="tel:7192581777"
             className="font-body text-brand-orange mt-3 block">
-            719.459.5151
+            719.258.1777
           </a>
         </div>
       </div>
@@ -501,9 +501,9 @@ export default function PickupPage() {
           <p className="font-display font-bold text-lg mb-2">📍 Pickup Address</p>
           <p className="font-body text-white/80">6105 Burgess Rd</p>
           <p className="font-body text-white/80">Colorado Springs, CO 80908</p>
-          <a href="tel:7194595151"
+          <a href="tel:7192581777"
             className="font-body text-brand-orange mt-3 block text-sm">
-            719.459.5151
+            719.258.1777
           </a>
         </div>
 
