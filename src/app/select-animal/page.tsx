@@ -51,6 +51,26 @@ export default function SelectAnimalPage() {
   const [showDiffModal, setShowDiffModal] = useState(false);
   // Only wagyu visibility is conditional — all other cards always show
   const [wagyuActive, setWagyuActive] = useState(false);
+  const [wagyuNotifyOpen, setWagyuNotifyOpen] = useState(false);
+  const [wagyuForm, setWagyuForm] = useState({ name: '', email: '', size: 'half' });
+  const [wagyuSubmitting, setWagyuSubmitting] = useState(false);
+  const [wagyuSubmitted, setWagyuSubmitted] = useState(false);
+
+  const handleWagyuNotify = async () => {
+    if (!wagyuForm.name || !wagyuForm.email) return;
+    setWagyuSubmitting(true);
+    const res = await fetch('/api/wagyu-waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_name: wagyuForm.name,
+        email: wagyuForm.email,
+        size_preference: wagyuForm.size,
+      }),
+    });
+    if (res.ok) setWagyuSubmitted(true);
+    setWagyuSubmitting(false);
+  };
 
   useEffect(() => {
     const selectedSize = sessionStorage.getItem('selectedSize') || 'half';
@@ -72,11 +92,8 @@ export default function SelectAnimalPage() {
     checkWagyu();
   }, []);
 
-  // Always show grass_fed, grain_finished, no_preference.
-  // Only wagyu is conditional based on wagyu_active animals in DB.
-  const visibleOptions = BASE_OPTIONS.filter(
-    (opt) => opt.id !== 'wagyu' || wagyuActive
-  );
+  // Wagyu is always visible with notify-me fallback when unavailable
+  const visibleOptions = BASE_OPTIONS.filter(() => true);
 
   function handleContinue() {
     if (!selected) return;
@@ -115,6 +132,85 @@ export default function SelectAnimalPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {visibleOptions.map((opt) => {
                 const isSelected = selected === opt.id;
+                
+                // Wagyu "Coming Soon" card when unavailable
+                if (opt.id === 'wagyu' && !wagyuActive) {
+                  return (
+                    <div key={opt.id} className="rounded-2xl overflow-hidden shadow-md border border-purple-200">
+                      {/* Purple header */}
+                      <div className="bg-gradient-to-br from-purple-900 to-brand-dark p-5">
+                        <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-500 text-white mb-2">
+                          Coming Soon
+                        </span>
+                        <h3 className="font-display font-bold text-xl text-white">
+                          American Wagyu
+                        </h3>
+                        <p className="font-body text-white/60 text-sm mt-1">
+                          $9.50–$10.00/lb · Premium marbling
+                        </p>
+                      </div>
+                      {/* White body */}
+                      <div className="bg-white p-5">
+                        <p className="font-body text-brand-gray text-sm mb-4 leading-relaxed">
+                          50% Japanese Wagyu × Black Angus. Extraordinary marbling, buttery flavor, limited availability.
+                        </p>
+                        {!wagyuSubmitted ? (
+                          <>
+                            {!wagyuNotifyOpen ? (
+                              <button
+                                onClick={() => setWagyuNotifyOpen(true)}
+                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
+                              >
+                                Notify Me When Available →
+                              </button>
+                            ) : (
+                              <div className="space-y-3">
+                                <input
+                                  type="text"
+                                  placeholder="Your name"
+                                  value={wagyuForm.name}
+                                  onChange={(e) => setWagyuForm({ ...wagyuForm, name: e.target.value })}
+                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <input
+                                  type="email"
+                                  placeholder="Your email"
+                                  value={wagyuForm.email}
+                                  onChange={(e) => setWagyuForm({ ...wagyuForm, email: e.target.value })}
+                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                />
+                                <select
+                                  value={wagyuForm.size}
+                                  onChange={(e) => setWagyuForm({ ...wagyuForm, size: e.target.value })}
+                                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                  <option value="whole">Whole Beef</option>
+                                  <option value="half">Half Beef</option>
+                                  <option value="quarter">Quarter Beef</option>
+                                </select>
+                                <button
+                                  onClick={handleWagyuNotify}
+                                  disabled={wagyuSubmitting || !wagyuForm.name || !wagyuForm.email}
+                                  className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
+                                >
+                                  {wagyuSubmitting ? 'Saving...' : 'Notify Me →'}
+                                </button>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-center py-3">
+                            <p className="font-body font-semibold text-purple-600 text-sm">
+                              ✓ You're on the list! We'll email you when Wagyu is available.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Regular card (including wagyu when active)
                 return (
                   <button
                     key={opt.id}

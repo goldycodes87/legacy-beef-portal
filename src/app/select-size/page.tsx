@@ -61,12 +61,7 @@ export default function SelectSizePage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Wagyu state
-  const [wagyuActive, setWagyuActive] = useState(false);
-  const [wagyuNotifyOpen, setWagyuNotifyOpen] = useState(false);
-  const [wagyuForm, setWagyuForm] = useState({ name: '', email: '', size: 'half' });
-  const [wagyuSubmitting, setWagyuSubmitting] = useState(false);
-  const [wagyuSubmitted, setWagyuSubmitted] = useState(false);
+
 
   // Ref for smooth scroll-into-view after split question appears
   const splitRef = useRef<HTMLDivElement>(null);
@@ -86,19 +81,7 @@ export default function SelectSizePage() {
         setInventoryLoading(false);
       });
 
-    // Check wagyu availability
-    try {
-      fetch('/api/slots?animalType=wagyu&purchaseType=half')
-        .then((wagyuRes) => wagyuRes.json())
-        .then((wagyuData) => {
-          setWagyuActive((wagyuData.slots || []).length > 0);
-        })
-        .catch(() => {
-          setWagyuActive(false);
-        });
-    } catch {
-      setWagyuActive(false);
-    }
+
   }, []);
 
   // ── When size changes, reset split state and animate in question ──────────
@@ -151,22 +134,7 @@ export default function SelectSizePage() {
     return false;
   })();
 
-  // ── Wagyu notify handler ─────────────────────────────────────────────────
-  const handleWagyuNotify = async () => {
-    if (!wagyuForm.name || !wagyuForm.email) return;
-    setWagyuSubmitting(true);
-    const res = await fetch('/api/wagyu-waitlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_name: wagyuForm.name,
-        email: wagyuForm.email,
-        size_preference: wagyuForm.size,
-      }),
-    });
-    if (res.ok) setWagyuSubmitted(true);
-    setWagyuSubmitting(false);
-  };
+
 
   // ── Reserve handler ──────────────────────────────────────────────────────
   async function handleReserve() {
@@ -248,12 +216,9 @@ export default function SelectSizePage() {
             <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {/* ── Whole Beef ── */}
             <SizeCard
-              id="whole"
-              badge="Best Value"
-              badgeColor="bg-brand-green text-white"
               title="Whole Beef"
               price="$8.00/lb"
               deposit="$850 deposit (or $500 each if splitting)"
@@ -265,7 +230,6 @@ export default function SelectSizePage() {
 
             {/* ── Half Beef ── */}
             <SizeCard
-              id="half"
               badge="Most Popular"
               badgeColor="bg-brand-orange text-white"
               title="Half Beef"
@@ -279,7 +243,6 @@ export default function SelectSizePage() {
 
             {/* ── Quarter Beef ── */}
             <SizeCard
-              id="quarter"
               title="Quarter Beef"
               price="$8.50/lb"
               deposit="$250 deposit"
@@ -289,105 +252,6 @@ export default function SelectSizePage() {
               selected={selectedSize === 'quarter'}
               onSelect={() => handleSelectSize('quarter')}
             />
-
-            {/* ── American Wagyu Card ── */}
-            {wagyuActive ? (
-              <SizeCard
-                id="wagyu"
-                badge="Premium"
-                badgeColor="bg-purple-600 text-white"
-                title="American Wagyu"
-                price="$9.50–$10.00/lb"
-                deposit="$850/$500/$250 deposit"
-                yieldRange="Same yield as standard beef — extraordinary marbling"
-                note="Limited availability — reservation only"
-                soldOut={false}
-                selected={selectedSize === 'wagyu'}
-                onSelect={() => {
-                  setSelectedSize('wagyu' as any);
-                  setSplitChoice(null);
-                }}
-              />
-            ) : (
-              <div className="relative w-full rounded-2xl overflow-hidden shadow-md">
-                {/* Dark header */}
-                <div className="bg-gradient-to-br from-purple-900 to-brand-dark p-5">
-                  <span className="inline-block text-xs font-body font-semibold px-2.5 py-0.5 rounded-full bg-purple-500 text-white mb-2">
-                    Coming Soon
-                  </span>
-                  <h3 className="font-display font-bold text-xl text-white">
-                    American Wagyu
-                  </h3>
-                  <div className="flex items-end gap-1 mt-2">
-                    <span className="font-display font-black text-3xl text-white">
-                      $9.50+
-                    </span>
-                    <span className="font-body text-white/60 text-sm pb-1">
-                      /lb hanging weight
-                    </span>
-                  </div>
-                </div>
-
-                {/* White body */}
-                <div className="bg-white p-5 border-x border-b border-gray-100 rounded-b-2xl">
-                  <p className="font-body text-brand-gray text-sm mb-4 leading-relaxed">
-                    Our American Wagyu (50% Japanese Wagyu × Black Angus) delivers extraordinary marbling and buttery flavor. Limited slots — get notified when one opens up.
-                  </p>
-
-                  {!wagyuSubmitted ? (
-                    <>
-                      {!wagyuNotifyOpen ? (
-                        <button
-                          onClick={() => setWagyuNotifyOpen(true)}
-                          className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-body font-semibold text-sm transition-colors"
-                        >
-                          Notify Me When Available →
-                        </button>
-                      ) : (
-                        <div className="space-y-3">
-                          <input
-                            type="text"
-                            placeholder="Your name"
-                            value={wagyuForm.name}
-                            onChange={(e) => setWagyuForm({ ...wagyuForm, name: e.target.value })}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                          <input
-                            type="email"
-                            placeholder="Your email"
-                            value={wagyuForm.email}
-                            onChange={(e) => setWagyuForm({ ...wagyuForm, email: e.target.value })}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                          <select
-                            value={wagyuForm.size}
-                            onChange={(e) => setWagyuForm({ ...wagyuForm, size: e.target.value })}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          >
-                            <option value="whole">Whole ($850 deposit)</option>
-                            <option value="half">Half ($500 deposit)</option>
-                            <option value="quarter">Quarter ($250 deposit)</option>
-                          </select>
-                          <button
-                            onClick={handleWagyuNotify}
-                            disabled={wagyuSubmitting || !wagyuForm.name || !wagyuForm.email}
-                            className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-body font-semibold text-sm transition-colors"
-                          >
-                            {wagyuSubmitting ? 'Saving...' : 'Notify Me →'}
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="text-center py-3">
-                      <p className="font-body font-semibold text-purple-600 text-sm">
-                        ✓ You're on the list! We'll email you when Wagyu is available.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
