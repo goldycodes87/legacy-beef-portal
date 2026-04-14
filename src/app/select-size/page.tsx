@@ -242,7 +242,7 @@ export default function SelectSizePage() {
             <SizeCard
               title="Whole Beef"
               price={`$${prices.whole.toFixed(2)}/lb`}
-              deposit="$850 deposit (or $500 each if splitting)"
+              deposit="$850 deposit · $500 each if splitting"
               yieldRange="Est. $5,200–$6,200 total | ~390–465 lbs finished cuts"
               soldOut={isSoldOut('whole')}
               selected={selectedSize === 'whole'}
