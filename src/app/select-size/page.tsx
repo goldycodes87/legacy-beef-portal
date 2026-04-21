@@ -55,6 +55,8 @@ export default function SelectSizePage() {
   const [cutSheet, setCutSheet] = useState<CutSheetChoice>('shared');
   const [partnerEmail, setPartnerEmail] = useState<string>('');
   const [partnerEmails4, setPartnerEmails4] = useState(['', '', '']);
+  const [partnerName, setPartnerName] = useState<string>('');
+  const [partnerNames4, setPartnerNames4] = useState(['', '', '']);
 
   // Prices
   const [prices, setPrices] = useState({
@@ -115,6 +117,8 @@ export default function SelectSizePage() {
     if (size === 'quarter') setSplitChoice('no');
     setPartnerEmail('');
     setPartnerEmails4(['', '', '']);
+    setPartnerName('');
+    setPartnerNames4(['', '', '']);
     setGroupSize(2);
     setCutSheet('shared');
 
@@ -201,6 +205,13 @@ export default function SelectSizePage() {
     sessionStorage.setItem('selectedSize', selectedSize);
     sessionStorage.setItem('isSplitting', String(isSplitting));
     sessionStorage.setItem('partnerEmails', JSON.stringify(emails));
+    if (isSplitting && selectedSize === 'whole' && groupSize === 4) {
+      sessionStorage.setItem('partnerNames', JSON.stringify(partnerNames4.filter((_, i) => partnerEmails4[i].trim())));
+    } else if (isSplitting) {
+      sessionStorage.setItem('partnerNames', JSON.stringify([partnerName.trim()]));
+    } else {
+      sessionStorage.setItem('partnerNames', JSON.stringify([]));
+    }
     sessionStorage.setItem('groupSize', String(isSplitting ? groupSize : 1));
     // cutSheetChoice: for half splits use the user-selected cutSheet value
     const cutSheetDerived = selectedSize === 'whole' && groupSize === 4 ? 'shared' :
@@ -326,7 +337,23 @@ export default function SelectSizePage() {
                   {groupSize === 4 ? (
                     [0, 1, 2].map(i => (
                       <div key={i}>
-                        <label className="block text-sm font-semibold text-brand-dark mb-1">
+                        <div key={`name-${i}`}>
+                          <label className="block text-sm font-semibold text-brand-dark mb-1">
+                            Partner {i + 1} first name
+                          </label>
+                          <input
+                            type="text"
+                            value={partnerNames4[i]}
+                            onChange={(e) => {
+                              const updated = [...partnerNames4];
+                              updated[i] = e.target.value;
+                              setPartnerNames4(updated);
+                            }}
+                            placeholder="First name"
+                            className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                          />
+                        </div>
+                        <label className="block text-sm font-semibold text-brand-dark mb-1 mt-3">
                           Partner {i + 1} email address
                         </label>
                         <input
@@ -343,18 +370,32 @@ export default function SelectSizePage() {
                       </div>
                     ))
                   ) : (
-                    <div>
-                      <label className="block text-sm font-semibold text-brand-dark mb-1">
-                        Partner&apos;s email address
-                      </label>
-                      <input
-                        type="email"
-                        value={partnerEmail}
-                        onChange={(e) => setPartnerEmail(e.target.value)}
-                        placeholder="partner@example.com"
-                        className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
-                      />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-brand-dark mb-1">
+                          Partner&apos;s first name
+                        </label>
+                        <input
+                          type="text"
+                          value={partnerName}
+                          onChange={(e) => setPartnerName(e.target.value)}
+                          placeholder="First name"
+                          className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-brand-dark mb-1 mt-3">
+                          Partner&apos;s email address
+                        </label>
+                        <input
+                          type="email"
+                          value={partnerEmail}
+                          onChange={(e) => setPartnerEmail(e.target.value)}
+                          placeholder="partner@example.com"
+                          className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                        />
+                      </div>
+                    </>
                   )}
 
                   {/* Disclosure */}
@@ -379,7 +420,19 @@ export default function SelectSizePage() {
               {/* ── Half Beef + Splitting ── */}
               {selectedSize === 'half' && splitChoice === 'yes' && (
                 <div className="space-y-4 mt-2">
-                  {/* Partner email */}
+                  {/* Partner name and email */}
+                  <div>
+                    <label className="block text-sm font-semibold text-brand-dark mb-1">
+                      Partner&apos;s first name
+                    </label>
+                    <input
+                      type="text"
+                      value={partnerName}
+                      onChange={(e) => setPartnerName(e.target.value)}
+                      placeholder="First name"
+                      className="w-full border border-[#E5E7EB] rounded-xl px-4 py-2.5 text-sm text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    />
+                  </div>
                   <div>
                     <label className="block text-sm font-semibold text-brand-dark mb-1">
                       Partner&apos;s email address

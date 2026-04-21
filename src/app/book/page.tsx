@@ -113,6 +113,7 @@ export default function BookPage() {
   // Split state
   const [isSplitting, setIsSplitting] = useState(false);
   const [partnerEmails, setPartnerEmails] = useState<string[]>([]);
+  const [partnerNames, setPartnerNames] = useState<string[]>([]);
   const [groupSize, setGroupSize] = useState(1);
   const [cutSheetChoice, setCutSheetChoice] = useState('none');
 
@@ -175,10 +176,12 @@ export default function BookPage() {
     // Read split data from sessionStorage
     const splitting = sessionStorage.getItem('isSplitting') === 'true';
     const partners = JSON.parse(sessionStorage.getItem('partnerEmails') || '[]');
+    const names = JSON.parse(sessionStorage.getItem('partnerNames') || '[]');
     const gSize = parseInt(sessionStorage.getItem('groupSize') || '1');
     const cutSheetChoice = sessionStorage.getItem('cutSheetChoice') || 'none';
     setIsSplitting(splitting);
     setPartnerEmails(partners);
+    setPartnerNames(names);
     setGroupSize(gSize);
     setCutSheetChoice(cutSheetChoice);
 
@@ -288,6 +291,7 @@ export default function BookPage() {
           purchase_type: selectedSize,
           is_splitting:  isSplitting,
           partner_emails: partnerEmails,
+          partner_names: partnerNames,
           group_size:    groupSize,
           cut_sheet_choice: cutSheetChoice,
         }),
@@ -304,6 +308,7 @@ export default function BookPage() {
       sessionStorage.removeItem('animalTypePreference');
       sessionStorage.removeItem('isSplitting');
       sessionStorage.removeItem('partnerEmails');
+      sessionStorage.removeItem('partnerNames');
 
       // Redirect to contract page (NOT order confirmed)
       router.push('/contract');

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, email, phone, address, city, state, zip, animal_id, purchase_type,
-      is_splitting, partner_emails, group_size, cut_sheet_choice } = body;
+      is_splitting, partner_emails, partner_names, group_size, cut_sheet_choice } = body;
 
     // Validate required fields
     if (!name || !email || !phone || !address || !animal_id || !purchase_type) {
@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
         group_role:       is_splitting ? 'owner' : 'solo',
         group_size:       group_size || 1,
         partner_emails:   partner_emails || [],
+        partner_names:    partner_names || [],
         cut_sheet_role:   cut_sheet_choice === 'separate' ? 'owner' : cut_sheet_choice === 'shared' ? 'master' : 'solo',
         invite_expires_at: is_splitting ? new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() : null,
         group_id,
