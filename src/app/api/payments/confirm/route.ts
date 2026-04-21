@@ -253,13 +253,24 @@ function buildConfirmationEmail(p: ConfirmationEmailParams): string {
   const preheader = 'Your deposit is in — here\'s everything you need to know.';
 
   const content = `
-    <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-      Welcome to the Legacy Land & Cattle family, ${p.firstName}! 🎉
-    </h2>
-    <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;margin:0 0 20px;">
-      Your deposit has been received and your reservation is officially locked in.
-      We raise our cattle right here in Colorado Springs — no middlemen, no
-      mystery. Just good beef from our ranch to your freezer.
+    <!-- Celebratory banner -->
+    <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);
+      border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <div style="font-size:40px;margin-bottom:8px;">🎉</div>
+      <h2 style="font-family:Georgia,serif;color:white;font-size:26px;
+        margin:0 0 8px;font-weight:normal;">
+        You're in, ${p.firstName}.
+      </h2>
+      <p style="color:#C4A46B;font-size:14px;margin:0;
+        font-family:Arial,sans-serif;letter-spacing:0.5px;">
+        Your spot is locked. Your beef is coming.
+      </p>
+    </div>
+    <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;
+      line-height:1.7;margin:0 0 24px;">
+      We've got your deposit and your reservation is officially on the books. 
+      This is real, ranch-direct beef raised right here in Colorado Springs — 
+      no grocery store, no middleman. Just our cattle, our butcher, and your freezer.
     </p>
 
     ${orderCard([
