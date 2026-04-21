@@ -12,6 +12,11 @@ import { Timeline } from '@/components/ui/modern-timeline';
 export default function WeightExplainerPage() {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
+  const [step, setStep] = useState<'idle'|'intro'|'form'|'ready'>('idle');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   // Prices
   const [prices, setPrices] = useState({
@@ -34,8 +39,15 @@ export default function WeightExplainerPage() {
       .catch(() => {}); // keep defaults on error
   }, []);
 
+  function validateEmail(e: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+  }
+
   function handleContinue() {
     if (!checked) return;
+    sessionStorage.setItem('customerFirstName', firstName);
+    sessionStorage.setItem('customerLastName', lastName);
+    sessionStorage.setItem('customerEmail', email);
     sessionStorage.setItem('weightExplainerComplete', 'true');
     router.push('/select-size');
   }
@@ -194,58 +206,172 @@ export default function WeightExplainerPage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 4: Checkbox + CTA */}
+        {/* SECTION 5: 3-Step Conversational Flow */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="mb-12">
-          {/* Enhanced Checkbox */}
-          <label className="flex items-start gap-4 cursor-pointer mb-8 group p-5 bg-white rounded-2xl shadow-sm border-2 border-brand-gray-light hover:border-brand-orange transition-colors">
-            <div className="relative flex-shrink-0 mt-0.5">
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={(e) => setChecked(e.target.checked)}
-                className="sr-only"
-              />
-              <div
-                className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors ${
-                  checked
-                    ? 'bg-brand-orange border-brand-orange'
-                    : 'border-brand-gray-light group-hover:border-brand-orange'
-                }`}
+
+        {/* ── Step A: Ready prompt ── */}
+        {step === 'idle' && (
+          <section className="mb-12 text-center">
+            <h2 className="font-display font-bold text-3xl text-brand-dark mb-4">
+              Ready to reserve your beef?
+            </h2>
+            <p className="font-body text-brand-gray mb-8 max-w-sm mx-auto">
+              Slots are limited. Our next butcher date is May 15, 2026.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <button
+                onClick={() => setStep('intro')}
+                className="bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-bold text-lg px-10 py-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-brand-orange/30"
               >
-                {checked && (
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
+                Yes, let&apos;s do it! →
+              </button>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="border-2 border-brand-gray-light text-brand-gray font-body font-semibold text-lg px-8 py-4 rounded-xl hover:border-brand-dark hover:text-brand-dark transition-all"
+              >
+                Not yet
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* ── Step B: Name + Email form ── */}
+        {step === 'intro' && (
+          <section className="mb-12">
+            <div className="bg-white rounded-2xl shadow-sm border border-brand-gray-light p-8 max-w-lg mx-auto">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-3">👋</div>
+                <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">
+                  We&apos;re excited to work with you!
+                </h2>
+                <p className="font-body text-brand-gray text-base">
+                  Who are we reserving the beef for?
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-body font-semibold text-brand-dark text-sm mb-1">
+                      First name
+                    </label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={e => setFirstName(e.target.value)}
+                      placeholder="First"
+                      className="w-full border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-body font-semibold text-brand-dark text-sm mb-1">
+                      Last name
+                    </label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={e => setLastName(e.target.value)}
+                      placeholder="Last"
+                      className="w-full border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-body font-semibold text-brand-dark text-sm mb-1">
+                    Email address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => {
+                      setEmail(e.target.value);
+                      setEmailError('');
+                    }}
+                    placeholder="you@example.com"
+                    className={`w-full border rounded-xl px-4 py-3 text-sm font-body text-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-orange ${
+                      emailError
+                        ? 'border-red-400 bg-red-50'
+                        : 'border-[#E5E7EB]'
+                    }`}
+                  />
+                  {emailError && (
+                    <p className="font-body text-red-500 text-xs mt-1">
+                      {emailError}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    if (!firstName.trim()) return;
+                    if (!validateEmail(email)) {
+                      setEmailError('Please enter a valid email address.');
+                      return;
+                    }
+                    setStep('ready');
+                  }}
+                  disabled={!firstName.trim() || !email.trim()}
+                  className="w-full bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-40 disabled:cursor-not-allowed text-white font-body font-bold text-lg py-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  Continue →
+                </button>
               </div>
             </div>
-            <div>
-              <p className="font-display font-bold text-brand-dark text-lg leading-tight mb-1">
-                I understand how beef pricing works
-              </p>
-              <p className="font-body text-brand-gray text-sm leading-relaxed">
-                My final price is based on <strong>hanging weight</strong> — not live weight and not finished cuts. The hanging weight will vary by animal and I'll be notified of the exact weight before my balance is due.
-              </p>
-            </div>
-          </label>
+          </section>
+        )}
 
-          {/* CTA Button */}
-          <Button
-            onClick={handleContinue}
-            disabled={!checked}
-            fullWidth
-            size="lg"
-          >
-            I Understand — Choose My Beef →
-          </Button>
-        </section>
+        {/* ── Step C: Checkbox + CTA ── */}
+        {step === 'ready' && (
+          <section className="mb-12">
+            <div className="bg-white rounded-2xl shadow-sm border border-brand-gray-light p-8 max-w-lg mx-auto">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-3">✅</div>
+                <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">
+                  Almost there, {firstName}!
+                </h2>
+                <p className="font-body text-brand-gray text-sm">
+                  One last thing before we pick your beef.
+                </p>
+              </div>
+              <label className="flex items-start gap-4 cursor-pointer mb-6 group p-4 bg-brand-warm rounded-2xl border-2 border-transparent hover:border-brand-orange transition-colors">
+                <div className="relative flex-shrink-0 mt-0.5">
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => setChecked(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-colors ${
+                    checked
+                      ? 'bg-brand-orange border-brand-orange'
+                      : 'border-brand-gray-light group-hover:border-brand-orange'
+                  }`}>
+                    {checked && (
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="font-display font-bold text-brand-dark text-lg leading-tight mb-1">
+                    I understand how beef pricing works
+                  </p>
+                  <p className="font-body text-brand-gray text-sm leading-relaxed">
+                    My final price is based on{' '}
+                    <strong>hanging weight</strong> — not live weight and not finished cuts. The hanging weight will vary by animal and I&apos;ll be notified of the exact weight before my balance is due.
+                  </p>
+                </div>
+              </label>
+              <Button
+                onClick={handleContinue}
+                disabled={!checked}
+                fullWidth
+                size="lg"
+              >
+                I Understand — Choose My Beef →
+              </Button>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

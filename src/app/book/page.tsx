@@ -195,6 +195,18 @@ export default function BookPage() {
     }
     // no_preference: leave pricePerLb null until slot selected
 
+    // Load customer info from sessionStorage (weight-explainer funnel)
+    const savedFirst = sessionStorage.getItem('customerFirstName') || '';
+    const savedLast = sessionStorage.getItem('customerLastName') || '';
+    const savedEmail = sessionStorage.getItem('customerEmail') || '';
+    if (savedFirst || savedEmail) {
+      setForm(prev => ({
+        ...prev,
+        name: `${savedFirst} ${savedLast}`.trim(),
+        email: savedEmail,
+      }));
+    }
+
     setGuardPassed(true);
   }, [router]);
 
