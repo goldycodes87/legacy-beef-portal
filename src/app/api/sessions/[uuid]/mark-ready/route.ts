@@ -82,7 +82,6 @@ export async function POST(
 
   // Generate balance payment link (stub)
   const balanceLink = `${APP_URL}/pay-balance/${uuid}`;
-  const pickupLink = `${APP_URL}/schedule-pickup/${uuid}`;
 
   const firstName = customer.name?.split(' ')[0] ?? 'there';
   const preheader = `${firstName}, your beef is ready. Time to celebrate.`;
