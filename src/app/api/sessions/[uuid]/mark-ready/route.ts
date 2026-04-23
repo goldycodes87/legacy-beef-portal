@@ -85,7 +85,6 @@ export async function POST(
   const pickupLink = `${APP_URL}/schedule-pickup/${uuid}`;
 
   const firstName = customer.name?.split(' ')[0] ?? 'there';
-  const firstName = customer.name?.split(' ')[0] ?? 'there';
   const preheader = `${firstName}, your beef is ready. Time to celebrate.`;
   const accessToken = (session as any)?.access_token;
   const pickupLink = accessToken
