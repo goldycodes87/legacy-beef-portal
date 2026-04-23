@@ -44,21 +44,33 @@ export async function GET(request: NextRequest) {
       const firstName = customer.name?.split(' ')[0] ?? 'there';
       const paymentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      const preheader = 'Your account is all squared away.';
+      const preheader = `You&apos;re all paid up, ${firstName}. See you at pickup!`;
       const content = `
-        <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-          Payment received, ${firstName}. You're all set! ✓
-        </h2>
-
+        <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+          <div style="font-size:40px;margin-bottom:8px;">💳</div>
+          <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
+            You&apos;re all paid up, ${firstName}.
+          </h2>
+          <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
+            Balance paid in full. Nothing left to do but show up.
+          </p>
+        </div>
+        <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
+          Your balance payment has been received and your account is fully settled. Here&apos;s your receipt:
+        </p>
         ${orderCard([
-          { label: 'Amount Paid', value: `$${amountPaid}` },
+          { label: 'Amount Paid', value: '$' + amountPaid },
           { label: 'Date', value: paymentDate },
           { label: 'Method', value: 'Credit Card' },
           { label: 'Balance Status', value: 'Paid in Full ✓' },
         ])}
-
-        <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:14px;">
-          See you at pickup!
+        <div style="background:#F0F7E8;border:1px solid #c3dfa0;border-radius:12px;padding:16px 20px;margin:24px 0;text-align:center;">
+          <p style="font-family:Arial,sans-serif;font-size:15px;color:#1A3D2B;margin:0;font-weight:bold;">
+            ✅ All done. Just show up for pickup and we&apos;ll load you out.
+          </p>
+        </div>
+        <p style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;text-align:center;">
+          Questions? Call us at (719) 258-1777 or reply to this email.
         </p>
       `;
 
