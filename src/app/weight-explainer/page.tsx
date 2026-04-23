@@ -300,12 +300,30 @@ export default function WeightExplainerPage() {
                   )}
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!firstName.trim()) return;
                     if (!validateEmail(email)) {
                       setEmailError('Please enter a valid email address.');
                       return;
                     }
+                    // Check if returning customer
+                    try {
+                      const res = await fetch(`/api/customers/lookup?email=${encodeURIComponent(email)}`);
+                      if (res.ok) {
+                        const data = await res.json();
+                        if (data.customer) {
+                          const nameParts = (data.customer.name || '').split(' ');
+                          setFirstName(nameParts[0] || firstName);
+                          setLastName(nameParts.slice(1).join(' ') || lastName);
+                          // Store all their info for /book prefill
+                          sessionStorage.setItem('customerPhone', data.customer.phone || '');
+                          sessionStorage.setItem('customerAddress', data.customer.address || '');
+                          sessionStorage.setItem('customerCity', data.customer.city || '');
+                          sessionStorage.setItem('customerState', data.customer.state || '');
+                          sessionStorage.setItem('customerZip', data.customer.zip || '');
+                        }
+                      }
+                    } catch (_) {}
                     setStep('ready');
                   }}
                   disabled={!firstName.trim() || !email.trim()}

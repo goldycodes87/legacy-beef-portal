@@ -199,11 +199,21 @@ export default function BookPage() {
     const savedFirst = sessionStorage.getItem('customerFirstName') || '';
     const savedLast = sessionStorage.getItem('customerLastName') || '';
     const savedEmail = sessionStorage.getItem('customerEmail') || '';
+    const savedPhone = sessionStorage.getItem('customerPhone') || '';
+    const savedAddress = sessionStorage.getItem('customerAddress') || '';
+    const savedCity = sessionStorage.getItem('customerCity') || '';
+    const savedState = sessionStorage.getItem('customerState') || '';
+    const savedZip = sessionStorage.getItem('customerZip') || '';
     if (savedFirst || savedEmail) {
       setForm(prev => ({
         ...prev,
         name: `${savedFirst} ${savedLast}`.trim(),
         email: savedEmail,
+        ...(savedPhone && { phone: savedPhone }),
+        ...(savedAddress && { address: savedAddress }),
+        ...(savedCity && { city: savedCity }),
+        ...(savedState && { state: savedState }),
+        ...(savedZip && { zip: savedZip }),
       }));
     }
 
