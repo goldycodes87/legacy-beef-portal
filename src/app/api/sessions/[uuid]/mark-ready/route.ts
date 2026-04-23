@@ -177,7 +177,7 @@ export async function POST(
         color:#374151;margin:0;line-height:1.8;">
         • A cooler or two (we can help load straight into your vehicle)<br>
         • A quarter beef fills ~2 boxes, a half fills ~4, a whole fills 8–10<br>
-        ${balanceDue > 0 ? '• Your remaining balance — cash, check, or card accepted' : '• You're all paid up — nothing to bring but yourself'}
+        ${balanceDue > 0 ? '• Your remaining balance — cash, check, or card accepted' : '• You&apos;re all paid up — nothing to bring but yourself'}
       </p>
     </div>
     ${ctaButton('Schedule My Pickup →', pickupLink, '#1A3D2B')}
