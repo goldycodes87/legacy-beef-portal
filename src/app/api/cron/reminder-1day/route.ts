@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
           ⚠️ After tomorrow, your cut sheet will be locked and cannot be changed.
         </p>
       </div>
-      ${ctaButton('Complete My Cut Sheet Now →', \`${APP_URL}/token/${token}\`)}
+      ${ctaButton('Complete My Cut Sheet Now →', `${APP_URL}/token/${token}`)}
       <p style="font-size:13px;color:#6B7280;text-align:center;font-family:Arial,sans-serif;margin-top:12px;">
         Happy with the house defaults? No action needed — we've got you covered.
       </p>
