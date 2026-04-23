@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const { data: session, error } = await supabase
     .from('sessions')
     .select(`
-      id, invite_expires_at, is_splitting, group_role, group_id,
+      id, invite_expires_at, is_splitting, group_role, group_id, purchase_type, partner_emails, partner_names,
       customers (id, name, email)
     `)
     .eq('id', session_id)
@@ -47,27 +47,76 @@ export async function POST(request: NextRequest) {
   const customers = session.customers as unknown as { id: string; name: string; email: string };
   const ownerFirstName = customers.name?.split(' ')[0] ?? 'there';
 
+  const partnerName =
+    ((session.partner_names as string[]) || [])[0] ||
+    ((session.partner_emails as string[]) || [])[0] ||
+    'your partner';
+  const partnerFirstName = partnerName.split(' ')[0];
+  const purchaseLabel =
+    (session as any).purchase_type === 'whole' ? 'Whole Beef' : 'Half Beef';
+  const downsizeLabel =
+    (session as any).purchase_type === 'whole' ? 'Half Beef' : 'Quarter Beef';
+  const downsizeLink = `${APP_URL}/api/book/downsize?session_id=${session_id}`;
+  const inviteNewLink = `${APP_URL}/session/${session_id}/status?action=invite-new`;
+  const deadlineTime = new Date(
+    Date.now() + 24 * 60 * 60 * 1000
+  ).toLocaleString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
   const extendLink = `${APP_URL}/api/book/extend-invite?session_id=${session_id}`;
   const soloLink = `${APP_URL}/api/book/convert-solo?session_id=${session_id}`;
-  const cancelLink = `${APP_URL}/api/book/cancel?session_id=${session_id}`;
 
-  const preheader = '48-hour window has passed — here are your options.';
+  const preheader = `${partnerFirstName} hasn't claimed their spot yet.`;
   const content = `
-    <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-      Heads up, ${ownerFirstName}.
-    </h2>
-    <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
-      Your partner hasn't paid their deposit yet. Their 48-hour window
-      has passed. Here are your options:
-    </p>
-
-    ${ctaButton('Give them 24 more hours', extendLink, '#1A3D2B')}
-    ${ctaButton('Keep my half at $8.25/lb', soloLink, '#6B7280')}
-    ${ctaButton('Cancel my reservation', cancelLink, '#dc2626')}
-
-    <p style="font-size:12px;color:#aaa;font-family:Arial,sans-serif;">
-      If you take no action, we'll follow up in 24 hours.
-    </p>
+<div style="background:linear-gradient(135deg,#92400e 0%,#b45309 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+  <div style="font-size:40px;margin-bottom:8px;">⏰</div>
+  <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
+    Heads up, ${ownerFirstName}.
+  </h2>
+  <p style="color:#fde68a;font-size:14px;margin:0;font-family:Arial,sans-serif;">
+    ${partnerFirstName} hasn't reserved their spot yet.
+  </p>
+</div>
+<p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 20px;">
+  You reserved a <strong>${purchaseLabel}</strong> and invited ${partnerFirstName} to split it with you. They haven't paid their deposit yet — you may want to give them a quick call or text to let them know their spot won't last forever.
+</p>
+<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:16px 20px;margin:0 0 24px;text-align:center;">
+  <p style="font-family:Arial,sans-serif;font-size:13px;color:#92400e;margin:0;">
+    ⚠️ Their spot expires on <strong>${deadlineTime}</strong>
+  </p>
+</div>
+<p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
+  Here's what you can do:
+</p>
+<table role="presentation" style="width:100%;margin:0 0 12px;">
+  <tr><td style="padding:0 0 12px;">
+    <a href="${extendLink}" style="display:block;background:#1A3D2B;color:white;text-align:center;padding:14px 24px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;">
+      ⏱ Give ${partnerFirstName} 24 more hours
+    </a>
+  </td></tr>
+  <tr><td style="padding:0 0 12px;">
+    <a href="${soloLink}" style="display:block;background:#4B5563;color:white;text-align:center;padding:14px 24px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;">
+      🥩 Keep my ${purchaseLabel} (solo pricing)
+    </a>
+  </td></tr>
+  <tr><td style="padding:0 0 12px;">
+    <a href="${downsizeLink}" style="display:block;background:#6B7280;color:white;text-align:center;padding:14px 24px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;">
+      📦 Downsize to a ${downsizeLabel}
+    </a>
+  </td></tr>
+  <tr><td>
+    <a href="${inviteNewLink}" style="display:block;background:#F5F0E8;color:#1A3D2B;text-align:center;padding:14px 24px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;border:2px solid #1A3D2B;">
+      👤 Invite a different partner
+    </a>
+  </td></tr>
+</table>
+<p style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;text-align:center;margin-top:16px;">
+  Questions? Call us at (719) 258-1777 or reply to this email.
+</p>
   `;
 
   const htmlEmail = emailBase(content, preheader);
