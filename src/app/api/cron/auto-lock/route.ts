@@ -107,25 +107,33 @@ export async function POST(request: NextRequest) {
     const firstName = customer.name?.split(' ')[0] ?? 'there';
     const butcherDateStr = new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-    const preheader = 'We\'ve locked in your order with our house cut sheet.';
+    const preheader = `No worries, ${firstName} — your beef is in good hands.`;
     const content = `
-      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-        Your cut sheet is locked, ${firstName}.
-      </h2>
-      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
-        The deadline has passed, so we've locked your cut sheet using our
-        House Cut Sheet defaults for any incomplete sections. Here's what's
-        going to the butcher:
+      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+        <div style="font-size:40px;margin-bottom:8px;">🏠</div>
+        <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
+          We've got you covered, ${firstName}.
+        </h2>
+        <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
+          Your cut sheet is locked and on its way to the butcher.
+        </p>
+      </div>
+      <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
+        Life gets busy — we get it. Since your cut sheet deadline passed, we've locked it in using our <strong>Legacy House Cut</strong>. It's a well-rounded selection our team put together that works great for most families.
       </p>
-
+      <div style="background:#F0F7E8;border:1px solid #c3dfa0;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
+        <p style="font-family:Arial,sans-serif;font-size:14px;color:#1A3D2B;margin:0 0 6px;font-weight:bold;">
+          🥩 What's in the Legacy House Cut?
+        </p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:#374151;margin:0;line-height:1.6;">
+          A great mix of steaks, roasts, and ground beef — cut at standard thickness and packaged for easy freezer storage. You're going to love it.
+        </p>
+      </div>
       ${cutSheetSummary(allAnswers || [])}
-
-      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;">
-        Questions? Reply to this email before ${butcherDateStr} and we'll
-        see what we can do.
+      <p style="color:#374151;font-family:Arial,sans-serif;font-size:14px;line-height:1.7;margin:16px 0 0;">
+        Have a specific request before ${butcherDateStr}? Reply to this email and we'll do our best to make it happen.
       </p>
     `;
-
     const htmlEmail = emailBase(content, preheader);
 
     // Send confirmation email
