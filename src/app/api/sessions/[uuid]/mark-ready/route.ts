@@ -160,11 +160,11 @@ export async function POST(
       you've been waiting for.
     </p>
     ${orderCard([
-      { label: 'Hanging Weight', value: \`${hangingWeight} lbs\` },
-      { label: 'Price Per Lb', value: \`$${pricePerLb.toFixed(2)}/lb\` },
-      { label: 'Total Cost', value: \`$${totalCost.toFixed(2)}\` },
-      { label: 'Deposit Paid', value: \`-$${(depositPaid/100).toFixed(2)}\` },
-      { label: 'Balance Due', value: balanceDue > 0 ? \`$${balanceDue.toFixed(2)}\` : 'Paid in Full ✓' },
+      { label: 'Hanging Weight', value: `${hangingWeight} lbs` },
+      { label: 'Price Per Lb', value: `$${pricePerLb.toFixed(2)}/lb` },
+      { label: 'Total Cost', value: `$${totalCost.toFixed(2)}` },
+      { label: 'Deposit Paid', value: `-$${(depositPaid/100).toFixed(2)}` },
+      { label: 'Balance Due', value: balanceDue > 0 ? `$${balanceDue.toFixed(2)}` : 'Paid in Full ✓' },
     ])}
     ${balancePaidContent}
     <div style="background:#F9F6F1;border:1px solid #E5E0D8;
