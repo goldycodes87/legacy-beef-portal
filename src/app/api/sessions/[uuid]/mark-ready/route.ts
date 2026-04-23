@@ -85,53 +85,106 @@ export async function POST(
   const pickupLink = `${APP_URL}/schedule-pickup/${uuid}`;
 
   const firstName = customer.name?.split(' ')[0] ?? 'there';
-  const preheader = 'Time to come get your beef.';
+  const firstName = customer.name?.split(' ')[0] ?? 'there';
+  const preheader = `${firstName}, your beef is ready. Time to celebrate.`;
+  const accessToken = (session as any)?.access_token;
+  const pickupLink = accessToken
+    ? `${APP_URL}/access/${accessToken}`
+    : `${APP_URL}/session/${uuid}/pickup`;
 
-  const balanceDueContent =
-    balanceDue > 0
-      ? `
-    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:20px;margin:20px 0;">
-      <p style="color:#E85D24;font-weight:700;font-size:16px;margin:0 0 8px;">
-        Balance Due: $${balanceDue.toFixed(2)}
-      </p>
-      <p style="color:#6B7280;font-size:13px;margin:0;">
-        Please bring payment to pickup or pay online now.
-      </p>
-    </div>
-    ${ctaButton('Pay Balance Online →', balanceLink)}
-  `
-      : '';
+  const balancePaidContent = balanceDue <= 0
+    ? `
+      <div style="background:#F0F7E8;border:1px solid #c3dfa0;
+        border-radius:12px;padding:16px 20px;margin:0 0 24px;
+        text-align:center;">
+        <p style="font-family:Arial,sans-serif;font-size:15px;
+          color:#1A3D2B;margin:0;font-weight:bold;">
+          ✅ You're all paid up — just show up and we'll load you out!
+        </p>
+      </div>
+    `
+    : `
+      <div style="background:#fff7ed;border:1px solid #fed7aa;
+        border-radius:12px;padding:20px;margin:0 0 24px;">
+        <p style="color:#E85D24;font-weight:700;font-size:16px;
+          margin:0 0 6px;font-family:Arial,sans-serif;">
+          Balance Due: $${balanceDue.toFixed(2)}
+        </p>
+        <p style="color:#6B7280;font-size:13px;margin:0;
+          font-family:Arial,sans-serif;">
+          Pay online now or bring cash, check, or card to pickup.
+        </p>
+      </div>
+      <table role="presentation" style="width:100%;margin:0 0 24px;">
+        <tr><td style="padding:0 0 10px;">
+          <a href="${balanceLink}"
+            style="display:block;background:#E85D24;color:white;
+              text-align:center;padding:14px 24px;border-radius:10px;
+              font-family:Arial,sans-serif;font-size:15px;
+              font-weight:bold;text-decoration:none;">
+            Pay My Balance Now →
+          </a>
+        </td></tr>
+        <tr><td>
+          <a href="${pickupLink}"
+            style="display:block;background:#F5F0E8;color:#1A3D2B;
+              text-align:center;padding:14px 24px;border-radius:10px;
+              font-family:Arial,sans-serif;font-size:15px;
+              font-weight:bold;text-decoration:none;
+              border:2px solid #1A3D2B;">
+            I'll Pay at Pickup
+          </a>
+        </td></tr>
+      </table>
+    `;
 
   const content = `
-    <h2 style="font-family:Georgia,serif;color:#1A3D2B;font-size:22px;margin:0 0 8px;">
-      Great news, ${firstName} — your beef is ready! 🥩
-    </h2>
-    <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
-      Your beef is back from the butcher and waiting for you at the ranch. Here's what you need to know:
+    <div style="background:linear-gradient(135deg,#1A3D2B 0%,
+      #2d6a4f 100%);border-radius:12px;padding:28px 24px;
+      text-align:center;margin:0 0 28px;">
+      <div style="font-size:48px;margin-bottom:8px;">🥩</div>
+      <h2 style="font-family:Georgia,serif;color:white;
+        font-size:26px;margin:0 0 8px;font-weight:normal;">
+        Your beef is ready, ${firstName}!
+      </h2>
+      <p style="color:#C4A46B;font-size:14px;margin:0;
+        font-family:Arial,sans-serif;letter-spacing:0.5px;">
+        Cut, vacuum-sealed, labeled, and waiting for you.
+      </p>
+    </div>
+    <p style="color:#374151;font-family:Arial,sans-serif;
+      font-size:15px;line-height:1.7;margin:0 0 24px;">
+      It's here. Your beef has been cut to your specifications, 
+      vacuum-sealed, and labeled. Every package is frozen solid 
+      and ready to load into your vehicle. This is the moment 
+      you've been waiting for.
     </p>
-
     ${orderCard([
-      { label: 'Animal', value: animal.name },
-      { label: 'Hanging Weight', value: `${hangingWeight} lbs` },
-      { label: 'Price/lb', value: `$${pricePerLb.toFixed(2)}` },
-      {
-        label: 'Balance Due',
-        value:
-          balanceDue > 0 ? `$${balanceDue.toFixed(2)}` : 'Paid in Full ✓',
-      },
+      { label: 'Hanging Weight', value: \`${hangingWeight} lbs\` },
+      { label: 'Price Per Lb', value: \`$${pricePerLb.toFixed(2)}/lb\` },
+      { label: 'Total Cost', value: \`$${totalCost.toFixed(2)}\` },
+      { label: 'Deposit Paid', value: \`-$${(depositPaid/100).toFixed(2)}\` },
+      { label: 'Balance Due', value: balanceDue > 0 ? \`$${balanceDue.toFixed(2)}\` : 'Paid in Full ✓' },
     ])}
-
-    ${balanceDueContent}
-
-    <h3 style="font-family:Georgia,serif;color:#1A3D2B;font-size:18px;margin:20px 0 12px;">How pickup works:</h3>
-    <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:14px;line-height:1.8;margin:0;">
-      1. Schedule your pickup time using the button below.<br>
-      2. Come to 6105 Burgess Rd, Colorado Springs CO 80908.<br>
-      3. Bring your remaining balance (cash, check, or pay online above).<br>
-      4. We'll load your beef — it'll be packaged, labeled, and frozen solid.
-    </p>
-
+    ${balancePaidContent}
+    <div style="background:#F9F6F1;border:1px solid #E5E0D8;
+      border-radius:12px;padding:16px 20px;margin:0 0 24px;">
+      <p style="font-family:Arial,sans-serif;font-size:14px;
+        color:#1A3D2B;margin:0 0 6px;font-weight:bold;">
+        📦 What to bring
+      </p>
+      <p style="font-family:Arial,sans-serif;font-size:13px;
+        color:#374151;margin:0;line-height:1.8;">
+        • A cooler or two (we can help load straight into your vehicle)<br>
+        • A quarter beef fills ~2 boxes, a half fills ~4, a whole fills 8–10<br>
+        ${balanceDue > 0 ? '• Your remaining balance — cash, check, or card accepted' : '• You're all paid up — nothing to bring but yourself'}
+      </p>
+    </div>
     ${ctaButton('Schedule My Pickup →', pickupLink, '#1A3D2B')}
+    <p style="color:#9CA3AF;font-size:12px;font-family:Arial,
+      sans-serif;text-align:center;margin-top:8px;">
+      Questions? Call us at (719) 258-1777 or reply to this email.
+    </p>
   `;
 
   const htmlEmail = emailBase(content, preheader);
