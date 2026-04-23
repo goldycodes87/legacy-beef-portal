@@ -51,28 +51,42 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   if (customer) {
     const firstName = customer.name?.split(' ')[0] ?? 'there';
-    const preheader = 'Your pickup time is locked in.';
+    const preheader = `See you ${dayOfWeek}, ${firstName}!`;
+    const timeValue = window.start_time + ' – ' + window.end_time;
+    const pickupPerson = is_alternate ? pickup_person_name : customer.name;
     const content = `
-      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-        You're all set, ${firstName}!
-      </h2>
-      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
-        Your pickup is confirmed. Here's what you need:
+      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+        <div style="font-size:40px;margin-bottom:8px;">📅</div>
+        <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
+          Pickup confirmed, ${firstName}!
+        </h2>
+        <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
+          We&apos;ll see you ${dayOfWeek}.
+        </p>
+      </div>
+      <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
+        You&apos;re on the schedule. Here&apos;s everything you need for pickup day:
       </p>
-
       ${orderCard([
         { label: 'Date', value: pickupDate },
-        { label: 'Time', value: `${window.start_time} – ${window.end_time}` },
-        { label: 'Pickup Person', value: is_alternate ? pickup_person_name : customer.name },
+        { label: 'Time', value: timeValue },
+        { label: 'Pickup Person', value: pickupPerson },
         { label: 'Address', value: '6105 Burgess Rd, Colorado Springs CO 80908' },
       ])}
-
-      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:14px;line-height:1.6;">
-        <strong style="color:#0F0F0F;">What to bring:</strong> Your remaining balance if not already paid
-        (cash, check, or card). We'll have everything packaged and ready.
-      </p>
-
+      <div style="background:#F9F6F1;border:1px solid #E5E0D8;border-radius:12px;padding:16px 20px;margin:24px 0;">
+        <p style="font-family:Arial,sans-serif;font-size:14px;color:#1A3D2B;margin:0 0 8px;font-weight:bold;">
+          📦 What to bring
+        </p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:#374151;margin:0;line-height:1.8;">
+          &bull; A cooler or two &mdash; we can also help load straight into your vehicle<br>
+          &bull; A quarter fills ~2 boxes, a half fills ~4, a whole fills 8&ndash;10<br>
+          &bull; Your remaining balance if not paid &mdash; cash, check, or card accepted
+        </p>
+      </div>
       ${ctaButton('Add to Google Calendar 📅', googleCalendarLink, '#1A3D2B')}
+      <p style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;text-align:center;margin-top:8px;">
+        Need to reschedule? Call us at (719) 258-1777.
+      </p>
     `;
 
     const htmlEmail = emailBase(content, preheader);
