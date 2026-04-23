@@ -54,21 +54,36 @@ export async function POST(request: NextRequest) {
       ? `<p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;margin:0 0 20px;"><strong style="color:#0F0F0F;">Incomplete sections:</strong> ${incompleteCount} section(s) still need attention.</p>`
       : '';
 
-    const preheader = 'A quick reminder to fill out your beef cutting instructions.';
+    const preheader = `${firstName}, your cut sheet is due in 10 days.`;
+    const butcherDateFormatted = new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const content = `
-      <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-        Hey ${firstName} — butcher day is coming up!
-      </h2>
-      <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;">
-        Your beef is scheduled for ${new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}. You have 10 days to fill out your cut sheet and tell us how you want everything cut.
+      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+        <div style="font-size:40px;margin-bottom:8px;">✂️</div>
+        <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
+          Time to build your cut sheet, ${firstName}.
+        </h2>
+        <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
+          Butcher date: ${butcherDateFormatted}
+        </p>
+      </div>
+      <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
+        We know life gets busy — but this is the fun part. Your cut sheet is where you tell our butcher <strong>exactly</strong> how you want your beef cut. Steak thickness, roast sizes, how much ground beef, whether you want bones or organs — all of it is up to you.
       </p>
-
+      <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
+        You've got <strong>10 days</strong> to get it done before we hand it off to T-K Processing. It takes about 10 minutes.
+      </p>
       ${incompleteList}
-
-      ${ctaButton('Fill Out My Cut Sheet →', `${APP_URL}/token/${token}`, '#1A3D2B')}
-
-      <p style="font-size:12px;color:#aaa;text-align:center;font-family:Arial,sans-serif;">
-        This link takes you directly to your order — no login required.
+      <div style="background:#F0F7E8;border:1px solid #c3dfa0;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
+        <p style="font-family:Arial,sans-serif;font-size:14px;color:#1A3D2B;margin:0 0 6px;font-weight:bold;">
+          🏠 Not sure what to pick?
+        </p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:#374151;margin:0;line-height:1.6;">
+          No problem — our Legacy House Cut is a well-rounded selection that works great for most families. You can choose it with one click inside the cut sheet wizard.
+        </p>
+      </div>
+      ${ctaButton('Build My Cut Sheet →', `${APP_URL}/token/${token}`, '#1A3D2B')}
+      <p style="font-size:12px;color:#9CA3AF;text-align:center;font-family:Arial,sans-serif;margin-top:8px;">
+        This link goes straight to your order — no login needed.
       </p>
     `;
 
