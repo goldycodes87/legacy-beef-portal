@@ -34,7 +34,7 @@ export default function BeefCalculator() {
       {showCalc && (
         <div className="p-8 border-t border-brand-gray-light/50">
           <p className="font-body text-brand-gray text-sm mb-6">
-            Tell us about your household and we'll recommend the right size.
+            Tell us about your household and we'll recommend the right size for a full year of beef.
           </p>
 
           <div className="space-y-5">

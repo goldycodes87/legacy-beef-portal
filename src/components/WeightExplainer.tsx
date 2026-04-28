@@ -162,15 +162,7 @@ export default function WeightExplainer() {
           </div>
           <div className="text-xs text-brand-gray mt-1 leading-tight">After butchering, trimming, and 21-24 days of dry aging</div>
         </div>
-        <div className="bg-white border border-brand-gray-light rounded-xl p-4 text-center">
-          <div
-            className="text-2xl font-bold text-brand-green"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            ~400
-          </div>
-          <div className="text-xs text-brand-gray mt-1 leading-tight">average finished cuts per whole beef</div>
-        </div>
+
       </div>
     </div>
   );
