@@ -258,7 +258,12 @@ export default function ESignContract({
           <div><span className="text-brand-gray">Animal:</span> <span className="font-medium">{animal.name}</span></div>
           <div><span className="text-brand-gray">Butcher Date:</span> <span className="font-medium">{formatDate(animal.butcher_date)}</span></div>
           <div><span className="text-brand-gray">Est. Ready Date:</span> <span className="font-medium">{formatDate(animal.estimated_ready_date)}</span></div>
-          <div><span className="text-brand-gray">Price/lb:</span> <span className="font-medium">${Number(animal.price_per_lb).toFixed(2)}</span></div>
+          <div><span className="text-brand-gray">Price/lb:</span> <span className="font-medium">${
+            slot.purchaseType === 'whole' ? '8.00' :
+            slot.purchaseType === 'half' ? '8.25' :
+            slot.purchaseType === 'quarter' ? '8.50' :
+            Number(animal.price_per_lb).toFixed(2)
+          }</span></div>
           <div><span className="text-brand-gray">Deposit Amount:</span> <span className="font-semibold text-brand-orange">${slot.depositAmount}</span></div>
         </div>
       </section>
