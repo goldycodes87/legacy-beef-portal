@@ -82,7 +82,7 @@ export default function WeightExplainerPage() {
               {
                 icon: '⚖️',
                 title: 'Price is charged on hanging weight',
-                desc: 'Not live weight, not finished cuts. Hanging weight is what remains after the animal is harvested and cleaned.',
+                desc: 'Hanging weight is what remains after the animal is harvested and cleaned.',
               },
               {
                 icon: '💰',
@@ -92,7 +92,7 @@ export default function WeightExplainerPage() {
               {
                 icon: '🚛',
                 title: 'Transportation & processing included',
-                desc: 'Your price covers everything — raising, transport to the butcher, processing, vacuum sealing, and labeling. No hidden fees.',
+                desc: 'Your price covers everything from raising, transport to the butcher, processing, vacuum sealing, and labeling.',
               },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-4 pb-3 border-b border-white/10 last:border-0 last:pb-0">
