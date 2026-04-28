@@ -13,9 +13,9 @@ const steps = [
     icon: '🐄',
     image: '/images/20250406_133350.jpg',
     short: 'Choose your size and pay your deposit.',
-    detail: `Pick a whole, half, or quarter beef — or split with friends to save. Not sure how much you need? Use our calculator on the next page to find your perfect size.
+    detail: `Pick a whole, half, or quarter beef. Not sure how much you need? Use our calculator on the next page to find your perfect size.
 
-Pay your deposit to lock in your spot and choose the butcher date that works best for you. Beef is dry-aged 21–24 days after butcher, so your estimated pickup is about 3–4 weeks out. Our prices are all-inclusive — processing, transport to and from the butcher, everything. No surprises.`,
+Pay your deposit to lock in your spot and choose the butcher date that works best for you. Our prices are all-inclusive and include your transportation, processing, and pickup.`,
   },
   {
     num: '2',
@@ -23,9 +23,9 @@ Pay your deposit to lock in your spot and choose the butcher date that works bes
     icon: '✂️',
     image: '/images/Rocko.jpg',
     short: 'Tell the butcher exactly how you want it cut.',
-    detail: `This is where it gets fun. You decide everything — steak thickness, roast size, how much ground beef, whether you want organs or bones.
+    detail: `This is where it gets fun. You decide everything from steak thickness, roast size, how much ground beef, and whether you want organs or bones.
 
-Half and whole buyers get a fully custom cut sheet. Quarter buyers use our House Cut Sheet, which is a well-rounded selection that works great for most families. You can also split a whole beef with friends to unlock a custom sheet at the quarter price.`,
+Half and whole buyers get a fully custom cut sheet. Quarter buyers use our House Cut Sheet, which is a well-rounded selection that works great for most families. You can also split a whole beef with friends to unlock a custom sheet at a better price.`,
   },
   {
     num: '3',
@@ -33,9 +33,9 @@ Half and whole buyers get a fully custom cut sheet. Quarter buyers use our House
     icon: '🚛',
     image: '/images/FB_IMG_1775754831097.jpg',
     short: 'From ranch to butcher and back — stress free.',
-    detail: `We raise the cattle right here in Colorado Springs, transport them to T-K Processing in Cañon City, and drop off your cut sheet in person.
+    detail: `We raise the cattle right here in Colorado Springs, transport them to T-K Processing in Cañon City.
 
-Your beef is dry-aged 21–24 days for maximum tenderness and flavor, then cut, vacuum-sealed, and labeled to your exact specifications. We pick it up and bring it back to the ranch — you don't lift a finger.`,
+Your beef is dry-aged 21–24 days for maximum tenderness and flavor, then cut, vacuum-sealed, and labeled to your exact specifications.`,
   },
   {
     num: '4',
@@ -45,7 +45,7 @@ Your beef is dry-aged 21–24 days for maximum tenderness and flavor, then cut, 
     short: 'Choose a time, come to the ranch, load up.',
     detail: `Once your beef is ready, you'll get an email to schedule your pickup.
 
-Your beef arrives frozen solid, professionally packed in labeled boxes. A quarter is about 2 boxes, a half is about 4, and a whole is 8–10. Bring a cooler or we can help you load straight into your vehicle. Pay your remaining balance in advance or at pickup — cash, check, or card accepted.`,
+Your beef arrives frozen solid, professionally packed in labeled boxes. Pay your remaining balance in advance or at pickup — cash, check, or card accepted.`,
   },
 ];
 
