@@ -427,8 +427,8 @@ function OptionSelector({
   );
 }
 
-function ThicknessSelector({ value, onChange, label = 'Thickness' }: { value: string; onChange: (v: string) => void; label?: string }) {
-  const options = ['3/4"', '1"', '1.25"', '1.5"'];
+function ThicknessSelector({ value, onChange, label = 'Thickness', options: customOptions }: { value: string; onChange: (v: string) => void; label?: string; options?: string[] }) {
+  const options = customOptions ?? ['3/4"', '1"', '1.25"', '1.5"'];
   return (
     <div>
       <label className="block text-sm font-semibold text-brand-dark mb-2">{label}</label>
