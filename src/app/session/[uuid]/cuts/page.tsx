@@ -790,7 +790,7 @@ function getSectionContent(
         {choice === 'ny_strip_and_filet' && (
           <>
             <ThicknessSelector value={thickness} onChange={(v) => onUpdate({ ...answers, thickness: v }, !!choice)} label="NY Strip Thickness" />
-            <ThicknessSelector value={filetThickness} onChange={(v) => onUpdate({ ...answers, filet_thickness: v }, !!choice)} label="Filet Thickness" />
+            <ThicknessSelector value={filetThickness} onChange={(v) => onUpdate({ ...answers, filet_thickness: v }, !!choice)} label="Filet Thickness" options={['1"',"1.25\"","1.5\"","2\""]} />
             <SteaksPerPackSelector value={steaksPerPack} onChange={(v) => onUpdate({ ...answers, steaks_per_pack: v }, !!choice)} />
             <SteaksPerPackSelector value={filetSteaksPerPack} onChange={(v) => onUpdate({ ...answers, filet_steaks_per_pack: v }, !!choice)} />
           </>
