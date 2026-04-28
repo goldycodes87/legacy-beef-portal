@@ -611,8 +611,8 @@ function getSectionContent(
           options={[
             { id: 'bone_in_roast', label: 'Bone-In Roast' },
             { id: 'boneless_roast', label: 'Boneless Roast' },
-            { id: 'bone_in_steaks', label: 'Bone-In Steaks' },
-            { id: 'boneless_steaks', label: 'Boneless Steaks' },
+            { id: 'bone_in_steaks', label: 'Bone-In Ribeye Steaks' },
+            { id: 'boneless_steaks', label: 'Boneless Ribeye Steaks' },
           ]}
           value={choice ?? null}
           onChange={(v) => {
