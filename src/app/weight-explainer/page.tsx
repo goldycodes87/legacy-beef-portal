@@ -170,37 +170,37 @@ export default function WeightExplainerPage() {
               icon: '🐄',
               title: 'Reserve Your Spot',
               date: 'Day 1',
-              description: 'Pay your deposit to lock in your slot. Choose your size — whole, half, or quarter. Your price per pound is set at this point.',
+              description: 'Pay your deposit to lock in your slot. Choose a whole, half, or quarter. Your price per pound is set at this point.',
             },
             {
               icon: '✂️',
               title: 'Fill Out Your Cut Sheet',
               date: 'Before butcher date',
-              description: 'Tell the butcher exactly how you want your beef cut — steak thickness, roast size, ground beef ratio, and more. You have until 1 week before butcher day.',
+              description: 'Tell the butcher exactly how you want your beef cut from steak thickness, roast size, ground beef ratio, and more. You have until 1 week before butcher day to get it done.',
             },
             {
               icon: '🚛',
               title: 'We Transport to T-K Processing',
               date: 'Butcher day',
-              description: 'We transport the cattle to T-K Processing in Cañon City and drop off your cut sheet in person. You don\'t lift a finger.',
+              description: 'We transport the cattle to T-K Processing in Cañon City and drop off your cut sheet in person.',
             },
             {
               icon: '🥩',
               title: 'Dry Age 21–24 Days',
               date: '3 weeks later',
-              description: 'Your beef is dry-aged for 21–24 days for maximum tenderness and flavor. During this time, yield reduces slightly — this is normal and expected.',
+              description: 'Your beef is dry-aged for 21–24 days for maximum tenderness and flavor.',
             },
             {
               icon: '📦',
               title: 'Cut, Vacuum-Sealed & Labeled',
               date: 'After aging',
-              description: 'Everything is cut to your specs, vacuum-sealed, and labeled. A half beef fills about 4 boxes. We pick it up and bring it back to the ranch.',
+              description: 'Everything is cut to your specs, vacuum-sealed, labeled, and frozen.',
             },
             {
               icon: '❄️',
               title: 'You Pick It Up',
               date: 'Est. 4–5 weeks after butcher',
-              description: 'Schedule your pickup at 6105 Burgess Rd, Colorado Springs CO 80908. Pay your remaining balance and load up. Your beef is frozen solid and ready to go.',
+              description: 'Schedule your pickup via email. Pay your remaining balance and load up. Your beef is frozen solid and ready to go.',
             },
           ]} />
         </section>
