@@ -193,6 +193,7 @@ function SectionDotPath({
 
 function IntroScreen({ session, onStart }: { session: Session; onStart: (useHouse?: boolean) => void }) {
   const [useHouseSheet, setUseHouseSheet] = useState(false);
+  const [upchargeAgreed, setUpchargeAgreed] = useState(false);
   const [showHouseModal, setShowHouseModal] = useState(false);
   const purchaseLabel = session.purchase_type === 'whole' ? 'Whole Beef' : session.purchase_type === 'half' ? 'Half Beef' : 'Quarter Beef';
   const isPartner = session.cut_sheet_role === 'partner';
@@ -248,6 +249,34 @@ function IntroScreen({ session, onStart }: { session: Session; onStart: (useHous
         </div>
       )}
 
+      {/* Upcharge acknowledgment */}
+      <label className="flex items-start gap-3 cursor-pointer mb-4 p-4 bg-amber-50 border-2 border-amber-200 rounded-2xl hover:border-amber-400 transition-colors text-left">
+        <div className="relative flex-shrink-0 mt-0.5">
+          <input
+            type="checkbox"
+            checked={upchargeAgreed}
+            onChange={(e) => setUpchargeAgreed(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-colors ${
+            upchargeAgreed ? 'bg-amber-500 border-amber-500' : 'border-amber-300'
+          }`}>
+            {upchargeAgreed && (
+              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="font-body font-bold text-amber-800 text-sm leading-tight mb-1">
+            I understand the single-steak packaging fee
+          </p>
+          <p className="font-body text-amber-700 text-xs leading-relaxed">
+            T-K Processing charges an additional <strong>$0.50 per package</strong> if I choose 1 steak per package on any steak section. I understand this will be added to my final balance.
+          </p>
+        </div>
+      </label>
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-6 text-left space-y-4">
         <div className="flex items-start gap-3">
           <span className="text-2xl">🐄</span>
