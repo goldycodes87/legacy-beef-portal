@@ -366,7 +366,7 @@ export default function BookPage() {
             Reserve Your Beef
           </h1>
           <p className="font-body text-brand-gray text-base">
-            Select an available animal and lock in your order.
+            Select an available date and lock in your order.
           </p>
         </div>
 
@@ -407,7 +407,7 @@ export default function BookPage() {
         {/* ── Section 3: Slot cards ── */}
         <section className="mb-8">
           <h2 className="text-xl font-bold text-brand-dark mb-4 font-display">
-            Available Animals
+            Available Dates - Please Select One
           </h2>
 
           {slotsLoading && (
