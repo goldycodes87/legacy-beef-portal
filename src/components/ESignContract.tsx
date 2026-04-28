@@ -36,6 +36,7 @@ interface Session {
   is_splitting?: boolean;
   contract_signed?: boolean;
   customer_id?: string;
+  price_per_lb?: number;
 }
 
 interface ESignContractProps {
