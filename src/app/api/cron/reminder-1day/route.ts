@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     const preheader = `${firstName} — last chance. Cut sheet locks tomorrow.`;
     const content = `
-      <div style="background:linear-gradient(135deg,#92400e 0%,#b45309 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#92400e" style="background:linear-gradient(135deg,#92400e 0%,#b45309 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">⏰</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
           Last call, ${firstName}.
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         <p style="color:#fde68a;font-size:14px;margin:0;font-family:Arial,sans-serif;">
           Your cut sheet locks tomorrow.
         </p>
-      </div>
+      </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
         Tomorrow we hand your cut sheet to T-K Processing — whatever's in there is what gets cut. If yours isn't done, we'll fill it with our <strong>Legacy House Cut</strong>, which is a solid, well-rounded selection. But your custom preferences will always be better.
       </p>

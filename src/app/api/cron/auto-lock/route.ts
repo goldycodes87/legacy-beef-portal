@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
     const preheader = `No worries, ${firstName} — your beef is in good hands.`;
     const content = `
-      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">🏠</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
           We've got you covered, ${firstName}.
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
         <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
           Your cut sheet is locked and on its way to the butcher.
         </p>
-      </div>
+      </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
         Life gets busy — we get it. Since your cut sheet deadline passed, we've locked it in using our <strong>Legacy House Cut</strong>. It's a well-rounded selection our team put together that works great for most families.
       </p>

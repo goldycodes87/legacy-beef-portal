@@ -137,9 +137,7 @@ export async function POST(
     `;
 
   const content = `
-    <div style="background:linear-gradient(135deg,#1A3D2B 0%,
-      #2d6a4f 100%);border-radius:12px;padding:28px 24px;
-      text-align:center;margin:0 0 28px;">
+    <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
       <div style="font-size:48px;margin-bottom:8px;">🥩</div>
       <h2 style="font-family:Georgia,serif;color:white;
         font-size:26px;margin:0 0 8px;font-weight:normal;">
@@ -149,7 +147,7 @@ export async function POST(
         font-family:Arial,sans-serif;letter-spacing:0.5px;">
         Cut, vacuum-sealed, labeled, and waiting for you.
       </p>
-    </div>
+    </td></tr></table>
     <p style="color:#374151;font-family:Arial,sans-serif;
       font-size:15px;line-height:1.7;margin:0 0 24px;">
       It's here. Your beef has been cut to your specifications, 

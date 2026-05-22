@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   const preheader = `${partnerFirstName} hasn't claimed their spot yet.`;
   const content = `
-<div style="background:linear-gradient(135deg,#92400e 0%,#b45309 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+<table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#92400e" style="background:linear-gradient(135deg,#92400e 0%,#b45309 100%);border-radius:12px;padding:28px 24px;text-align:center;">
   <div style="font-size:40px;margin-bottom:8px;">⏰</div>
   <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
     Heads up, ${ownerFirstName}.
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
   <p style="color:#fde68a;font-size:14px;margin:0;font-family:Arial,sans-serif;">
     ${partnerFirstName} hasn't reserved their spot yet.
   </p>
-</div>
+</td></tr></table>
 <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 20px;">
   You reserved a <strong>${purchaseLabel}</strong> and invited ${partnerFirstName} to split it with you. They haven't paid their deposit yet — you may want to give them a quick call or text to let them know their spot won't last forever.
 </p>

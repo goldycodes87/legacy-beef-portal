@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const preheader = 'Claim your spot before it expires in 48 hours.';
 
     const content = `
-      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">🥩</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:26px;margin:0 0 8px;font-weight:normal;">
           ${ownerFirstName} wants to split a beef with you.
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;letter-spacing:0.5px;">
           Your spot is being held for 48 hours.
         </p>
-      </div>
+      </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
         Hey ${partnerFirstName} — ${ownerFirstName} just reserved a ${purchaseLabel} Beef from Legacy Land & Cattle here in Colorado Springs and wants you to split it. That means ranch-direct, custom-cut beef in your freezer for months — at a better price than buying solo.
       </p>

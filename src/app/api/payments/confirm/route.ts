@@ -196,6 +196,22 @@ export async function POST(request: NextRequest) {
           }),
         });
 
+        // Send order notification to Grant
+        await resend.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: 'orders@legacylandandcattleco.com',
+          subject: `New Order: ${purchaseTypeLabel(session.purchase_type)} — ${name}`,
+          html: `<p>New reservation placed.</p>
+          <ul>
+          <li><strong>Customer:</strong> ${name} (${email})</li>
+          <li><strong>Order:</strong> ${purchaseTypeLabel(session.purchase_type)}</li>
+          <li><strong>Animal:</strong> ${animal.name}</li>
+          <li><strong>Butcher Date:</strong> ${formatDate(animal.butcher_date)}</li>
+          <li><strong>Deposit:</strong> $${depositPaid.toFixed(2)}</li>
+          <li><strong>Price/lb:</strong> $${Number(animal.price_per_lb).toFixed(2)}</li>
+          </ul>`,
+        });
+
         await supabaseAdmin.from('notifications').insert({
           session_id,
           type: 'payment_confirmation',
@@ -254,8 +270,7 @@ function buildConfirmationEmail(p: ConfirmationEmailParams): string {
 
   const content = `
     <!-- Celebratory banner -->
-    <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);
-      border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+    <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
       <div style="font-size:40px;margin-bottom:8px;">🎉</div>
       <h2 style="font-family:Georgia,serif;color:white;font-size:26px;
         margin:0 0 8px;font-weight:normal;">
@@ -265,7 +280,7 @@ function buildConfirmationEmail(p: ConfirmationEmailParams): string {
         font-family:Arial,sans-serif;letter-spacing:0.5px;">
         Your spot is locked. Your beef is coming.
       </p>
-    </div>
+    </td></tr></table>
     <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;
       line-height:1.7;margin:0 0 24px;">
       We've got your deposit and your reservation is officially on the books. 

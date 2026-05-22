@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     const preheader = `${firstName}, your cut sheet is due in 10 days.`;
     const butcherDateFormatted = new Date(animal.butcher_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     const content = `
-      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">✂️</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
           Time to build your cut sheet, ${firstName}.
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
           Butcher date: ${butcherDateFormatted}
         </p>
-      </div>
+      </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
         We know life gets busy — but this is the fun part. Your cut sheet is where you tell our butcher <strong>exactly</strong> how you want your beef cut. Steak thickness, roast sizes, how much ground beef, whether you want bones or organs — all of it is up to you.
       </p>

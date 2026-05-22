@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
       const preheader = `You&apos;re all paid up, ${firstName}. See you at pickup!`;
       const content = `
-        <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+        <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
           <div style="font-size:40px;margin-bottom:8px;">💳</div>
           <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
             You&apos;re all paid up, ${firstName}.
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
             Balance paid in full. Nothing left to do but show up.
           </p>
-        </div>
+        </td></tr></table>
         <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
           Your balance payment has been received and your account is fully settled. Here&apos;s your receipt:
         </p>

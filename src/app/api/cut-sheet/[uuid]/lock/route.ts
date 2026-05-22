@@ -70,7 +70,7 @@ export async function POST(
 
     const preheader = `Nice work, ${firstName} — your cut sheet is done.`;
     const content = `
-      <div style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;margin:0 0 28px;">
+      <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">✅</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
           Your cut sheet is done, ${firstName}.
@@ -78,7 +78,7 @@ export async function POST(
         <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
           We've got your cutting instructions.
         </p>
-      </div>
+      </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
         You just made the most important decision of this whole process — and we've got every detail. Your cut sheet is locked and will be hand-delivered to T-K Processing in Cañon City before your butcher date.
       </p>
