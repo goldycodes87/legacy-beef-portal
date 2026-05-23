@@ -5,6 +5,14 @@ import { getConfig, getPricePerLb, getDepositAmount } from '@/lib/config';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
+function purchaseTypeLabel(type: string): string {
+  switch (type) {
+    case 'whole': return 'Whole Beef';
+    case 'half': return 'Half Beef';
+    case 'quarter': return 'Quarter Beef';
+    default: return type;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -132,6 +140,45 @@ export async function POST(request: NextRequest) {
     }
 
     const sessionId = sessionData.id;
+
+    // Send draft confirmation email
+    try {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
+        const { Resend } = await import('resend');
+        const resend = new Resend(resendKey);
+        const { emailBase, ctaButton } = await import('@/lib/email-templates');
+        const firstName = name.split(' ')[0];
+        const paymentUrl = `${APP_URL}/payment?session_id=${sessionId}`;
+        const content = `
+<table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;">
+<tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
+<div style="font-size:40px;margin-bottom:8px;">🐄</div>
+<h2 style="font-family:Georgia,serif;color:white;font-size:26px;margin:0 0 8px;font-weight:normal;">
+Your spot is being held, ${firstName}.
+</h2>
+<p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;letter-spacing:0.5px;">
+Complete your deposit to lock it in.
+</p>
+</td></tr></table>
+<p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
+You started a reservation for a ${purchaseTypeLabel(purchase_type)} from Legacy Land & Cattle. We've held your spot for 24 hours — complete your deposit now to lock it in before it's released.
+</p>
+${ctaButton('Complete My Reservation →', paymentUrl)}
+<p style="color:#9CA3AF;font-size:12px;font-family:Arial,sans-serif;text-align:center;margin-top:8px;">
+This link expires in 24 hours. Questions? Call (719) 258-1777.
+</p>
+`;
+        await resend.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: email,
+          subject: `Your spot is being held, ${firstName} — complete your deposit`,
+          html: emailBase(content, 'Your spot is held for 24 hours — complete your deposit to lock it in.'),
+        });
+      }
+    } catch (emailErr) {
+      console.error('Draft email error:', emailErr);
+    }
 
     // 4. Increment units_used on the animal (optimistic — race condition handled by check above)
     const { error: updateError } = await supabaseAdmin
