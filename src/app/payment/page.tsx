@@ -391,12 +391,13 @@ function PaymentForm({
           <p>Your spot is reserved but not confirmed until payment is received. Make checks payable to Legacy Land & Cattle.</p>
           <button
             onClick={async () => {
-              const res = await fetch('/api/payments/confirm', {
+              // Store intended payment method on session
+              await fetch(`/api/sessions/${session.id}/set-payment-intent`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: session.id, method: 'check', amount_cents: depositAmount * 100 }),
+                body: JSON.stringify({ method: 'check' }),
               });
-              if (res.ok) onSuccess();
+              onSuccess();
             }}
             className="mt-3 w-full py-3 rounded-xl bg-[#E85D24] text-white font-semibold text-sm"
           >

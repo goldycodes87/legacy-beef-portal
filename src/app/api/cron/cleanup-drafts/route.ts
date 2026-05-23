@@ -14,9 +14,10 @@ export async function GET(request: NextRequest) {
   // Find expired draft sessions
   const { data: expiredDrafts } = await supabase
     .from('sessions')
-    .select('id, animal_id, purchase_type')
+    .select('id, animal_id, purchase_type, intended_payment_method')
     .eq('status', 'draft')
-    .lt('created_at', cutoff);
+    .lt('created_at', cutoff)
+    .not('intended_payment_method', 'in', '(check,cash)');
 
   if (!expiredDrafts || expiredDrafts.length === 0) {
     return NextResponse.json({ cancelled: 0 });

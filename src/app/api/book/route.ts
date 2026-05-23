@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
         cut_sheet_role:   cut_sheet_choice === 'separate' ? 'owner' : cut_sheet_choice === 'shared' ? 'master' : 'solo',
         invite_expires_at: is_splitting ? new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() : null,
         group_id,
+        intended_payment_method: 'card',
       })
       .select('id')
       .single();
