@@ -110,8 +110,10 @@ export async function POST(request: NextRequest) {
       : depositForType(session.purchase_type);
 
     // 2. Record payment in payments table
+    const allowedMethods = ['card', 'echeck', 'cash', 'check'];
+    const method = allowedMethods.includes(body.method) ? body.method : 'card';
     const paymentRecord: Record<string, unknown> = {
-      method: body.method || 'card',
+      method: method,
       session_id,
       type: 'deposit',
       status: 'paid',

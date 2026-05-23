@@ -394,7 +394,7 @@ function PaymentForm({
               const res = await fetch('/api/payments/confirm', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ session_id: session.id, method: 'cash_check', amount_cents: depositAmount * 100 }),
+                body: JSON.stringify({ session_id: session.id, method: 'check', amount_cents: depositAmount * 100 }),
               });
               if (res.ok) onSuccess();
             }}
