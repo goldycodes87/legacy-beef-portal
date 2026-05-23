@@ -22,15 +22,45 @@ export async function GET(request: NextRequest) {
   
   // Cancel any pending partner sessions in same group
   const { data: session } = await supabase
-    .from('sessions').select('group_id')
+    .from('sessions').select('group_id, purchase_type, animal_id')
     .eq('id', session_id).single();
   
   if (session?.group_id) {
+    // Get all pending partner sessions to be cancelled
+    const { data: sessionsToCancel } = await supabase
+      .from('sessions')
+      .select('id, purchase_type, animal_id')
+      .eq('group_id', session.group_id)
+      .neq('id', session_id)
+      .eq('status', 'pending');
+    
+    // Cancel them
     await supabase.from('sessions')
       .update({ status: 'cancelled' })
       .eq('group_id', session.group_id)
       .neq('id', session_id)
       .eq('status', 'pending');
+    
+    // Decrement units_used for each cancelled session
+    if (sessionsToCancel) {
+      for (const cancelledSession of sessionsToCancel) {
+        const unitCost = cancelledSession.purchase_type === 'whole' ? 1.0 : 
+          cancelledSession.purchase_type === 'half' ? 0.5 : 0.25;
+        
+        const { data: animal } = await supabase
+          .from('animals')
+          .select('units_used')
+          .eq('id', cancelledSession.animal_id)
+          .single();
+        
+        if (animal) {
+          await supabase
+            .from('animals')
+            .update({ units_used: Math.max(0, (animal.units_used || 0) - unitCost) })
+            .eq('id', cancelledSession.animal_id);
+        }
+      }
+    }
   }
   
   return Response.redirect(
