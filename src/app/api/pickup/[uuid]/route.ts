@@ -98,6 +98,31 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       subject: `Pickup confirmed — see you ${dayOfWeek}! 🥩`,
       html: htmlEmail,
     });
+
+    // Grant notification
+    try {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
+        const { Resend: ResendGrant } = await import('resend');
+        const resendG = new ResendGrant(resendKey);
+        const animal = Array.isArray(session?.animals) ? session.animals[0] : session?.animals;
+        await resendG.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: 'orders@legacylandandcattleco.com',
+          subject: `Pickup Confirmed — ${customer.name}`,
+          html: `
+            <ul>
+              <li><strong>Customer:</strong> ${customer.name} (${customer.email})</li>
+              <li><strong>Order:</strong> ${animal?.name || 'N/A'}</li>
+              <li><strong>Pickup Date:</strong> ${pickupDate}</li>
+              <li><strong>Pickup Time:</strong> ${timeValue}</li>
+            </ul>
+          `,
+        });
+      }
+    } catch (grantErr) {
+      console.error('Grant notification error:', grantErr);
+    }
   }
 
   return NextResponse.json({ success: true });

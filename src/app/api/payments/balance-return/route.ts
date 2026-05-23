@@ -85,6 +85,30 @@ export async function GET(request: NextRequest) {
         subject: 'Balance payment received — thank you! ✓',
         html: htmlEmail,
       });
+
+      // Grant notification
+      try {
+        const resendKey = process.env.RESEND_API_KEY;
+        if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
+          const { Resend: ResendGrant } = await import('resend');
+          const resendG = new ResendGrant(resendKey);
+          await resendG.emails.send({
+            from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+            to: 'orders@legacylandandcattleco.com',
+            subject: `Balance Paid — ${customer.name} (Balance Payment)`,
+            html: `
+              <ul>
+                <li><strong>Customer:</strong> ${customer.name} (${customer.email})</li>
+                <li><strong>Order:</strong> Balance Payment</li>
+                <li><strong>Amount Paid:</strong> $${amountPaid}</li>
+                <li><strong>Payment Method:</strong> Credit Card</li>
+              </ul>
+            `,
+          });
+        }
+      } catch (grantErr) {
+        console.error('Grant notification error:', grantErr);
+      }
     }
 
     const response = NextResponse.redirect(new URL(`/session/${sessionId}/pickup`, request.url));

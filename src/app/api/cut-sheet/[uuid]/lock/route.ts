@@ -111,6 +111,29 @@ export async function POST(
       html: htmlEmail,
     }).catch(err => 
       console.error('Cut sheet lock email error:', err));
+
+    // Grant notification
+    try {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
+        const { Resend: ResendGrant } = await import('resend');
+        const resendG = new ResendGrant(resendKey);
+        await resendG.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: 'orders@legacylandandcattleco.com',
+          subject: `Cut Sheet Locked — ${mainCustomer.name} (${mainAnimal?.name || 'Order'})`,
+          html: `
+            <ul>
+              <li><strong>Customer:</strong> ${mainCustomer.name} (${mainCustomer.email})</li>
+              <li><strong>Order:</strong> ${mainAnimal?.name || 'N/A'}</li>
+              <li><strong>Locked At:</strong> ${new Date().toLocaleString()}</li>
+            </ul>
+          `,
+        });
+      }
+    } catch (grantErr) {
+      console.error('Grant notification error:', grantErr);
+    }
   }
 
   // If this is a split session, also lock partner's cut sheet
