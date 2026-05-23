@@ -59,8 +59,15 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // Redirect unauthenticated users to /auth, preserving the original destination
-    const redirectUrl = new URL('/auth', request.url);
+    // Extract session UUID from /session/[uuid]/... path
+    const sessionMatch = pathname.match(/^\/session\/([^\/]+)/);
+    if (sessionMatch) {
+      const sessionId = sessionMatch[1];
+      const redirectUrl = new URL(`/access/${sessionId}`, request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    // Fallback for any other protected route
+    const redirectUrl = new URL('/access', request.url);
     redirectUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(redirectUrl);
   }
