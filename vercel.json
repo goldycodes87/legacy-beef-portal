@@ -3,6 +3,18 @@
     {
       "path": "/api/cron/cleanup-drafts",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/reminder-10day",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/reminder-1day",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/auto-lock",
+      "schedule": "0 11 * * *"
     }
   ]
 }
