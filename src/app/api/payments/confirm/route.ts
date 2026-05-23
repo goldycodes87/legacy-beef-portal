@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
         customer_id,
         animal_id,
         purchase_type,
+        price_per_lb,
         status,
         customers (
           id,
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
             animalName: animal.name,
             butcherDate: formatDate(animal.butcher_date),
             estimatedReady: formatDate(animal.estimated_ready_date),
-            pricePerLb: Number(animal.price_per_lb),
+            pricePerLb: Number(session.price_per_lb) || Number(animal.price_per_lb),
             depositPaid,
             stripeReceiptId: stripe_receipt_id || stripe_payment_intent_id || null,
             magicLink: accessLink,
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
           <li><strong>Animal:</strong> ${animal.name}</li>
           <li><strong>Butcher Date:</strong> ${formatDate(animal.butcher_date)}</li>
           <li><strong>Deposit:</strong> $${depositPaid.toFixed(2)}</li>
-          <li><strong>Price/lb:</strong> $${Number(animal.price_per_lb).toFixed(2)}</li>
+          <li><strong>Price/lb:</strong> $${(Number(session.price_per_lb) || Number(animal.price_per_lb)).toFixed(2)}</li>
           </ul>`,
         });
 
