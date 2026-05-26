@@ -216,7 +216,22 @@ function StripePaymentForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement />
+      <PaymentElement options={{
+        fields: {
+          billingDetails: {
+            name: 'auto',
+            email: 'auto',
+            address: {
+              country: 'never',
+              postalCode: 'auto',
+            }
+          }
+        },
+        wallets: {
+          applePay: 'auto',
+          googlePay: 'auto',
+        }
+      }} />
       {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       <button
         type="submit"

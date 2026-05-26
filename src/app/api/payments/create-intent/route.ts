@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     currency: 'usd',
     payment_method_types: payment_method_type === 'card' ? ['card'] : ['us_bank_account'],
     metadata: { session_id, coupon_id: couponId ?? '' },
+    statement_descriptor_suffix: 'DEPOSIT',
   });
 
   return NextResponse.json({
