@@ -62,12 +62,37 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Load customer details for Stripe Customer object
+  const { data: customerData } = await supabaseAdmin
+    .from('customers')
+    .select('name, email, stripe_customer_id')
+    .eq('id', session.customer_id)
+    .single();
+
+  // Create or retrieve Stripe Customer for better fraud detection
+  let stripeCustomerId = customerData?.stripe_customer_id;
+  if (!stripeCustomerId && customerData) {
+    const stripeCustomer = await stripe.customers.create({
+      email: customerData.email,
+      name: customerData.name,
+      metadata: { supabase_customer_id: session.customer_id },
+    });
+    stripeCustomerId = stripeCustomer.id;
+    // Store for future use
+    await supabaseAdmin
+      .from('customers')
+      .update({ stripe_customer_id: stripeCustomerId })
+      .eq('id', session.customer_id);
+  }
+
   const paymentIntent = await stripe.paymentIntents.create({
     amount: depositCents,
     currency: 'usd',
     payment_method_types: payment_method_type === 'card' ? ['card'] : ['us_bank_account'],
     metadata: { session_id, coupon_id: couponId ?? '' },
     statement_descriptor_suffix: 'DEPOSIT',
+    ...(stripeCustomerId && { customer: stripeCustomerId }),
+    receipt_email: customerData?.email || undefined,
   });
 
   return NextResponse.json({
