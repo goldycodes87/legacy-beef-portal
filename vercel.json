@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/cleanup-drafts",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
       "path": "/api/cron/reminder-10day",
