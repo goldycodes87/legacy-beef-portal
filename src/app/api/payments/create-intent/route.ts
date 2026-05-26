@@ -15,7 +15,7 @@ function purchaseTypeLabel(type: string): string {
 }
 
 export async function POST(request: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-01-27.acacia' });
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' });
   const { session_id, payment_method_type, coupon_code } = await request.json();
 
   const { data: session } = await supabaseAdmin
