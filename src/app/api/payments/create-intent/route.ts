@@ -104,6 +104,9 @@ export async function POST(request: NextRequest) {
     ...(stripeCustomerId && { customer: stripeCustomerId }),
     receipt_email: customerData?.email || undefined,
     description: `${purchaseTypeLabel(session.purchase_type)} deposit — Legacy Land & Cattle`,
+    payment_method_options: {
+      card: { request_three_d_secure: 'any' },
+    },
   }, {
     idempotencyKey: `deposit-${session_id}-${Date.now()}`,
   });
