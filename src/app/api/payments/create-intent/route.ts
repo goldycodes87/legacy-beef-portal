@@ -4,8 +4,18 @@ import Stripe from 'stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getConfig, getDepositAmount } from '@/lib/config';
 
+
+function purchaseTypeLabel(type: string): string {
+  switch (type) {
+    case 'whole': return 'Whole Beef';
+    case 'half': return 'Half Beef';
+    case 'quarter': return 'Quarter Beef';
+    default: return type;
+  }
+}
+
 export async function POST(request: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-01-27.acacia' });
   const { session_id, payment_method_type, coupon_code } = await request.json();
 
   const { data: session } = await supabaseAdmin
@@ -93,6 +103,9 @@ export async function POST(request: NextRequest) {
     statement_descriptor_suffix: 'DEPOSIT',
     ...(stripeCustomerId && { customer: stripeCustomerId }),
     receipt_email: customerData?.email || undefined,
+    description: `${purchaseTypeLabel(session.purchase_type)} deposit — Legacy Land & Cattle`,
+  }, {
+    idempotencyKey: `deposit-${session_id}-${Date.now()}`,
   });
 
   return NextResponse.json({
