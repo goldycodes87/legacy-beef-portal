@@ -224,6 +224,9 @@ function StripePaymentForm({
             address: {
               country: 'never',
               postalCode: 'auto',
+              line1: 'auto',
+              city: 'auto',
+              state: 'auto',
             }
           }
         },
