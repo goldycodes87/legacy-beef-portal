@@ -219,14 +219,14 @@ function StripePaymentForm({
       <PaymentElement options={{
         fields: {
           billingDetails: {
-            name: 'always',
-            email: 'always',
+            name: 'auto',
+            email: 'auto',
             address: {
-              country: 'never',
-              postalCode: 'always',
-              line1: 'always',
-              city: 'always',
-              state: 'always',
+              country: 'auto',
+              postalCode: 'auto',
+              line1: 'auto',
+              city: 'auto',
+              state: 'auto',
             }
           }
         },
