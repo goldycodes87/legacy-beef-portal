@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   const sessionId = new URL(request.url).searchParams.get('session_id');
   const redirectStatus = new URL(request.url).searchParams.get('redirect_status');
+  const portalOrigin = request.nextUrl.origin;
 
   if (redirectStatus === 'succeeded') {
     // Update session
@@ -108,6 +109,23 @@ export async function GET(request: NextRequest) {
         }
       } catch (grantErr) {
         console.error('Grant notification error:', grantErr);
+      }
+
+      try {
+        await fetch(`${portalOrigin}/api/notify-admin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-notify-secret': process.env.ADMIN_NOTIFY_SECRET || '',
+          },
+          body: JSON.stringify({
+            title: '💳 Balance Paid',
+            body: `Balance payment received for ${customer.name}`,
+            url: '/slots',
+          }),
+        });
+      } catch (notifyErr) {
+        console.error('Admin notify failed (balance):', notifyErr);
       }
     }
 

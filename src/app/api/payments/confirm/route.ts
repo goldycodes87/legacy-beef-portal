@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { session_id, stripe_payment_intent_id, amount_cents, stripe_receipt_id } = body;
+    const portalOrigin = request.nextUrl.origin;
 
     if (!session_id) {
       return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });
@@ -234,6 +235,23 @@ export async function POST(request: NextRequest) {
         sent_at: null,
         status: 'failed',
       });
+    }
+
+    try {
+      await fetch(`${portalOrigin}/api/notify-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': process.env.ADMIN_NOTIFY_SECRET || '',
+        },
+        body: JSON.stringify({
+          title: '🥩 New Reservation!',
+          body: `${purchaseTypeLabel(session.purchase_type)} deposit paid — ${name}`,
+          url: '/slots',
+        }),
+      });
+    } catch (notifyErr) {
+      console.error('Admin notify failed (deposit):', notifyErr);
     }
 
     return NextResponse.json({

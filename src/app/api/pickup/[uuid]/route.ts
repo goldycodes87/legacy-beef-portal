@@ -6,6 +6,7 @@ import { emailBase, ctaButton, orderCard } from '@/lib/email-templates';
 export async function POST(request: NextRequest, { params }: { params: Promise<{ uuid: string }> }) {
   const supabase = getSupabaseAdmin();
   const { uuid } = await params;
+  const portalOrigin = request.nextUrl.origin;
   const { pickup_window_id: window_id, is_alternate, pickup_person_name, pickup_person_email, pickup_person_phone, waiver_signed } = await request.json();
 
   // Create appointment
@@ -122,6 +123,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     } catch (grantErr) {
       console.error('Grant notification error:', grantErr);
+    }
+
+    try {
+      await fetch(`${portalOrigin}/api/notify-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': process.env.ADMIN_NOTIFY_SECRET || '',
+        },
+        body: JSON.stringify({
+          title: '📅 Pickup Scheduled',
+          body: `${customer.name} scheduled pickup`,
+          url: '/slots',
+        }),
+      });
+    } catch (notifyErr) {
+      console.error('Admin notify failed (pickup):', notifyErr);
     }
   }
 

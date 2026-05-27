@@ -11,6 +11,7 @@ export async function POST(
 ) {
   const { uuid } = await params;
   const supabase = getSupabaseAdmin();
+  const portalOrigin = request.nextUrl.origin;
 
   // Lock all sections for owner's session
   await supabase
@@ -133,6 +134,23 @@ export async function POST(
       }
     } catch (grantErr) {
       console.error('Grant notification error:', grantErr);
+    }
+
+    try {
+      await fetch(`${portalOrigin}/api/notify-admin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-notify-secret': process.env.ADMIN_NOTIFY_SECRET || '',
+        },
+        body: JSON.stringify({
+          title: '✂️ Cut Sheet Locked',
+          body: `Cut sheet locked for ${mainCustomer.name}`,
+          url: '/cut-sheets',
+        }),
+      });
+    } catch (notifyErr) {
+      console.error('Admin notify failed (cut sheet):', notifyErr);
     }
   }
 
