@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Script from 'next/script';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -193,18 +192,38 @@ function SquarePaymentForm({
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    async function initSquare() {
-      if (!(window as any).Square) return;
-      const payments = (window as any).Square.payments(
-        process.env.NEXT_PUBLIC_SQUARE_APP_ID!,
-        process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!
-      );
-      const card = await payments.card();
-      await card.attach('#square-card-container');
-      setCard(card);
+    let mounted = true;
+
+    async function loadSquare() {
+      // Load script if not already loaded
+      if (!(window as any).Square) {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://web.squarecdn.com/v1/square.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load Square SDK'));
+          document.head.appendChild(script);
+        });
+      }
+
+      if (!mounted) return;
+
+      try {
+        const payments = (window as any).Square.payments(
+          process.env.NEXT_PUBLIC_SQUARE_APP_ID,
+          process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
+        );
+        const card = await payments.card();
+        await card.attach('#square-card-container');
+        if (mounted) setCard(card);
+      } catch (err) {
+        console.error('Square init error:', err);
+        if (mounted) setError('Failed to load payment form. Please refresh.');
+      }
     }
-    const timer = setTimeout(initSquare, 500);
-    return () => clearTimeout(timer);
+
+    loadSquare();
+    return () => { mounted = false; };
   }, []);
 
   async function handlePay() {
@@ -424,10 +443,6 @@ function PaymentForm({
 
       {paymentMethod === 'card' && (
         <div>
-          <Script
-            src="https://web.squarecdn.com/v1/square.js"
-            strategy="beforeInteractive"
-          />
           <SquarePaymentForm
             session={session}
             depositAmount={finalAmount}
