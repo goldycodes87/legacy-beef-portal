@@ -1311,6 +1311,10 @@ export default function CutsPage() {
       const answersData = await answersRes.json();
       setSession(sessionData);
       setAnswers(Array.isArray(answersData) ? answersData : []);
+      // Track last viewed
+      fetch(`/api/cut-sheet/${uuid}/viewed`, {
+        method: 'POST',
+      }).catch(() => {});
 
       // Handle ?section= query param
       const urlParams = new URLSearchParams(window.location.search);
