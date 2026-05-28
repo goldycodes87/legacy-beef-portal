@@ -248,20 +248,32 @@ function SquarePaymentForm({
             '.input-container': {
               borderColor: '#E5E7EB',
               borderRadius: '12px',
+              borderWidth: '1.5px',
             },
             '.input-container.is-focus': {
               borderColor: '#E85D24',
+              borderWidth: '2px',
             },
             '.input-container.is-error': {
               borderColor: '#EF4444',
+              borderWidth: '2px',
+            },
+            '.message-text': {
+              color: '#EF4444',
+            },
+            '.message-icon': {
+              color: '#EF4444',
             },
             input: {
-              color: '#0F0F0F',
+              backgroundColor: '#FFFFFF',
+              color: '#111827',
               fontFamily: 'Arial, sans-serif',
-              fontSize: '14px',
+              fontSize: '15px',
+              fontWeight: '400',
             },
             'input::placeholder': {
               color: '#9CA3AF',
+              fontWeight: '400',
             },
           },
         });
@@ -323,8 +335,12 @@ function SquarePaymentForm({
       <div
         id="square-card-container"
         ref={cardRef}
-        className={`mb-4 ${loading ? 'hidden' : ''}`}
-        style={{ minHeight: loading ? 0 : '89px' }}
+        className={`mb-6 ${loading ? 'hidden' : ''}`}
+        style={{
+          minHeight: loading ? 0 : '89px',
+          borderRadius: '12px',
+          overflow: 'hidden',
+        }}
       />
       {error && (
         <p className="text-red-600 text-sm mb-3">{error}</p>
@@ -398,6 +414,25 @@ function PaymentForm({
       setSurcharge(0);
     }
   }, [paymentMethod, couponCode, depositAmount, session.id]);
+
+  useEffect(() => {
+    if (paymentMethod !== 'card') return;
+    async function recalc() {
+      const res = await fetch('/api/config/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: session.id,
+          coupon_code: couponApplied ? couponCode : null,
+        }),
+      });
+      const data = await res.json();
+      if (data.waived) { onSuccess(); return; }
+      setFinalAmount(Math.round(data.amount_cents / 100));
+      setSurcharge(Math.round(data.surcharge_cents / 100));
+    }
+    recalc();
+  }, [couponApplied, paymentMethod, couponCode, session.id, onSuccess]);
 
   return (
     <main className="max-w-[600px] mx-auto px-4 py-12">
