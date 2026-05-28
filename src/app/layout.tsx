@@ -24,7 +24,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600&family=Dancing+Script:wght@700&display=swap" 
           rel="stylesheet" 
         />
-        <script async src="https://js.stripe.com/dahlia/stripe.js"></script>
       </head>
       <body className="min-h-screen bg-white font-body antialiased">
         {children}

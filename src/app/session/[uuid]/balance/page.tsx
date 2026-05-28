@@ -3,58 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-// ─── Stripe Checkout Form ─────────────────────────────────────────────────────
-
-function StripeCheckoutForm({
-  uuid,
-  amountDue,
-}: {
-  uuid: string;
-  amountDue: number;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [error, setError] = useState<string | null>(null);
-  const [paying, setPaying] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-    setPaying(true);
-    setError(null);
-
-    const { error: stripeError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/api/payments/balance-return?session_id=${uuid}`,
-      },
-    });
-
-    if (stripeError) {
-      setError(stripeError.message ?? 'Payment failed');
-      setPaying(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="mt-4">
-      <PaymentElement />
-      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
-      <button
-        type="submit"
-        disabled={!stripe || paying}
-        className="w-full mt-4 py-4 px-6 rounded-xl text-white font-semibold bg-brand-orange disabled:opacity-60 hover:opacity-90"
-      >
-        {paying ? 'Processing…' : `Pay $${amountDue.toFixed(2)}`}
-      </button>
-    </form>
-  );
-}
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -64,10 +12,7 @@ export default function BalancePage() {
   const uuid = params.uuid as string;
 
   const [session, setSession] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState('card');
   const [loading, setLoading] = useState(true);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [loadingIntent, setLoadingIntent] = useState(false);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -82,26 +27,6 @@ export default function BalancePage() {
     };
     fetchSession();
   }, [uuid, router]);
-
-  // Load payment intent when card is selected
-  useEffect(() => {
-    if (paymentMethod !== 'card' || !session) return;
-    setClientSecret(null);
-    setLoadingIntent(true);
-
-    const fetchIntent = async () => {
-      const res = await fetch('/api/payments/create-balance-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: uuid }),
-      });
-      const data = await res.json();
-      setClientSecret(data.client_secret);
-      setLoadingIntent(false);
-    };
-
-    fetchIntent().catch(() => setLoadingIntent(false));
-  }, [paymentMethod, session, uuid]);
 
   const handleCashCheck = async () => {
     await fetch(`/api/session/${uuid}/mark-cash-balance`, {
@@ -168,60 +93,18 @@ export default function BalancePage() {
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-display font-bold text-brand-dark mb-4">Payment Method</h3>
 
-          <div className="space-y-4">
-            <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer" style={{ borderColor: paymentMethod === 'card' ? '#E85D24' : '#e5e7eb' }}>
-              <input
-                type="radio"
-                checked={paymentMethod === 'card'}
-                onChange={() => setPaymentMethod('card')}
-              />
-              <div>
-                <p className="font-semibold text-brand-dark">Credit/Debit Card</p>
-                <p className="text-sm text-brand-gray">3% processing fee included</p>
-              </div>
-            </label>
-
-            <label className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer" style={{ borderColor: paymentMethod === 'check' ? '#E85D24' : '#e5e7eb' }}>
-              <input
-                type="radio"
-                checked={paymentMethod === 'check'}
-                onChange={() => setPaymentMethod('check')}
-              />
-              <div>
-                <p className="font-semibold text-brand-dark">Check or Cash at Pickup</p>
-                <p className="text-sm text-brand-gray">Pay ${balanceDue.toFixed(2)} at pickup</p>
-              </div>
-            </label>
-          </div>
-
-          {/* Card payment — Stripe Elements */}
-          {paymentMethod === 'card' && (
-            <div className="mt-6">
-              {loadingIntent && (
-                <div className="flex justify-center py-4">
-                  <svg className="animate-spin h-6 w-6 text-brand-orange" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                </div>
-              )}
-              {clientSecret && (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <StripeCheckoutForm uuid={uuid} amountDue={balanceDue} />
-                </Elements>
-              )}
+          <div className="space-y-3">
+            <div className="p-4 border-2 rounded-lg border-[#e5e7eb] bg-gray-50">
+              <p className="font-semibold text-brand-dark">Pay at Pickup</p>
+              <p className="text-sm text-brand-gray">Cash or check accepted for ${balanceDue.toFixed(2)}.</p>
             </div>
-          )}
-
-          {/* Check/cash — continue button */}
-          {paymentMethod === 'check' && (
             <button
               onClick={() => handleCashCheck()}
-              className="w-full mt-6 bg-brand-orange text-white py-3 rounded-lg font-semibold hover:opacity-90"
+              className="w-full mt-2 bg-brand-orange text-white py-3 rounded-lg font-semibold hover:opacity-90"
             >
-              Continue to Pickup
+              Confirm Cash/Check Payment at Pickup
             </button>
-          )}
+          </div>
         </div>
       </div>
     </div>

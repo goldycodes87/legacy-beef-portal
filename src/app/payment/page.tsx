@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { PaymentForm as SquarePaymentFormWrapper, CreditCard } from 'react-square-web-payments-sdk';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -186,128 +187,23 @@ function SquarePaymentForm({
   couponCode: string;
   onSuccess: () => void;
 }) {
-  const [card, setCard] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const initializedRef = useRef(false);
 
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    async function init() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Load Square script if needed
-        if (!(window as any).Square) {
-          await new Promise<void>((resolve, reject) => {
-            const existing = document.querySelector(
-              'script[src="https://web.squarecdn.com/v1/square.js"]'
-            );
-            if (existing) { resolve(); return; }
-            const script = document.createElement('script');
-            script.src = 'https://web.squarecdn.com/v1/square.js';
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error('Failed to load Square'));
-            document.head.appendChild(script);
-          });
-          // Wait for Square to be available
-          await new Promise<void>((resolve) => {
-            const check = setInterval(() => {
-              if ((window as any).Square) {
-                clearInterval(check);
-                resolve();
-              }
-            }, 100);
-            setTimeout(() => { clearInterval(check); resolve(); }, 5000);
-          });
-        }
-
-        if (!(window as any).Square) {
-          setError('Payment system unavailable. Please refresh.');
-          setLoading(false);
-          return;
-        }
-
-        const appId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
-        const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
-
-        if (!appId || !locationId) {
-          setError('Payment configuration missing. Please contact us.');
-          setLoading(false);
-          return;
-        }
-
-        const payments = (window as any).Square.payments(appId, locationId);
-        const cardInstance = await payments.card({
-          style: {
-            '.input-container': {
-              borderColor: '#E5E7EB',
-              borderRadius: '12px',
-              borderWidth: '1.5px',
-            },
-            '.input-container.is-focus': {
-              borderColor: '#E85D24',
-              borderWidth: '2px',
-            },
-            '.input-container.is-error': {
-              borderColor: '#EF4444',
-              borderWidth: '2px',
-            },
-            '.message-text': {
-              color: '#EF4444',
-            },
-            '.message-icon': {
-              color: '#EF4444',
-            },
-            input: {
-              backgroundColor: '#FFFFFF',
-              color: '#111827',
-              fontFamily: 'Arial, sans-serif',
-              fontSize: '15px',
-              fontWeight: '400',
-            },
-            'input::placeholder': {
-              color: '#9CA3AF',
-              fontWeight: '400',
-            },
-          },
-        });
-
-        await cardInstance.attach('#square-card-container');
-        setCard(cardInstance);
-        setLoading(false);
-      } catch (err: any) {
-        console.error('Square init failed:', err);
-        setError('Failed to load payment form: ' + (err?.message || 'Unknown error'));
-        setLoading(false);
-      }
+  async function handleToken(token: any) {
+    if (!token?.token) {
+      setError('Card tokenization failed. Please try again.');
+      return;
     }
-
-    init();
-  }, []);
-
-  async function handlePay() {
-    if (!card) return;
     setPaying(true);
     setError(null);
     try {
-      const result = await card.tokenize();
-      if (result.status !== 'OK') {
-        setError(result.errors?.[0]?.message || 'Card tokenization failed');
-        setPaying(false);
-        return;
-      }
       const res = await fetch('/api/payments/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: session.id,
-          source_id: result.token,
+          source_id: token.token,
           coupon_code: couponCode || null,
         }),
       });
@@ -327,33 +223,33 @@ function SquarePaymentForm({
 
   return (
     <div>
-      {loading && (
-        <div className="mb-4 p-8 border border-[#E5E7EB] rounded-xl flex items-center justify-center">
-          <p className="text-[#6B7280] text-sm">Loading payment form...</p>
-        </div>
-      )}
-      <div
-        id="square-card-container"
-        ref={cardRef}
-        className={`mb-6 ${loading ? 'hidden' : ''}`}
-        style={{
-          minHeight: loading ? 0 : '89px',
-          borderRadius: '12px',
-          overflow: 'hidden',
-        }}
-      />
-      {error && (
-        <p className="text-red-600 text-sm mb-3">{error}</p>
-      )}
-      {!loading && (
-        <button
-          onClick={handlePay}
-          disabled={!card || paying}
-          className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-[#E85D24] disabled:opacity-60 transition"
+      <SquarePaymentFormWrapper
+        applicationId={process.env.NEXT_PUBLIC_SQUARE_APP_ID!}
+        locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!}
+        cardTokenizeResponseReceived={handleToken}
+      >
+        <CreditCard
+          style={{
+            '.input-container': {
+              borderColor: '#E5E7EB',
+              borderRadius: '12px',
+            },
+            '.input-container.is-focus': {
+              borderColor: '#E85D24',
+            },
+            '.input-container.is-error': {
+              borderColor: '#EF4444',
+            },
+            input: {
+              color: '#111827',
+              fontSize: '15px',
+            },
+          }}
         >
           {paying ? 'Processing…' : `Pay $${depositAmount} Deposit`}
-        </button>
-      )}
+        </CreditCard>
+      </SquarePaymentFormWrapper>
+      {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
     </div>
   );
 }

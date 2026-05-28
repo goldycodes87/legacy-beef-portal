@@ -4,6 +4,11 @@ import { SquareClient, SquareEnvironment } from 'square';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getConfig, getDepositAmount } from '@/lib/config';
 
+// Fix BigInt JSON serialization for Square SDK
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+};
+
 function purchaseTypeLabel(type: string): string {
   switch (type) {
     case 'whole': return 'Whole Beef';
