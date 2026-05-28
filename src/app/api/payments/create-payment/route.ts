@@ -1,4 +1,7 @@
 export const dynamic = 'force-dynamic';
+// Fix BigInt serialization for Square SDK
+(BigInt.prototype as any).toJSON = function() { return this.toString(); };
+
 import { NextRequest, NextResponse } from 'next/server';
 import { SquareClient, SquareEnvironment } from 'square';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -92,7 +95,7 @@ export async function POST(request: NextRequest) {
       sourceId: source_id,
       idempotencyKey: `deposit-${session_id}-${Date.now()}`,
       amountMoney: {
-        amount: totalCents,
+        amount: BigInt(totalCents),
         currency: 'USD',
       },
       locationId: process.env.SQUARE_LOCATION_ID!,
