@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PaymentForm as SquarePaymentFormWrapper, CreditCard } from 'react-square-web-payments-sdk';
+import { PaymentForm as SquarePaymentFormWrapper, CreditCard, ApplePay, GooglePay } from 'react-square-web-payments-sdk';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -223,11 +223,29 @@ function SquarePaymentForm({
 
   return (
     <div>
+      {/* TODO: Add /.well-known/apple-developer-merchantid-domain-association to public for Apple Pay domain verification */}
       <SquarePaymentFormWrapper
         applicationId={process.env.NEXT_PUBLIC_SQUARE_APP_ID!}
         locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!}
         cardTokenizeResponseReceived={handleToken}
+        createPaymentRequest={() => ({
+          countryCode: 'US',
+          currencyCode: 'USD',
+          total: {
+            amount: depositAmount.toFixed(2),
+            label: 'Legacy Land & Cattle Deposit',
+          },
+        })}
       >
+        <div className="space-y-3 mb-4">
+          <GooglePay />
+          <ApplePay />
+        </div>
+        <div className="relative flex items-center my-4">
+          <div className="flex-grow border-t border-[#E5E7EB]"></div>
+          <span className="flex-shrink mx-4 text-[#9CA3AF] text-xs">or pay with card</span>
+          <div className="flex-grow border-t border-[#E5E7EB]"></div>
+        </div>
         <CreditCard
           style={{
             '.input-container': {

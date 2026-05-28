@@ -1,7 +1,8 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -9,17 +10,31 @@ import { Card } from '@/components/ui/Card';
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  const router = useRouter();
+  const [paidAmount, setPaidAmount] = useState<number | null>(null);
 
-  function handleStartCutSheet() {
-    if (sessionId) {
-      router.push(`/session/${sessionId}/cuts`);
+  useEffect(() => {
+    if (!sessionId) return;
+    async function fetchAmount() {
+      try {
+        const res = await fetch('/api/payments/latest-deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+        const data = await res.json();
+        if (res.ok && data.amount_cents !== undefined && data.amount_cents !== null) {
+          setPaidAmount(data.amount_cents / 100);
+        }
+      } catch (err) {
+        console.error('Failed to load deposit amount', err);
+      }
     }
-  }
+    fetchAmount();
+  }, [sessionId]);
 
-  function handleDoItLater() {
-    router.push('/');
-  }
+  const amountText = paidAmount !== null
+    ? `Your deposit of $${paidAmount.toFixed(2)} has been received and your beef spot is locked in.`
+    : 'Your deposit has been received and your beef spot is locked in.';
 
   return (
     <div className="min-h-screen bg-brand-warm">
@@ -32,7 +47,7 @@ function PaymentSuccessContent() {
             You&apos;re confirmed!
           </h1>
           <p className="font-body text-brand-gray text-base">
-            Your deposit has been received and your beef spot is locked in.
+            {amountText}
           </p>
         </div>
 
@@ -45,13 +60,17 @@ function PaymentSuccessContent() {
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">
-          <Button onClick={handleStartCutSheet} fullWidth size="lg">
-            Start My Cut Sheet →
-          </Button>
+          <Link href={sessionId ? `/session/${sessionId}/cuts` : '/'}>
+            <Button fullWidth size="lg">
+              Start My Cut Sheet →
+            </Button>
+          </Link>
 
-          <Button onClick={handleDoItLater} variant="secondary" fullWidth size="lg">
-            I&apos;ll Do It Later
-          </Button>
+          <Link href="/">
+            <Button variant="secondary" fullWidth size="lg">
+              I&apos;ll Do It Later
+            </Button>
+          </Link>
 
           <p className="font-body text-center text-xs text-brand-gray mt-1">
             Check your email to return anytime
