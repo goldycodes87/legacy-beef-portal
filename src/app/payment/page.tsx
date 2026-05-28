@@ -189,41 +189,94 @@ function SquarePaymentForm({
   const [card, setCard] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  const [loading, setLoading] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    let mounted = true;
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-    async function loadSquare() {
-      // Load script if not already loaded
-      if (!(window as any).Square) {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://web.squarecdn.com/v1/square.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load Square SDK'));
-          document.head.appendChild(script);
-        });
-      }
-
-      if (!mounted) return;
-
+    async function init() {
       try {
-        const payments = (window as any).Square.payments(
-          process.env.NEXT_PUBLIC_SQUARE_APP_ID,
-          process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID
-        );
-        const card = await payments.card();
-        await card.attach('#square-card-container');
-        if (mounted) setCard(card);
-      } catch (err) {
-        console.error('Square init error:', err);
-        if (mounted) setError('Failed to load payment form. Please refresh.');
+        setLoading(true);
+        setError(null);
+
+        // Load Square script if needed
+        if (!(window as any).Square) {
+          await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector(
+              'script[src="https://web.squarecdn.com/v1/square.js"]'
+            );
+            if (existing) { resolve(); return; }
+            const script = document.createElement('script');
+            script.src = 'https://web.squarecdn.com/v1/square.js';
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error('Failed to load Square'));
+            document.head.appendChild(script);
+          });
+          // Wait for Square to be available
+          await new Promise<void>((resolve) => {
+            const check = setInterval(() => {
+              if ((window as any).Square) {
+                clearInterval(check);
+                resolve();
+              }
+            }, 100);
+            setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+          });
+        }
+
+        if (!(window as any).Square) {
+          setError('Payment system unavailable. Please refresh.');
+          setLoading(false);
+          return;
+        }
+
+        const appId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
+        const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
+
+        if (!appId || !locationId) {
+          setError('Payment configuration missing. Please contact us.');
+          setLoading(false);
+          return;
+        }
+
+        const payments = (window as any).Square.payments(appId, locationId);
+        const cardInstance = await payments.card({
+          style: {
+            '.input-container': {
+              borderColor: '#E5E7EB',
+              borderRadius: '12px',
+            },
+            '.input-container.is-focus': {
+              borderColor: '#E85D24',
+            },
+            '.input-container.is-error': {
+              borderColor: '#EF4444',
+            },
+            input: {
+              color: '#0F0F0F',
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '14px',
+            },
+            'input::placeholder': {
+              color: '#9CA3AF',
+            },
+          },
+        });
+
+        await cardInstance.attach('#square-card-container');
+        setCard(cardInstance);
+        setLoading(false);
+      } catch (err: any) {
+        console.error('Square init failed:', err);
+        setError('Failed to load payment form: ' + (err?.message || 'Unknown error'));
+        setLoading(false);
       }
     }
 
-    loadSquare();
-    return () => { mounted = false; };
+    init();
   }, []);
 
   async function handlePay() {
@@ -248,14 +301,11 @@ function SquarePaymentForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Payment failed');
+        setError(data.error || 'Payment failed. Please try again.');
         setPaying(false);
         return;
       }
-      if (data.waived) {
-        onSuccess();
-        return;
-      }
+      if (data.waived) { onSuccess(); return; }
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Payment failed');
@@ -265,19 +315,29 @@ function SquarePaymentForm({
 
   return (
     <div>
+      {loading && (
+        <div className="mb-4 p-8 border border-[#E5E7EB] rounded-xl flex items-center justify-center">
+          <p className="text-[#6B7280] text-sm">Loading payment form...</p>
+        </div>
+      )}
       <div
         id="square-card-container"
         ref={cardRef}
-        className="mb-4 p-4 border border-[#E5E7EB] rounded-xl min-h-[100px]"
+        className={`mb-4 ${loading ? 'hidden' : ''}`}
+        style={{ minHeight: loading ? 0 : '89px' }}
       />
-      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
-      <button
-        onClick={handlePay}
-        disabled={!card || paying}
-        className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-[#E85D24] disabled:opacity-60"
-      >
-        {paying ? 'Processing…' : `Pay $${depositAmount} Deposit`}
-      </button>
+      {error && (
+        <p className="text-red-600 text-sm mb-3">{error}</p>
+      )}
+      {!loading && (
+        <button
+          onClick={handlePay}
+          disabled={!card || paying}
+          className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-[#E85D24] disabled:opacity-60 transition"
+        >
+          {paying ? 'Processing…' : `Pay $${depositAmount} Deposit`}
+        </button>
+      )}
     </div>
   );
 }
