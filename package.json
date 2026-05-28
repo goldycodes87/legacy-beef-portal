@@ -21,7 +21,6 @@
     "react-square-web-payments-sdk": "^3.3.0",
     "resend": "^4.0.0",
     "square": "^44.1.0",
-    "squareup": "^1.0.0",
     "tailwind-merge": "^3.5.0",
     "uuid": "^9.0.0"
   },
