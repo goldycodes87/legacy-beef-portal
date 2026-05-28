@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import Script from 'next/script';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,75 +172,94 @@ function OrderRow({
   );
 }
 
-// ─── Stripe Payment Form ──────────────────────────────────────────────────────
+// ─── Square Payment Form ─────────────────────────────────────────────────────
 
-function StripePaymentForm({
+function SquarePaymentForm({
   session,
-  animal,
-  customer,
   depositAmount,
+  surcharge,
+  couponCode,
   onSuccess,
 }: {
   session: Session;
-  animal: Animal;
-  customer: Customer;
   depositAmount: number;
+  surcharge: number;
+  couponCode: string;
   onSuccess: () => void;
 }) {
-  const stripe = useStripe();
-  const elements = useElements();
+  const [card, setCard] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!stripe || !elements) return;
+  useEffect(() => {
+    async function initSquare() {
+      if (!(window as any).Square) return;
+      const payments = (window as any).Square.payments(
+        process.env.NEXT_PUBLIC_SQUARE_APP_ID!,
+        process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!
+      );
+      const card = await payments.card();
+      await card.attach('#square-card-container');
+      setCard(card);
+    }
+    const timer = setTimeout(initSquare, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  async function handlePay() {
+    if (!card) return;
     setPaying(true);
     setError(null);
-
-    const { error: stripeError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/api/payments/stripe-return?session_id=${session.id}`,
-      },
-    });
-
-    if (stripeError) {
-      setError(stripeError.message ?? 'Payment failed');
+    try {
+      const result = await card.tokenize();
+      if (result.status !== 'OK') {
+        setError(result.errors?.[0]?.message || 'Card tokenization failed');
+        setPaying(false);
+        return;
+      }
+      const res = await fetch('/api/payments/create-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: session.id,
+          source_id: result.token,
+          coupon_code: couponCode || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Payment failed');
+        setPaying(false);
+        return;
+      }
+      if (data.waived) {
+        onSuccess();
+        return;
+      }
+      onSuccess();
+    } catch (err: any) {
+      setError(err.message || 'Payment failed');
       setPaying(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement options={{
-        fields: {
-          billingDetails: {
-            name: 'auto',
-            email: 'auto',
-            address: {
-              country: 'auto',
-              postalCode: 'auto',
-              line1: 'auto',
-              city: 'auto',
-              state: 'auto',
-            }
-          }
-        },
-        wallets: {
-          applePay: 'auto',
-          googlePay: 'auto',
-        }
-      }} />
-      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+    <div>
+      <div
+        id="square-card-container"
+        ref={cardRef}
+        className="mb-4 p-4 border border-[#E5E7EB] rounded-xl min-h-[100px]"
+      />
+      {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
       <button
-        type="submit"
-        disabled={!stripe || paying}
-        className="w-full mt-4 py-4 px-6 rounded-xl text-white font-semibold bg-[#E85D24] disabled:opacity-60"
+        onClick={handlePay}
+        disabled={!card || paying}
+        className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-[#E85D24] disabled:opacity-60"
       >
         {paying ? 'Processing…' : `Pay $${depositAmount} Deposit`}
       </button>
-    </form>
+    </div>
   );
 }
 
@@ -262,14 +278,12 @@ function PaymentForm({
   depositAmount: number;
   onSuccess: () => void;
 }) {
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'ach' | 'cash'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState<{ discount: number; message: string } | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [finalAmount, setFinalAmount] = useState(depositAmount);
   const [surcharge, setSurcharge] = useState(0);
-  const [loadingIntent, setLoadingIntent] = useState(false);
 
   async function applyCoupon() {
     setCouponError(null);
@@ -286,32 +300,25 @@ function PaymentForm({
     setCouponApplied({ discount: data.discount_amount, message: data.message });
   }
 
-  async function loadPaymentIntent() {
-    if (paymentMethod === 'cash') return;
-    setLoadingIntent(true);
-    const res = await fetch('/api/payments/create-intent', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        session_id: session.id,
-        payment_method_type: paymentMethod,
-        coupon_code: couponCode || null,
-      }),
-    });
-    const data = await res.json();
-    if (data.waived) {
-      onSuccess();
-      return;
-    }
-    setClientSecret(data.client_secret);
-    setFinalAmount(Math.round(data.amount_cents / 100));
-    setSurcharge(Math.round(data.surcharge_cents / 100));
-    setLoadingIntent(false);
-  }
-
   useEffect(() => {
-    loadPaymentIntent();
-  }, [paymentMethod]);
+    async function calcAmount() {
+      const config = await fetch('/api/config/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: session.id, coupon_code: couponCode || null }),
+      });
+      const data = await config.json();
+      if (data.waived) { onSuccess(); return; }
+      setFinalAmount(Math.round(data.amount_cents / 100));
+      setSurcharge(Math.round(data.surcharge_cents / 100));
+    }
+    if (paymentMethod === 'card') {
+      calcAmount();
+    } else {
+      setFinalAmount(depositAmount);
+      setSurcharge(0);
+    }
+  }, [paymentMethod, couponCode, depositAmount, session.id]);
 
   return (
     <main className="max-w-[600px] mx-auto px-4 py-12">
@@ -369,11 +376,10 @@ function PaymentForm({
       {/* Payment Method Selection */}
       <div className="mb-6">
         <p className="text-sm font-semibold text-[#0F0F0F] mb-3">Payment Method</p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {(
             [
               ['card', '💳', 'Credit/Debit Card', '3% fee applies'],
-              ['ach', '🏦', 'Bank Transfer (ACH)', 'No fee · 3-5 days'],
               ['cash', '💵', 'Cash or Check', 'Pay at pickup'],
             ] as const
           ).map(([method, icon, label, note]) => (
@@ -393,14 +399,6 @@ function PaymentForm({
           ))}
         </div>
       </div>
-
-      {/* ACH Notice */}
-      {paymentMethod === 'ach' && (
-        <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-          <p className="font-semibold mb-1">Bank Transfer Note</p>
-          <p>Your slot will be held while your transfer processes (3-5 business days). You'll receive a confirmation email once it clears.</p>
-        </div>
-      )}
 
       {/* Cash Notice */}
       {paymentMethod === 'cash' && (
@@ -424,25 +422,19 @@ function PaymentForm({
         </div>
       )}
 
-      {/* Stripe Elements */}
-      {(paymentMethod === 'card' || paymentMethod === 'ach') && clientSecret && (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <StripePaymentForm
+      {paymentMethod === 'card' && (
+        <div>
+          <Script
+            src="https://web.squarecdn.com/v1/square.js"
+            strategy="beforeInteractive"
+          />
+          <SquarePaymentForm
             session={session}
-            animal={animal}
-            customer={customer}
             depositAmount={finalAmount}
+            surcharge={surcharge}
+            couponCode={couponCode}
             onSuccess={onSuccess}
           />
-        </Elements>
-      )}
-
-      {loadingIntent && (
-        <div className="flex justify-center py-4">
-          <svg className="animate-spin h-6 w-6 text-[#E85D24]" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
         </div>
       )}
     </main>
