@@ -142,13 +142,6 @@ export async function POST(request: NextRequest) {
 
     const sessionId = sessionData.id;
 
-    // Send draft confirmation email
-    try {
-      const resendKey = process.env.RESEND_API_KEY;
-      if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
-        const { Resend } = await import('resend');
-        const resend = new Resend(resendKey);
-
     // 4. Increment units_used on the animal (optimistic — race condition handled by check above)
     const { error: updateError } = await supabaseAdmin
       .from('animals')
