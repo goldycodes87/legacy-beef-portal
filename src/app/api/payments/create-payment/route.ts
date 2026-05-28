@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       sourceId: source_id,
       idempotencyKey: `deposit-${session_id}-${Date.now()}`,
       amountMoney: {
-        amount: BigInt(totalCents),
+        amount: totalCents,
         currency: 'USD',
       },
       locationId: process.env.SQUARE_LOCATION_ID!,
