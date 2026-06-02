@@ -41,20 +41,47 @@ export async function POST(
 
   if (!section) return NextResponse.json({ error: 'section required' }, { status: 400 });
 
-  const { data, error } = await supabase
+  // Check if record exists
+  let existQuery = supabase
     .from('cut_sheet_answers')
-    .upsert({
-      session_id: uuid,
-      section,
-      half,
-      answers: answers ?? {},
-      completed: completed ?? false,
-      custom_request: custom_request ?? null,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'cut_sheet_answers_session_section_half_idx' })
-    .select()
-    .single();
+    .select('id')
+    .eq('session_id', uuid)
+    .eq('section', section);
+  if (half !== null) {
+    existQuery = existQuery.eq('half', half);
+  } else {
+    existQuery = existQuery.is('half', null);
+  }
+  const { data: existing } = await existQuery.maybeSingle();
 
+  let data, error;
+  if (existing?.id) {
+    ({ data, error } = await supabase
+      .from('cut_sheet_answers')
+      .update({
+        answers: answers ?? {},
+        completed: completed ?? false,
+        custom_request: custom_request ?? null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+      .select()
+      .single());
+  } else {
+    ({ data, error } = await supabase
+      .from('cut_sheet_answers')
+      .insert({
+        session_id: uuid,
+        section,
+        half,
+        answers: answers ?? {},
+        completed: completed ?? false,
+        custom_request: custom_request ?? null,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single());
+  }
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
