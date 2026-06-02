@@ -22,6 +22,7 @@ const CARD_IMAGES = [
 interface Session {
   id: string;
   purchase_type: 'whole' | 'half' | 'quarter';
+  dual_cut_sheet?: boolean | null;
   animal?: { name: string; butcher_date: string; animal_type: string; price_per_lb: number };
 }
 
@@ -81,6 +82,7 @@ export default function WrappedPage() {
   const daysUntil = butcherDate ? Math.ceil((butcherDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
   const weightRange = WEIGHT_RANGES[session.purchase_type] || '195–235';
   const animalTypeLabel = ANIMAL_TYPE_LABELS[session.animal?.animal_type || 'grass_fed'];
+  const isDual = session.dual_cut_sheet === true;
 
   // Estimate ground beef lbs (rough: 30% of finished weight goes to grind)
   const avgWeight = session.purchase_type === 'whole' ? 427 : session.purchase_type === 'half' ? 215 : 108;
@@ -152,7 +154,9 @@ export default function WrappedPage() {
             className="h-20 w-auto mx-auto"
           />
           <div className="space-y-2">
-            <p className="text-white text-2xl font-display font-bold">Your beef is locked in.</p>
+            <p className="text-white text-2xl font-display font-bold">
+              {isDual ? 'Both cut sheets are locked!' : 'Your beef is locked in.'}
+            </p>
             <p className="text-white/70 text-base">We&apos;ll take it from here.</p>
           </div>
           <div className="bg-brand-green rounded-2xl p-5 text-left space-y-2">
@@ -197,12 +201,12 @@ export default function WrappedPage() {
           <span className="text-6xl">🎉</span>
         </div>
         <h1 className="font-display font-bold text-4xl text-white mb-3">
-          Your Cut Sheet
+          {isDual ? 'Both Cut Sheets' : 'Your Cut Sheet'}
           <br />
           is Locked!
         </h1>
         <p className="text-white/60 text-base mb-10">
-          Your order is headed to the butcher exactly how you want it.
+          {isDual ? 'Both halves are headed to the butcher exactly how you want them.' : 'Your order is headed to the butcher exactly how you want it.'}
         </p>
         <div className="animate-pulse">
           <p className="text-white/40 text-sm">Tap anywhere to see your recap</p>

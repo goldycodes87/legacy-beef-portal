@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { emailBase, ctaButton, cutSheetSummary } from '@/lib/email-templates';
+import { emailBase, cutSheetSummary } from '@/lib/email-templates';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
@@ -12,76 +12,128 @@ export async function POST(
   const { uuid } = await params;
   const supabase = getSupabaseAdmin();
   const portalOrigin = request.nextUrl.origin;
+  const { half } = await request.json().catch(() => ({} as { half?: string }));
+  const halfValue = half === 'A' || half === 'B' ? half : null;
+  const now = new Date().toISOString();
 
-  // Lock all sections for owner's session
-  await supabase
-    .from('cut_sheet_answers')
-    .update({ locked: true })
-    .eq('session_id', uuid);
-
-  // Update session status
-  await supabase
-    .from('sessions')
-    .update({ 
-      status: 'locked',
-      cut_sheet_complete: true,
-      cut_sheet_locked_at: new Date().toISOString()
-    })
-    .eq('id', uuid);
-
-  // Fetch this session to check for split partner
   const { data: session } = await supabase
     .from('sessions')
     .select(`
-      id, cut_sheet_partner_session_id, access_token,
+      id, cut_sheet_partner_session_id, access_token, dual_cut_sheet,
+      half_a_complete, half_b_complete, cut_sheet_locked_at,
       customers (id, name, email),
       animals (name, butcher_date)
     `)
     .eq('id', uuid)
     .single();
 
-  // Send confirmation email to main customer
-  const mainCustomer = Array.isArray(
-    (session as any)?.customers)
+  if (!session) {
+    return NextResponse.json({ error: 'session_not_found' }, { status: 404 });
+  }
+
+  if (halfValue) {
+    await supabase
+      .from('cut_sheet_answers')
+      .update({ locked: true })
+      .eq('session_id', uuid)
+      .eq('half', halfValue);
+
+    const sessionUpdate: Record<string, any> = halfValue === 'A'
+      ? { half_a_complete: true, half_a_locked_at: now }
+      : { half_b_complete: true, half_b_locked_at: now };
+    const otherHalfComplete = halfValue === 'A' ? session.half_b_complete : session.half_a_complete;
+
+    if (otherHalfComplete) {
+      sessionUpdate.status = 'locked';
+      sessionUpdate.cut_sheet_complete = true;
+      sessionUpdate.cut_sheet_locked_at = session.cut_sheet_locked_at || now;
+    }
+
+    await supabase
+      .from('sessions')
+      .update(sessionUpdate)
+      .eq('id', uuid);
+
+    if (!otherHalfComplete) {
+      return NextResponse.json({ success: true });
+    }
+  } else {
+    await supabase
+      .from('cut_sheet_answers')
+      .update({ locked: true })
+      .eq('session_id', uuid);
+
+    await supabase
+      .from('sessions')
+      .update({
+        status: 'locked',
+        cut_sheet_complete: true,
+        cut_sheet_locked_at: now,
+      })
+      .eq('id', uuid);
+  }
+
+  const mainCustomer = Array.isArray((session as any)?.customers)
     ? (session as any).customers[0]
     : (session as any)?.customers;
-  const mainAnimal = Array.isArray(
-    (session as any)?.animals)
+  const mainAnimal = Array.isArray((session as any)?.animals)
     ? (session as any).animals[0]
     : (session as any)?.animals;
 
+  const firstName = mainCustomer?.name?.split(' ')[0] ?? 'there';
+  const butcherDate = mainAnimal?.butcher_date
+    ? new Date(mainAnimal.butcher_date)
+      .toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      })
+    : 'your scheduled date';
+  const accessToken = (session as any)?.access_token;
+  const reviewLink = accessToken
+    ? `${APP_URL}/access/${accessToken}`
+    : `${APP_URL}`;
+
+  const { data: answers } = await supabase
+    .from('cut_sheet_answers')
+    .select('section, answers, half')
+    .eq('session_id', uuid);
+
+  const halfAAnswers = (answers || []).filter(a => (a.half ?? null) === 'A');
+  const halfBAnswers = (answers || []).filter(a => (a.half ?? null) === 'B');
+
+  const summaryHtml = halfValue
+    ? `
+      <p style="font-family:Arial,sans-serif;font-size:13px;color:#1A3D2B;margin:12px 0 6px;font-weight:bold;">HALF A</p>
+      ${cutSheetSummary(halfAAnswers || [])}
+      <p style="font-family:Arial,sans-serif;font-size:13px;color:#1A3D2B;margin:16px 0 6px;font-weight:bold;">HALF B</p>
+      ${cutSheetSummary(halfBAnswers || [])}
+    `
+    : cutSheetSummary(answers || []);
+
+  const preheader = halfValue
+    ? `Nice work, ${firstName} — both halves are confirmed.`
+    : `Nice work, ${firstName} — your cut sheet is done.`;
+  const headline = halfValue
+    ? 'Both halves are locked in.'
+    : `Your cut sheet is done, ${firstName}.`;
+  const subhead = halfValue
+    ? 'We have instructions for Half A and Half B.'
+    : "We've got your cutting instructions.";
+
   if (mainCustomer?.email) {
-    const firstName = 
-      mainCustomer.name?.split(' ')[0] ?? 'there';
-    const butcherDate = mainAnimal?.butcher_date
-      ? new Date(mainAnimal.butcher_date)
-        .toLocaleDateString('en-US', { 
-          year: 'numeric', month: 'long', day: 'numeric'
-        })
-      : 'your scheduled date';
-    const accessToken = (session as any)?.access_token;
-    const reviewLink = accessToken
-      ? `${APP_URL}/access/${accessToken}`
-      : `${APP_URL}`;
-
-    const { data: answers } = await supabase
-      .from('cut_sheet_answers')
-      .select('section, answers')
-      .eq('session_id', uuid);
-
-    const preheader = `Nice work, ${firstName} — your cut sheet is done.`;
     const content = `
       <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;"><tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
         <div style="font-size:40px;margin-bottom:8px;">✅</div>
         <h2 style="font-family:Georgia,serif;color:white;font-size:24px;margin:0 0 8px;font-weight:normal;">
-          Your cut sheet is done, ${firstName}.
+          ${headline}
         </h2>
         <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
-          We've got your cutting instructions.
+          ${subhead}
         </p>
       </td></tr></table>
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
-        You just made the most important decision of this whole process — and we've got every detail. Your cut sheet is locked and will be hand-delivered to T-K Processing in Cañon City before your butcher date.
+        ${halfValue
+          ? 'Your cut sheets are locked and will be hand-delivered to T-K Processing in Cañon City before butcher day.'
+          : "You just made the most important decision of this whole process — and we've got every detail. Your cut sheet is locked and will be hand-delivered to T-K Processing in Cañon City before your butcher date."}
       </p>
       <div style="background:#F9F6F1;border:1px solid #E5E0D8;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
         <p style="font-family:Arial,sans-serif;font-size:14px;color:#1A3D2B;margin:0 0 4px;font-weight:bold;">
@@ -94,7 +146,7 @@ export async function POST(
           4. We'll email you when it's ready for pickup
         </p>
       </div>
-      ${cutSheetSummary(answers || [])}
+      ${summaryHtml}
       <a href="${reviewLink}" style="display:block;background:#F5F0E8;color:#1A3D2B;text-align:center;padding:14px 24px;border-radius:10px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;text-decoration:none;border:2px solid #1A3D2B;margin:24px 0 8px;">
         Review My Cut Sheet →
       </a>
@@ -108,9 +160,9 @@ export async function POST(
     await resend.emails.send({
       from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
       to: mainCustomer.email,
-      subject: `Your cut sheet is locked, ${firstName} ✅`,
+      subject: halfValue ? 'Your cut sheet is locked ✅ — both halves confirmed' : `Your cut sheet is locked, ${firstName} ✅`,
       html: htmlEmail,
-    }).catch(err => 
+    }).catch(err =>
       console.error('Cut sheet lock email error:', err));
 
     // Grant notification
@@ -171,42 +223,32 @@ export async function POST(
     const partnerCustomer = partnerSession?.customers as unknown as { name: string; email: string } | null;
 
     if (partnerCustomer?.email) {
-      // Fetch cut sheet answers for summary
-      const { data: answers } = await supabase
-        .from('cut_sheet_answers')
-        .select('section, answers')
-        .eq('session_id', uuid);
-
       const firstName = partnerCustomer.name?.split(' ')[0] ?? 'there';
-      
-      const preheader = 'Nice work — your beef order is all set.';
-      const content = `
+
+      const partnerContent = `
         <h2 style="font-family:Georgia,serif;color:#0F0F0F;font-size:22px;margin:0 0 8px;">
-          Your cut sheet is locked, ${firstName}. Nice work! 🔒
+          ${halfValue ? 'Both halves are locked. Nice work!' : `Your cut sheet is locked, ${firstName}. Nice work! 🔒`}
         </h2>
         <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:15px;line-height:1.6;margin:0 0 20px;">
-          We've got your cutting instructions and we'll make sure they get to the
-          butcher before your animal goes in. Here's a summary of what you ordered:
+          We've got your cutting instructions and we'll make sure they get to the butcher before your animal goes in. Here's a summary of what you ordered:
         </p>
 
-        ${cutSheetSummary(answers || [])}
+        ${summaryHtml}
 
         <p style="color:#6B7280;font-family:Arial,sans-serif;font-size:13px;line-height:1.6;margin:20px 0 0;">
-          Questions or changes before butcher day? Reply to this email and we'll
-          do our best to accommodate.
+          Questions or changes before butcher day? Reply to this email and we'll do our best to accommodate.
         </p>
       `;
 
-      const htmlEmail = emailBase(content, preheader);
+      const htmlEmail = emailBase(partnerContent, 'Nice work — your beef order is all set.');
 
-      // Send notification email to partner with cut sheet summary
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
         from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
         to: partnerCustomer.email,
-        subject: 'Your cut sheet is locked in 🔒',
+        subject: halfValue ? 'Both halves are locked 🔒' : 'Your cut sheet is locked in 🔒',
         html: htmlEmail,
       });
     }

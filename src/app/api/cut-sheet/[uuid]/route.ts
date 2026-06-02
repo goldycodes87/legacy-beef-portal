@@ -8,13 +8,21 @@ export async function GET(
   { params }: { params: Promise<{ uuid: string }> }
 ) {
   const { uuid } = await params;
+  const halfParam = request.nextUrl.searchParams.get('half');
+  const half = halfParam === 'A' || halfParam === 'B' ? halfParam : null;
   const supabase = getSupabaseAdmin();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('cut_sheet_answers')
     .select('*')
     .eq('session_id', uuid)
     .order('section');
+
+  if (half !== null) {
+    query = query.eq('half', half);
+  }
+
+  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data || []);
@@ -29,6 +37,7 @@ export async function POST(
   const supabase = getSupabaseAdmin();
   const body = await request.json();
   const { section, answers, completed, custom_request } = body;
+  const half = body.half === 'A' || body.half === 'B' ? body.half : null;
 
   if (!section) return NextResponse.json({ error: 'section required' }, { status: 400 });
 
@@ -37,11 +46,12 @@ export async function POST(
     .upsert({
       session_id: uuid,
       section,
+      half,
       answers: answers ?? {},
       completed: completed ?? false,
       custom_request: custom_request ?? null,
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'session_id,section' })
+    }, { onConflict: 'cut_sheet_answers_session_section_half_idx' })
     .select()
     .single();
 

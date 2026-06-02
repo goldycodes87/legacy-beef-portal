@@ -16,6 +16,11 @@ interface Session {
   group_size: number;
   is_splitting: boolean;
   cut_sheet_complete: boolean;
+  dual_cut_sheet?: boolean | null;
+  half_a_complete?: boolean;
+  half_b_complete?: boolean;
+  half_a_locked_at?: string | null;
+  half_b_locked_at?: string | null;
   animal?: {
     butcher_date?: string;
   };
@@ -23,10 +28,12 @@ interface Session {
 
 interface CutSheetAnswer {
   section: string;
+  half?: 'A' | 'B' | null;
   answers: Record<string, unknown>;
   completed: boolean;
   locked: boolean;
   custom_request?: string;
+  custom_request_status?: string;
 }
 
 // ─── Section definitions ───────────────────────────────────────────────────
@@ -190,6 +197,52 @@ function SectionDotPath({
 }
 
 // ─── Intro Screen ─────────────────────────────────────────────────────────────
+
+function DualCutSheetChoice({ onChoose }: { onChoose: (dual: boolean) => void }) {
+  return (
+    <div className="min-h-[70vh] bg-brand-warm flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-4xl space-y-6">
+        <div className="text-center">
+          <p className="text-sm font-semibold text-brand-green uppercase tracking-wide">Whole Beef</p>
+          <h1 className="font-display font-bold text-3xl text-brand-dark mt-1 mb-2">How would you like your beef cut?</h1>
+          <p className="text-brand-gray text-sm">Choose one set of instructions for the whole animal, or customize each half separately.</p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border-2 border-brand-green shadow-sm p-6 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-green text-white flex items-center justify-center text-xl">1</div>
+              <div>
+                <p className="font-display text-xl font-bold text-brand-dark">One Cut Sheet</p>
+                <p className="text-brand-gray text-sm">Simpler — one set of instructions for everything</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onChoose(false)}
+              className="mt-auto w-full bg-brand-green hover:bg-brand-green/90 text-white py-3 rounded-xl font-semibold transition-colors"
+            >
+              One Cut Sheet →
+            </button>
+          </div>
+          <div className="bg-white rounded-2xl border-2 border-brand-orange shadow-sm p-6 flex flex-col gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-brand-orange text-white flex items-center justify-center text-xl">2</div>
+              <div>
+                <p className="font-display text-xl font-bold text-brand-dark">Two Cut Sheets (Half A &amp; Half B)</p>
+                <p className="text-brand-gray text-sm">Customize cuts differently for each half</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onChoose(true)}
+              className="mt-auto w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-3 rounded-xl font-semibold transition-colors"
+            >
+              Two Cut Sheets →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function IntroScreen({ session, onStart }: { session: Session; onStart: (useHouse?: boolean) => void }) {
   const [useHouseSheet, setUseHouseSheet] = useState(false);
@@ -1148,6 +1201,7 @@ function SectionForm({
   locked,
   sessionId,
   allAnswers,
+  half,
   onSave,
   onNext,
   onPrev,
@@ -1160,6 +1214,7 @@ function SectionForm({
   locked: boolean;
   sessionId: string;
   allAnswers: CutSheetAnswer[];
+  half: 'A' | 'B' | null;
   onSave: (answers: Record<string, unknown>, completed: boolean) => void;
   onNext: () => void;
   onPrev: () => void;
@@ -1190,7 +1245,7 @@ function SectionForm({
     await fetch(`/api/cut-sheet/${sessionId}/custom-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ section: section.id, request: customRequest }),
+      body: JSON.stringify({ section: section.id, request: customRequest, half }),
     });
     setCustomSaved(true);
     setTimeout(() => setCustomSaved(false), 3000);
@@ -1296,9 +1351,26 @@ export default function CutsPage() {
   const [showWrapped, setShowWrapped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeHalf, setActiveHalf] = useState<'A' | 'B' | null>(null);
+  const [showChoice, setShowChoice] = useState(false);
 
-  const completedSections = answers.filter(a => a.completed).map(a => a.section);
+  const isDual = session?.dual_cut_sheet === true;
+  const currentHalf = isDual ? (activeHalf || 'A') : null;
+
+  const answersForHalf = answers.filter(a => {
+    const answerHalf = a.half ?? null;
+    if (!isDual) return answerHalf === null;
+    return answerHalf === currentHalf;
+  });
+
+  const completedSections = answersForHalf.filter(a => a.completed).map(a => a.section);
   const completedAll = SECTIONS.every(s => completedSections.includes(s.id));
+  const halfAComplete = isDual
+    ? SECTIONS.every(s => answers.some(a => (a.half ?? null) === 'A' && a.section === s.id && a.completed))
+    : false;
+  const halfBComplete = isDual
+    ? SECTIONS.every(s => answers.some(a => (a.half ?? null) === 'B' && a.section === s.id && a.completed))
+    : false;
 
   // Load session and answers
   useEffect(() => {
@@ -1309,8 +1381,36 @@ export default function CutsPage() {
       ]);
       const sessionData = await sessionRes.json();
       const answersData = await answersRes.json();
-      setSession(sessionData);
-      setAnswers(Array.isArray(answersData) ? answersData : []);
+      const normalizedAnswers = Array.isArray(answersData) ? answersData : [];
+      const hasExistingAnswers = normalizedAnswers.length > 0;
+      const shouldShowChoice = sessionData.purchase_type === 'whole'
+        && (sessionData.dual_cut_sheet === null || sessionData.dual_cut_sheet === undefined)
+        && !hasExistingAnswers;
+
+      let answersToUse: CutSheetAnswer[] = normalizedAnswers;
+      if (sessionData.dual_cut_sheet === true) {
+        const [halfARes, halfBRes] = await Promise.all([
+          fetch(`/api/cut-sheet/${uuid}?half=A`),
+          fetch(`/api/cut-sheet/${uuid}?half=B`),
+        ]);
+        const [halfAData, halfBData] = await Promise.all([halfARes.json(), halfBRes.json()]);
+        answersToUse = [
+          ...(Array.isArray(halfAData) ? halfAData : []),
+          ...(Array.isArray(halfBData) ? halfBData : []),
+        ];
+        setActiveHalf('A');
+      } else {
+        setActiveHalf(null);
+      }
+
+      const normalizedSession: Session = {
+        ...sessionData,
+        dual_cut_sheet: shouldShowChoice ? sessionData.dual_cut_sheet : (sessionData.dual_cut_sheet ?? false),
+      };
+
+      setSession(normalizedSession);
+      setShowChoice(shouldShowChoice);
+      setAnswers(answersToUse);
       // Track last viewed
       fetch(`/api/cut-sheet/${uuid}/viewed`, {
         method: 'POST',
@@ -1319,12 +1419,20 @@ export default function CutsPage() {
       // Handle ?section= query param
       const urlParams = new URLSearchParams(window.location.search);
       const sectionParam = urlParams.get('section');
+      const halfParam = urlParams.get('half');
+      if (normalizedSession.dual_cut_sheet && (halfParam === 'A' || halfParam === 'B')) {
+        setActiveHalf(halfParam);
+      }
       if (sectionParam !== null) {
         setCurrentIndex(parseInt(sectionParam, 10));
         setShowIntro(false);
-      } else if (Array.isArray(answersData) && answersData.length > 0) {
+      } else if (answersToUse.length > 0) {
+        const halfForIndex = normalizedSession.dual_cut_sheet ? 'A' : null;
+        const answersForIndex = normalizedSession.dual_cut_sheet
+          ? answersToUse.filter((a: CutSheetAnswer) => (a.half ?? null) === halfForIndex)
+          : answersToUse.filter((a: CutSheetAnswer) => (a.half ?? null) === null);
         const firstIncomplete = SECTIONS.findIndex(
-          s => !answersData.find((a: CutSheetAnswer) => a.section === s.id && a.completed)
+          s => !answersForIndex.find((a: CutSheetAnswer) => a.section === s.id && a.completed)
         );
         if (firstIncomplete >= 0) setCurrentIndex(firstIncomplete);
         setShowIntro(false);
@@ -1340,16 +1448,19 @@ export default function CutsPage() {
     sectionAnswers: Record<string, unknown>,
     completed: boolean
   ) => {
+    const half = currentHalf;
     setSaving(true);
     try {
       const res = await fetch(`/api/cut-sheet/${uuid}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ section: sectionId, answers: sectionAnswers, completed }),
+        body: JSON.stringify({ section: sectionId, answers: sectionAnswers, completed, half }),
       });
       const data = await res.json();
       setAnswers(prev => {
-        const existing = prev.findIndex(a => a.section === sectionId);
+        const existing = prev.findIndex(a =>
+          a.section === sectionId && (a.half ?? null) === (half ?? null)
+        );
         if (existing >= 0) {
           const updated = [...prev];
           updated[existing] = data;
@@ -1360,7 +1471,7 @@ export default function CutsPage() {
     } finally {
       setSaving(false);
     }
-  }, [uuid]);
+  }, [uuid, currentHalf]);
 
   const handleNext = async () => {
     if (currentIndex === SECTIONS.length - 1) {
@@ -1372,6 +1483,18 @@ export default function CutsPage() {
 
   const handlePrev = () => {
     if (currentIndex > 0) setCurrentIndex(i => i - 1);
+  };
+
+  const handleDualChoice = async (dual: boolean) => {
+    await fetch(`/api/sessions/${uuid}/cut-sheet-choice`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dual }),
+    });
+    setSession(prev => prev ? { ...prev, dual_cut_sheet: dual } : prev);
+    setActiveHalf(dual ? 'A' : null);
+    setShowChoice(false);
+    setShowIntro(true);
   };
 
   if (loading) {
@@ -1390,12 +1513,29 @@ export default function CutsPage() {
     );
   }
 
+  if (showChoice && session) {
+    return (
+      <div className="min-h-screen bg-brand-warm">
+        <header className="bg-brand-dark px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+          <Image src="/images/LLC_Logo_white.svg" alt="Legacy Land & Cattle" width={160} height={72} className="h-14 w-auto"/>
+          <button
+            onClick={() => router.push(`/session/${uuid}`)}
+            className="text-white/70 hover:text-white text-sm font-medium"
+          >
+            My Order
+          </button>
+        </header>
+        <DualCutSheetChoice onChoose={handleDualChoice} />
+      </div>
+    );
+  }
+
   if (showWrapped) {
     return <SpotifyWrappedScreen session={session} answers={answers} />;
   }
 
   const currentSection = SECTIONS[currentIndex];
-  const currentAnswers = answers.find(a => a.section === currentSection.id);
+  const currentAnswers = answersForHalf.find(a => a.section === currentSection.id);
   const isLocked = currentAnswers?.locked ?? false;
 
   return (
@@ -1414,6 +1554,39 @@ export default function CutsPage() {
         </div>
       </header>
 
+      {isDual && (
+        <div className="bg-white border-b border-brand-gray-light">
+          <div className="max-w-[700px] mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="flex gap-2">
+              {(['A', 'B'] as Array<'A' | 'B'>).map(half => {
+                const isActive = currentHalf === half;
+                return (
+                  <button
+                    key={half}
+                    onClick={() => setActiveHalf(half)}
+                    className={`px-4 py-2 rounded-xl font-semibold text-sm border-2 transition-all ${
+                      isActive
+                        ? 'bg-brand-orange text-white border-brand-orange shadow-sm'
+                        : 'bg-white text-brand-dark border-brand-gray-light hover:border-brand-orange/50'
+                    }`}
+                  >
+                    Half {half}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-2">
+              {halfAComplete && (
+                <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">Half A Complete ✓</span>
+              )}
+              {halfBComplete && (
+                <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">Half B Complete ✓</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showIntro ? (
         <IntroScreen session={session} onStart={async (useHouse) => {
           if (useHouse) {
@@ -1427,6 +1600,7 @@ export default function CutsPage() {
                 body: JSON.stringify({
                   session_id: uuid,
                   section,
+                  half: currentHalf,
                   answers: { ...HOUSE_DEFAULTS[section], house_default: true },
                   completed: true,
                 }),
@@ -1467,7 +1641,8 @@ export default function CutsPage() {
             answers={currentAnswers?.answers ?? {}}
             locked={isLocked}
             sessionId={uuid}
-            allAnswers={answers}
+            allAnswers={answersForHalf}
+            half={currentHalf}
             onSave={(sectionAnswers, completed) => saveSection(currentSection.id, sectionAnswers, completed)}
             onNext={handleNext}
             onPrev={handlePrev}
