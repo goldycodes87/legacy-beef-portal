@@ -1550,7 +1550,8 @@ export default function CutsPage() {
       setLoading(false);
     }
     load();
-  }, [uuid, isSectionCompleted]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uuid]);
 
   // Auto-save section answers
   const saveSection = useCallback(async (
