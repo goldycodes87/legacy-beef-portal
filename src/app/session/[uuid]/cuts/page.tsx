@@ -36,6 +36,8 @@ interface CutSheetAnswer {
   custom_request_status?: string;
 }
 
+type HalfMode = 'both' | 'split';
+
 // ─── Section definitions ───────────────────────────────────────────────────
 
 const SECTIONS = [
@@ -1197,11 +1199,19 @@ function SpotifyWrappedScreen({ session, answers }: { session: Session; answers:
 
 function SectionForm({
   section,
-  answers,
-  locked,
+  answersBoth,
+  answersHalfA,
+  answersHalfB,
+  lockedBoth,
+  lockedA,
+  lockedB,
+  isDual,
+  halfMode,
+  allAnswersBoth,
+  allAnswersHalfA,
+  allAnswersHalfB,
+  onHalfModeChange,
   sessionId,
-  allAnswers,
-  half,
   onSave,
   onNext,
   onPrev,
@@ -1210,69 +1220,112 @@ function SectionForm({
   completedAll,
 }: {
   section: typeof SECTIONS[0];
-  answers: Record<string, unknown>;
-  locked: boolean;
+  answersBoth: Record<string, unknown>;
+  answersHalfA: Record<string, unknown>;
+  answersHalfB: Record<string, unknown>;
+  lockedBoth: boolean;
+  lockedA: boolean;
+  lockedB: boolean;
+  isDual: boolean;
+  halfMode: HalfMode;
+  allAnswersBoth: CutSheetAnswer[];
+  allAnswersHalfA: CutSheetAnswer[];
+  allAnswersHalfB: CutSheetAnswer[];
+  onHalfModeChange: (mode: HalfMode) => void;
   sessionId: string;
-  allAnswers: CutSheetAnswer[];
-  half: 'A' | 'B' | null;
-  onSave: (answers: Record<string, unknown>, completed: boolean) => void;
+  onSave: (half: 'A' | 'B' | null, answers: Record<string, unknown>, completed: boolean) => void;
   onNext: () => void;
   onPrev: () => void;
   isFirst: boolean;
   isLast: boolean;
   completedAll: boolean;
 }) {
-  const [customRequest, setCustomRequest] = useState('');
-  const [customSaved, setCustomSaved] = useState(false);
+  const [customRequestInputs, setCustomRequestInputs] = useState<Record<'A' | 'B' | 'both', string>>({
+    A: '',
+    B: '',
+    both: '',
+  });
+  const [customSavedHalf, setCustomSavedHalf] = useState<'A' | 'B' | 'both' | null>(null);
 
-  // Auto-complete tenderized_round if round is not steaks
+  const currentHalfMode: HalfMode = isDual ? halfMode : 'both';
+
   useEffect(() => {
-    if (section.id === 'tenderized_round') {
-      const roundAnswers = allAnswers.find(a => a.section === 'round');
-      if (roundAnswers?.answers?.choice !== 'steaks') {
-        onSave({ choice: 'skipped', reason: 'round_not_steaks' }, true);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section.id]);
+    if (section.id !== 'tenderized_round') return;
 
-  const handleUseHouseDefault = () => {
-    onSave({ ...HOUSE_DEFAULTS[section.id], house_default: true }, true);
+    const ensureTenderizedSkip = (
+      halfKey: 'A' | 'B' | null,
+      answersForHalf: Record<string, unknown>,
+      allAnswersForHalf: CutSheetAnswer[]
+    ) => {
+      const roundAnswers = allAnswersForHalf.find(a => a.section === 'round');
+      if (roundAnswers?.answers?.choice !== 'steaks' && (answersForHalf as any)?.choice !== 'skipped') {
+        onSave(halfKey, { choice: 'skipped', reason: 'round_not_steaks' }, true);
+      }
+    };
+
+    if (currentHalfMode === 'both') {
+      ensureTenderizedSkip(null, answersBoth, allAnswersBoth);
+    } else {
+      ensureTenderizedSkip('A', answersHalfA, allAnswersHalfA);
+      ensureTenderizedSkip('B', answersHalfB, allAnswersHalfB);
+    }
+  }, [
+    section.id,
+    currentHalfMode,
+    answersBoth,
+    answersHalfA,
+    answersHalfB,
+    allAnswersBoth,
+    allAnswersHalfA,
+    allAnswersHalfB,
+    onSave,
+  ]);
+
+  const handleUseHouseDefault = (halfKey: 'A' | 'B' | null) => {
+    onSave(halfKey, { ...HOUSE_DEFAULTS[section.id], house_default: true }, true);
   };
 
-  const handleCustomRequest = async () => {
-    if (!customRequest.trim()) return;
+  const handleCustomRequest = async (halfKey: 'A' | 'B' | null) => {
+    const requestValue = customRequestInputs[halfKey ?? 'both'] || '';
+    if (!requestValue.trim()) return;
     await fetch(`/api/cut-sheet/${sessionId}/custom-request`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ section: section.id, request: customRequest, half }),
+      body: JSON.stringify({ section: section.id, request: requestValue, half: halfKey }),
     });
-    setCustomSaved(true);
-    setTimeout(() => setCustomSaved(false), 3000);
+    setCustomSavedHalf(halfKey ?? 'both');
+    setTimeout(() => setCustomSavedHalf(null), 3000);
   };
 
-  // Pass round choice to tenderized_round
-  const enrichedAnswers = section.id === 'tenderized_round'
-    ? {
-        ...answers,
-        round_choice: allAnswers.find(a => a.section === 'round')?.answers?.choice as string | undefined,
-      }
-    : answers;
+  const renderSectionBlock = (
+    halfKey: 'A' | 'B' | null,
+    answersForHalf: Record<string, unknown>,
+    lockedFlag: boolean,
+    allAnswersForHalf: CutSheetAnswer[] = []
+  ) => {
+    const enrichedAnswers = section.id === 'tenderized_round'
+      ? {
+          ...answersForHalf,
+          round_choice: allAnswersForHalf.find(a => a.section === 'round')?.answers?.choice as string | undefined,
+        }
+      : answersForHalf;
 
-  return (
-    <div className="max-w-[600px] mx-auto px-4 py-6">
+    const customKey = halfKey ?? 'both';
+    const customValue = customRequestInputs[customKey] ?? '';
+
+    return (
       <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
         <div className="flex items-center gap-3 mb-4">
           <span className="text-3xl">{section.icon}</span>
           <div>
             <h2 className="font-display font-bold text-xl text-brand-dark">{section.label}</h2>
-            {Boolean(answers.house_default) && (
-              <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded-full">Using house default</span>
+            {Boolean(enrichedAnswers.house_default) && (
+              <span className="text-xs bg-brand-green text-white px-2 py-0.5 rounded-full ml-2">Using house default</span>
             )}
           </div>
         </div>
 
-        {locked ? (
+        {lockedFlag ? (
           <div className="bg-brand-green-pale border border-green-200 rounded-xl p-4 text-center">
             <p className="text-brand-green font-semibold">🔒 This cut sheet is locked</p>
             <p className="text-sm text-brand-gray mt-1">Your choices have been sent to the butcher</p>
@@ -1282,11 +1335,11 @@ function SectionForm({
             {getSectionContent(
               section,
               enrichedAnswers,
-              (newAnswers, completed) => onSave(newAnswers, completed),
+              (newAnswers, completed) => onSave(halfKey, newAnswers, completed),
             )}
 
             <button
-              onClick={handleUseHouseDefault}
+              onClick={() => handleUseHouseDefault(halfKey)}
               className="w-full border-2 border-brand-green text-brand-green py-3 rounded-xl font-semibold hover:bg-brand-green-pale transition-colors"
             >
               🏠 Use House Default for {section.label}
@@ -1294,29 +1347,90 @@ function SectionForm({
           </div>
         )}
       </div>
+    );
+  };
 
-      {/* Custom request */}
-      {!locked && (
-        <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
-          <p className="font-semibold text-brand-dark text-sm mb-2">
-            Don&apos;t see your favorite cut?
+  const renderCustomRequest = (halfKey: 'A' | 'B' | null) => {
+    const customKey = halfKey ?? 'both';
+    const customValue = customRequestInputs[customKey] ?? '';
+    return (
+      <div className="bg-white rounded-2xl shadow-sm p-5 mb-4">
+        <p className="font-semibold text-brand-dark text-sm mb-2">
+          Don&apos;t see your favorite cut?
+        </p>
+        <textarea
+          value={customValue}
+          onChange={(e) => setCustomRequestInputs(prev => ({ ...prev, [customKey]: e.target.value }))}
+          placeholder='e.g. "I&apos;d love Denver steaks from the chuck if possible"'
+          rows={2}
+          className="w-full border border-brand-gray-light rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange resize-none"
+        />
+        <button
+          onClick={() => handleCustomRequest(halfKey)}
+          disabled={!customValue.trim()}
+          className="mt-2 px-4 py-2 bg-brand-dark text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+        >
+          {customSavedHalf === customKey ? '✓ Sent!' : 'Send Request'}
+        </button>
+        <p className="text-xs text-brand-gray mt-1">We&apos;ll review and let you know if it&apos;s possible.</p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-[600px] mx-auto px-4 py-6">
+      {isDual && (
+        <div className="mb-6">
+          <p className="text-sm font-semibold text-brand-dark mb-2">
+            Apply to:
           </p>
-          <textarea
-            value={customRequest}
-            onChange={(e) => setCustomRequest(e.target.value)}
-            placeholder='e.g. "I&apos;d love Denver steaks from the chuck if possible"'
-            rows={2}
-            className="w-full border border-brand-gray-light rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange resize-none"
-          />
-          <button
-            onClick={handleCustomRequest}
-            disabled={!customRequest.trim()}
-            className="mt-2 px-4 py-2 bg-brand-dark text-white rounded-lg text-sm font-semibold disabled:opacity-50"
-          >
-            {customSaved ? '✓ Sent!' : 'Send Request'}
-          </button>
-          <p className="text-xs text-brand-gray mt-1">We&apos;ll review and let you know if it&apos;s possible.</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onHalfModeChange('both')}
+              className={`py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                currentHalfMode === 'both'
+                  ? 'border-brand-green bg-brand-green text-white'
+                  : 'border-brand-gray-light bg-white text-brand-dark'
+              }`}
+            >
+              🐄 Same for Both Halves
+            </button>
+            <button
+              onClick={() => onHalfModeChange('split')}
+              className={`py-3 rounded-xl border-2 text-sm font-semibold transition-all ${
+                currentHalfMode === 'split'
+                  ? 'border-brand-orange bg-brand-orange text-white'
+                  : 'border-brand-gray-light bg-white text-brand-dark'
+              }`}
+            >
+              ✂️ Different per Half
+            </button>
+          </div>
         </div>
+      )}
+
+      {currentHalfMode === 'split' ? (
+        <>
+          <div className="mb-2">
+            <span className="inline-block bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+              HALF A
+            </span>
+            {renderSectionBlock('A', answersHalfA, lockedA, allAnswersHalfA)}
+            {!lockedA && renderCustomRequest('A')}
+          </div>
+          <div className="border-t border-brand-gray-light pt-4 mt-4">
+            <span className="inline-block bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+              HALF B
+            </span>
+            {renderSectionBlock('B', answersHalfB, lockedB, allAnswersHalfB)}
+            {!lockedB && renderCustomRequest('B')}
+          </div>
+        </>
+      ) : (
+        <>
+          {renderSectionBlock(null, answersBoth, lockedBoth, allAnswersBoth)}
+          {!lockedBoth && renderCustomRequest(null)}
+        </>
       )}
 
       {/* Navigation */}
@@ -1351,30 +1465,34 @@ export default function CutsPage() {
   const [showWrapped, setShowWrapped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeHalf, setActiveHalf] = useState<'A' | 'B' | null>(null);
+  const [halfModes, setHalfModes] = useState<Record<string, HalfMode>>({});
   const [showChoice, setShowChoice] = useState(false);
 
   const isDual = session?.dual_cut_sheet === true;
-  const currentHalf = isDual ? (activeHalf || 'A') : null;
 
-  const answersForHalf = answers.filter(a => {
-    const answerHalf = a.half ?? null;
-    if (!isDual) return answerHalf === null;
-    return answerHalf === currentHalf;
-  });
+  const getHalfModeForSection = useCallback(
+    (sectionId: string, modes: Record<string, HalfMode> = halfModes) => modes[sectionId] || 'both',
+    [halfModes]
+  );
 
-  const completedSections = answersForHalf.filter(a => a.completed).map(a => a.section);
-  const completedAll = SECTIONS.every(s => completedSections.includes(s.id));
-  const halfAComplete = isDual
-    ? SECTIONS.every(s => answers.some(a => (a.half ?? null) === 'A' && a.section === s.id && a.completed))
-    : false;
-  const halfBComplete = isDual
-    ? SECTIONS.every(s => answers.some(a => (a.half ?? null) === 'B' && a.section === s.id && a.completed))
-    : false;
+  const isSectionCompleted = useCallback(
+    (sectionId: string, dual: boolean, answersList: CutSheetAnswer[], modes: Record<string, HalfMode> = halfModes) => {
+      const mode = dual ? getHalfModeForSection(sectionId, modes) : 'both';
+      if (mode === 'both') {
+        return answersList.some(
+          a => a.section === sectionId && (a.half === null || a.half === undefined) && a.completed
+        );
+      }
+      return answersList.some(a => a.section === sectionId && a.half === 'A' && a.completed) &&
+        answersList.some(a => a.section === sectionId && a.half === 'B' && a.completed);
+    },
+    [getHalfModeForSection, halfModes]
+  );
 
   // Load session and answers
   useEffect(() => {
     async function load() {
+      const modes: Record<string, HalfMode> = {};
       const [sessionRes, answersRes] = await Promise.all([
         fetch(`/api/session/${uuid}`),
         fetch(`/api/cut-sheet/${uuid}`),
@@ -1387,30 +1505,30 @@ export default function CutsPage() {
         && (sessionData.dual_cut_sheet === null || sessionData.dual_cut_sheet === undefined)
         && !hasExistingAnswers;
 
-      let answersToUse: CutSheetAnswer[] = normalizedAnswers;
-      if (sessionData.dual_cut_sheet === true) {
-        const [halfARes, halfBRes] = await Promise.all([
-          fetch(`/api/cut-sheet/${uuid}?half=A`),
-          fetch(`/api/cut-sheet/${uuid}?half=B`),
-        ]);
-        const [halfAData, halfBData] = await Promise.all([halfARes.json(), halfBRes.json()]);
-        answersToUse = [
-          ...(Array.isArray(halfAData) ? halfAData : []),
-          ...(Array.isArray(halfBData) ? halfBData : []),
-        ];
-        setActiveHalf('A');
-      } else {
-        setActiveHalf(null);
-      }
-
       const normalizedSession: Session = {
         ...sessionData,
         dual_cut_sheet: shouldShowChoice ? sessionData.dual_cut_sheet : (sessionData.dual_cut_sheet ?? false),
       };
 
+      if (normalizedSession.dual_cut_sheet) {
+        SECTIONS.forEach(s => {
+          const hasBoth = normalizedAnswers.find(a => a.section === s.id && (a.half ?? null) === null);
+          const hasA = normalizedAnswers.find(a => a.section === s.id && a.half === 'A');
+          const hasB = normalizedAnswers.find(a => a.section === s.id && a.half === 'B');
+          if (hasA && hasB) {
+            modes[s.id] = 'split';
+          } else if (hasBoth) {
+            modes[s.id] = 'both';
+          }
+        });
+        setHalfModes(modes);
+      } else {
+        setHalfModes({});
+      }
+
       setSession(normalizedSession);
       setShowChoice(shouldShowChoice);
-      setAnswers(answersToUse);
+      setAnswers(normalizedAnswers);
       // Track last viewed
       fetch(`/api/cut-sheet/${uuid}/viewed`, {
         method: 'POST',
@@ -1419,36 +1537,28 @@ export default function CutsPage() {
       // Handle ?section= query param
       const urlParams = new URLSearchParams(window.location.search);
       const sectionParam = urlParams.get('section');
-      const halfParam = urlParams.get('half');
-      if (normalizedSession.dual_cut_sheet && (halfParam === 'A' || halfParam === 'B')) {
-        setActiveHalf(halfParam);
-      }
       if (sectionParam !== null) {
         setCurrentIndex(parseInt(sectionParam, 10));
         setShowIntro(false);
-      } else if (answersToUse.length > 0) {
-        const halfForIndex = normalizedSession.dual_cut_sheet ? 'A' : null;
-        const answersForIndex = normalizedSession.dual_cut_sheet
-          ? answersToUse.filter((a: CutSheetAnswer) => (a.half ?? null) === halfForIndex)
-          : answersToUse.filter((a: CutSheetAnswer) => (a.half ?? null) === null);
-        const firstIncomplete = SECTIONS.findIndex(
-          s => !answersForIndex.find((a: CutSheetAnswer) => a.section === s.id && a.completed)
-        );
-        if (firstIncomplete >= 0) setCurrentIndex(firstIncomplete);
+      } else if (normalizedAnswers.length > 0) {
+        const firstIncomplete = SECTIONS.findIndex(s => !isSectionCompleted(s.id, normalizedSession.dual_cut_sheet ?? false, normalizedAnswers, modes));
+        if (firstIncomplete >= 0) {
+          setCurrentIndex(firstIncomplete);
+        }
         setShowIntro(false);
       }
       setLoading(false);
     }
     load();
-  }, [uuid]);
+  }, [uuid, isSectionCompleted]);
 
   // Auto-save section answers
   const saveSection = useCallback(async (
     sectionId: string,
     sectionAnswers: Record<string, unknown>,
-    completed: boolean
+    completed: boolean,
+    half: 'A' | 'B' | null
   ) => {
-    const half = currentHalf;
     setSaving(true);
     try {
       const res = await fetch(`/api/cut-sheet/${uuid}`, {
@@ -1471,7 +1581,7 @@ export default function CutsPage() {
     } finally {
       setSaving(false);
     }
-  }, [uuid, currentHalf]);
+  }, [uuid]);
 
   const handleNext = async () => {
     if (currentIndex === SECTIONS.length - 1) {
@@ -1492,7 +1602,7 @@ export default function CutsPage() {
       body: JSON.stringify({ dual }),
     });
     setSession(prev => prev ? { ...prev, dual_cut_sheet: dual } : prev);
-    setActiveHalf(dual ? 'A' : null);
+    if (!dual) setHalfModes({});
     setShowChoice(false);
     setShowIntro(true);
   };
@@ -1534,9 +1644,23 @@ export default function CutsPage() {
     return <SpotifyWrappedScreen session={session} answers={answers} />;
   }
 
+  const answersBothList = answers.filter(a => (a.half ?? null) === null);
+  const answersHalfAList = answers.filter(a => a.half === 'A');
+  const answersHalfBList = answers.filter(a => a.half === 'B');
+
+  const completedSections = SECTIONS
+    .filter(s => isSectionCompleted(s.id, Boolean(isDual), answers))
+    .map(s => s.id);
+  const completedAll = SECTIONS.every(s => isSectionCompleted(s.id, Boolean(isDual), answers));
+
   const currentSection = SECTIONS[currentIndex];
-  const currentAnswers = answersForHalf.find(a => a.section === currentSection.id);
-  const isLocked = currentAnswers?.locked ?? false;
+  const currentHalfMode = getHalfModeForSection(currentSection.id);
+  const answerBoth = answersBothList.find(a => a.section === currentSection.id);
+  const answerA = answersHalfAList.find(a => a.section === currentSection.id);
+  const answerB = answersHalfBList.find(a => a.section === currentSection.id);
+  const lockedBoth = !!answerBoth?.locked;
+  const lockedA = !!answerA?.locked;
+  const lockedB = !!answerB?.locked;
 
   return (
     <div className="min-h-screen bg-brand-warm">
@@ -1554,39 +1678,6 @@ export default function CutsPage() {
         </div>
       </header>
 
-      {isDual && (
-        <div className="bg-white border-b border-brand-gray-light">
-          <div className="max-w-[700px] mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div className="flex gap-2">
-              {(['A', 'B'] as Array<'A' | 'B'>).map(half => {
-                const isActive = currentHalf === half;
-                return (
-                  <button
-                    key={half}
-                    onClick={() => setActiveHalf(half)}
-                    className={`px-4 py-2 rounded-xl font-semibold text-sm border-2 transition-all ${
-                      isActive
-                        ? 'bg-brand-orange text-white border-brand-orange shadow-sm'
-                        : 'bg-white text-brand-dark border-brand-gray-light hover:border-brand-orange/50'
-                    }`}
-                  >
-                    Half {half}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex gap-2">
-              {halfAComplete && (
-                <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">Half A Complete ✓</span>
-              )}
-              {halfBComplete && (
-                <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">Half B Complete ✓</span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {showIntro ? (
         <IntroScreen session={session} onStart={async (useHouse) => {
           if (useHouse) {
@@ -1600,7 +1691,6 @@ export default function CutsPage() {
                 body: JSON.stringify({
                   session_id: uuid,
                   section,
-                  half: currentHalf,
                   answers: { ...HOUSE_DEFAULTS[section], house_default: true },
                   completed: true,
                 }),
@@ -1638,12 +1728,20 @@ export default function CutsPage() {
           {/* Section form */}
           <SectionForm
             section={currentSection}
-            answers={currentAnswers?.answers ?? {}}
-            locked={isLocked}
+            answersBoth={answerBoth?.answers ?? {}}
+            answersHalfA={answerA?.answers ?? {}}
+            answersHalfB={answerB?.answers ?? {}}
+            lockedBoth={lockedBoth}
+            lockedA={lockedA}
+            lockedB={lockedB}
+            isDual={Boolean(isDual)}
+            halfMode={currentHalfMode}
+            allAnswersBoth={answersBothList}
+            allAnswersHalfA={answersHalfAList}
+            allAnswersHalfB={answersHalfBList}
+            onHalfModeChange={(mode) => setHalfModes(prev => ({ ...prev, [currentSection.id]: mode }))}
             sessionId={uuid}
-            allAnswers={answersForHalf}
-            half={currentHalf}
-            onSave={(sectionAnswers, completed) => saveSection(currentSection.id, sectionAnswers, completed)}
+            onSave={(half, sectionAnswers, completed) => saveSection(currentSection.id, sectionAnswers, completed, half)}
             onNext={handleNext}
             onPrev={handlePrev}
             isFirst={currentIndex === 0}

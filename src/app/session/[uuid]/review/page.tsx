@@ -109,7 +109,6 @@ export default function ReviewPage() {
   const [answers, setAnswers] = useState<CutSheetAnswer[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [locking, setLocking] = useState(false);
-  const [lockingHalf, setLockingHalf] = useState<'A' | 'B' | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshData = useCallback(async () => {
@@ -133,77 +132,113 @@ export default function ReviewPage() {
   }, [uuid, refreshData]);
 
   const isDual = session?.dual_cut_sheet === true;
-  const answersHalfA = answers.filter(a => (a.half ?? null) === 'A');
-  const answersHalfB = answers.filter(a => (a.half ?? null) === 'B');
-  const singleAnswers = answers.filter(a => (a.half ?? null) === null);
+  const answersBoth = answers.filter(a => (a.half ?? null) === null);
+  const answersHalfA = answers.filter(a => a.half === 'A');
+  const answersHalfB = answers.filter(a => a.half === 'B');
 
-  const completedCountSingle = singleAnswers.filter(a => a.completed).length;
-  const allCompleteSingle = completedCountSingle === SECTIONS_ORDER.length;
+  const getHalfMode = (sectionId: string): 'both' | 'split' => {
+    const hasBoth = answersBoth.some(a => a.section === sectionId);
+    const hasA = answersHalfA.some(a => a.section === sectionId);
+    const hasB = answersHalfB.some(a => a.section === sectionId);
+    if (hasA && hasB) return 'split';
+    if (hasBoth) return 'both';
+    return 'both';
+  };
 
-  const completedCountA = answersHalfA.filter(a => a.completed).length;
-  const completedCountB = answersHalfB.filter(a => a.completed).length;
-  const allCompleteA = completedCountA === SECTIONS_ORDER.length;
-  const allCompleteB = completedCountB === SECTIONS_ORDER.length;
+  const isSectionCompleted = (sectionId: string) => {
+    const mode = isDual ? getHalfMode(sectionId) : 'both';
+    if (mode === 'both') {
+      return answersBoth.some(a => a.section === sectionId && a.completed);
+    }
+    return answersHalfA.some(a => a.section === sectionId && a.completed) &&
+      answersHalfB.some(a => a.section === sectionId && a.completed);
+  };
 
-  async function handleLockSingle() {
+  const completedCount = SECTIONS_ORDER.filter(isSectionCompleted).length;
+  const allComplete = completedCount === TOTAL_SECTIONS;
+
+  async function handleLock() {
     setLocking(true);
-    await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
-    await refreshData();
-    setLocking(false);
-    router.push(`/session/${uuid}/wrapped`);
-  }
-
-  async function handleLockHalf(half: 'A' | 'B') {
-    setLockingHalf(half);
-    await fetch(`/api/cut-sheet/${uuid}/lock`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ half }),
-    });
-    const updatedSession = await refreshData();
-    setLockingHalf(null);
-    if (updatedSession?.half_a_complete && updatedSession?.half_b_complete) {
+    try {
+      await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
       router.push(`/session/${uuid}/wrapped`);
+    } finally {
+      setLocking(false);
     }
   }
 
-  const renderSectionCards = (answersList: CutSheetAnswer[], halfLabel?: 'A' | 'B') => (
+  const renderDualSectionCards = () => (
     <div className="space-y-3 mb-8">
       {SECTIONS_ORDER.map(sectionId => {
-        const answer = answersList.find(a => a.section === sectionId);
-        const isComplete = answer?.completed ?? false;
-        const displayText = answer ? formatAnswers(sectionId, answer.answers) : 'Not started';
         const idx = SECTIONS_ORDER.indexOf(sectionId);
-        const editPath = halfLabel
-          ? `/session/${uuid}/cuts?section=${idx}&half=${halfLabel}`
-          : `/session/${uuid}/cuts?section=${idx}`;
+        const both = answersBoth.find(a => a.section === sectionId);
+        const halfA = answersHalfA.find(a => a.section === sectionId);
+        const halfB = answersHalfB.find(a => a.section === sectionId);
+        const mode = getHalfMode(sectionId);
+        const isComplete = isSectionCompleted(sectionId);
+        const editPath = `/session/${uuid}/cuts?section=${idx}`;
 
         return (
           <div
             key={sectionId}
-            className={`bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border-2 ${
-              isComplete ? 'border-transparent' : 'border-amber-200'
-            }`}
+            className={`bg-white rounded-2xl p-4 shadow-sm border-2 ${isComplete ? 'border-transparent' : 'border-amber-200'}`}
           >
-            <div className="flex items-center gap-3 flex-1">
-              <span className="text-2xl">{SECTION_ICONS[sectionId]}</span>
-              <div className="flex-1">
-                <p className="font-semibold text-brand-dark text-base">{SECTION_LABELS[sectionId]}</p>
-                <p className="text-sm text-brand-dark mt-0.5 font-medium">{displayText}</p>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{SECTION_ICONS[sectionId]}</span>
+                <div>
+                  <p className="font-semibold text-brand-dark text-base">{SECTION_LABELS[sectionId]}</p>
+                  <p className="text-xs text-brand-gray">{mode === 'both' ? 'Same for both halves' : 'Different per half'}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isComplete ? (
+                  <span className="text-brand-green text-lg">✓</span>
+                ) : (
+                  <span className="text-amber-500 text-lg">!</span>
+                )}
+                <button
+                  onClick={() => router.push(editPath)}
+                  className="text-brand-orange text-xs font-semibold hover:underline ml-1"
+                >
+                  Edit
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {isComplete ? (
-                <span className="text-brand-green text-lg">✓</span>
-              ) : (
-                <span className="text-amber-500 text-lg">!</span>
+
+            <div className="mt-3 space-y-3">
+              {mode === 'both' && both && (
+                <div className="border border-brand-gray-light rounded-xl p-3 bg-brand-green-pale/30">
+                  <div className="flex items-center justify-between">
+                    <span className="inline-block bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full">Both Halves</span>
+                    <span className="text-brand-dark text-sm font-semibold">{both.completed ? '✓ Complete' : 'Needs input'}</span>
+                  </div>
+                  <p className="text-sm text-brand-dark mt-2 font-medium">{formatAnswers(sectionId, both.answers)}</p>
+                </div>
               )}
-              <button
-                onClick={() => router.push(editPath)}
-                className="text-brand-orange text-xs font-semibold hover:underline ml-1"
-              >
-                Edit
-              </button>
+
+              {mode === 'split' && (
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div className="border border-brand-gray-light rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-block bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full">HALF A</span>
+                      <span className="text-sm font-semibold text-brand-dark">{halfA?.completed ? '✓ Complete' : 'Needs input'}</span>
+                    </div>
+                    <p className="text-sm text-brand-dark mt-2 font-medium">
+                      {halfA ? formatAnswers(sectionId, halfA.answers) : 'Not started'}
+                    </p>
+                  </div>
+                  <div className="border border-brand-gray-light rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-block bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full">HALF B</span>
+                      <span className="text-sm font-semibold text-brand-dark">{halfB?.completed ? '✓ Complete' : 'Needs input'}</span>
+                    </div>
+                    <p className="text-sm text-brand-dark mt-2 font-medium">
+                      {halfB ? formatAnswers(sectionId, halfB.answers) : 'Not started'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -236,78 +271,34 @@ export default function ReviewPage() {
           <p className="text-brand-gray text-sm">
             {session?.animal?.name} · {session?.purchase_type ? session.purchase_type.charAt(0).toUpperCase() + session.purchase_type.slice(1) + ' Beef' : ''}
           </p>
-          {!isDual && !allCompleteSingle && (
+          {!allComplete && (
             <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 inline-block">
               <p className="text-amber-800 text-sm font-medium">
-                {TOTAL_SECTIONS - completedCountSingle} section{TOTAL_SECTIONS - completedCountSingle !== 1 ? 's' : ''} still need your input
+                {TOTAL_SECTIONS - completedCount} section{TOTAL_SECTIONS - completedCount !== 1 ? 's' : ''} still need your input
               </p>
             </div>
           )}
         </div>
 
-        {isDual ? (
-          <>
-            <div className="grid md:grid-cols-2 gap-4">
-              {([
-                { label: 'A' as const, answers: answersHalfA, allComplete: allCompleteA, completed: completedCountA },
-                { label: 'B' as const, answers: answersHalfB, allComplete: allCompleteB, completed: completedCountB },
-              ]).map(half => (
-                <div key={half.label} className="bg-white rounded-2xl shadow-sm border border-brand-gray-light p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-xs uppercase text-brand-gray font-semibold">Half {half.label}</p>
-                      <p className="text-lg font-semibold text-brand-dark">{half.completed}/{TOTAL_SECTIONS} sections done</p>
-                    </div>
-                    <span className={`text-xs px-3 py-1 rounded-full border ${half.allComplete ? 'bg-brand-green text-white border-brand-green' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
-                      {half.allComplete ? 'Complete ✓' : `${TOTAL_SECTIONS - half.completed} left`}
-                    </span>
-                  </div>
-                  {renderSectionCards(half.answers, half.label)}
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handleLockHalf(half.label)}
-                      disabled={lockingHalf === half.label || !half.allComplete}
-                      className="w-full py-3 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {lockingHalf === half.label ? 'Locking…' : `Lock Half ${half.label} 🔒`}
-                    </button>
-                    <button
-                      onClick={() => router.push(`/session/${uuid}/cuts?half=${half.label}`)}
-                      className="w-full py-3 rounded-xl border-2 border-brand-gray-light text-brand-gray font-semibold hover:border-brand-dark hover:text-brand-dark transition-colors"
-                    >
-                      Edit Half {half.label}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="text-center text-xs text-brand-gray mt-6">
-              Lock both halves to finish your cut sheet.
-            </p>
-          </>
-        ) : (
-          <>
-            {renderSectionCards(singleAnswers)}
-            <div className="space-y-3 pb-8">
-              <button
-                onClick={handleLockSingle}
-                disabled={locking || !allCompleteSingle}
-                className="w-full py-4 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {locking ? 'Locking in…' : 'Lock It In 🔒'}
-              </button>
-              <button
-                onClick={() => router.push(`/session/${uuid}/cuts`)}
-                className="w-full py-4 rounded-xl border-2 border-brand-gray-light text-brand-gray font-semibold hover:border-brand-dark hover:text-brand-dark transition-colors"
-              >
-                I&apos;m Still Deciding — Go Back
-              </button>
-              <p className="text-center text-xs text-brand-gray">
-                Your choices are saved. Come back anytime before butcher day.
-              </p>
-            </div>
-          </>
-        )}
+        {renderDualSectionCards()}
+        <div className="space-y-3 pb-8">
+          <button
+            onClick={handleLock}
+            disabled={locking || !allComplete}
+            className="w-full py-4 rounded-xl bg-brand-orange hover:bg-brand-orange-hover text-white font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {locking ? 'Locking in…' : 'Lock It In 🔒'}
+          </button>
+          <button
+            onClick={() => router.push(`/session/${uuid}/cuts`)}
+            className="w-full py-4 rounded-xl border-2 border-brand-gray-light text-brand-gray font-semibold hover:border-brand-dark hover:text-brand-dark transition-colors"
+          >
+            I&apos;m Still Deciding — Go Back
+          </button>
+          <p className="text-center text-xs text-brand-gray">
+            Your choices are saved. Come back anytime before butcher day.
+          </p>
+        </div>
       </main>
     </div>
   );
