@@ -894,22 +894,30 @@ function getSectionContent(
         />
         {choice === true && (
           <div>
-            <label className="block text-sm font-semibold text-brand-dark mb-2">Pounds</label>
-            <div className="grid grid-cols-5 gap-2">
-              {[1, 1.5, 2, 2.5, 3].map(n => (
-                <button
-                  key={n}
-                  onClick={() => onUpdate({ ...answers, pounds: n }, true)}
-                  className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
-                    pounds === n
-                      ? 'border-brand-orange bg-brand-orange-light text-brand-orange'
-                      : 'border-brand-gray-light bg-white text-brand-dark hover:border-brand-orange/50'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+            <label className="block text-sm font-semibold text-brand-dark mb-2">
+              How many pounds? <span className="text-brand-gray font-normal">(whole numbers only)</span>
+            </label>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const current = typeof pounds === 'number' ? pounds : 2;
+                  if (current > 1) onUpdate({ ...answers, pounds: current - 1 }, true);
+                }}
+                className="w-10 h-10 rounded-lg border-2 border-brand-gray-light bg-white text-brand-dark text-xl font-bold hover:border-brand-orange/50 transition-all flex items-center justify-center"
+              >−</button>
+              <div className="flex-1 text-center">
+                <span className="text-3xl font-bold text-brand-dark">{typeof pounds === 'number' ? Math.round(pounds) : 2}</span>
+                <span className="text-brand-gray text-sm ml-1">lbs</span>
+              </div>
+              <button
+                onClick={() => {
+                  const current = typeof pounds === 'number' ? pounds : 2;
+                  onUpdate({ ...answers, pounds: current + 1 }, true);
+                }}
+                className="w-10 h-10 rounded-lg border-2 border-brand-gray-light bg-white text-brand-dark text-xl font-bold hover:border-brand-orange/50 transition-all flex items-center justify-center"
+              >+</button>
             </div>
+            <p className="text-xs text-brand-gray mt-1 text-center">A half beef typically yields 5–15 lbs of stew meat</p>
           </div>
         )}
         {choice === true && (
