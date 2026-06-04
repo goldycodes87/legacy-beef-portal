@@ -153,9 +153,41 @@ export async function POST(request: NextRequest) {
       // Non-fatal — log but continue
     }
 
-    // NOTE: No confirmation email sent here.
-    // A single comprehensive confirmation email is sent by /api/payments/confirm
-    // after the deposit is successfully paid.
+    // Send Grant new reservation notification
+    try {
+      const resendKey = process.env.RESEND_API_KEY;
+      if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
+        const { data: animalData } = await supabaseAdmin
+          .from('animals')
+          .select('name, butcher_date, animal_type')
+          .eq('id', animal_id)
+          .single();
+        const { Resend } = await import('resend');
+        const resend = new Resend(resendKey);
+        const purchaseLabel = purchaseTypeLabel(purchase_type);
+        const animalType = animalData?.animal_type === 'grass_fed' ? 'Grass-Fed'
+          : animalData?.animal_type === 'grain_finished' ? 'Grain-Finished' : 'Wagyu';
+        const butcherDate = animalData?.butcher_date
+          ? new Date(animalData.butcher_date + 'T00:00:00').toLocaleDateString('en-US', {
+              year: 'numeric', month: 'long', day: 'numeric'
+            })
+          : 'TBD';
+        await resend.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: 'orders@legacylandandcattleco.com',
+          subject: `New Reservation: ${purchaseLabel} ${animalType} — ${name}`,
+          html: `<ul>
+            <li><strong>Customer:</strong> ${name} (${email})</li>
+            <li><strong>Order:</strong> ${purchaseLabel} — ${animalType}</li>
+            <li><strong>Butcher Date:</strong> ${butcherDate}</li>
+            <li><strong>Status:</strong> Reservation created — payment method not yet chosen</li>
+            <li><strong>Session ID:</strong> ${sessionId}</li>
+          </ul>`,
+        });
+      }
+    } catch (notifyErr) {
+      console.error('Grant reservation notify error:', notifyErr);
+    }
 
     return NextResponse.json({
       success:     true,
