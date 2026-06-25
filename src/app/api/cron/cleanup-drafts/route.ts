@@ -69,6 +69,43 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Auto-settle $0 deposits for sessions past butcher date with no deposit payment record
+  const today = new Date().toISOString().split('T')[0];
+
+  const { data: unpaidSessions } = await supabase
+    .from('sessions')
+    .select(`
+      id, purchase_type, is_splitting, intended_payment_method,
+      animals (butcher_date)
+    `)
+    .in('status', ['locked', 'deposit_paid'])
+    .not('intended_payment_method', 'in', '(card)')
+    .lte('animals.butcher_date', today);
+
+  if (unpaidSessions && unpaidSessions.length > 0) {
+    for (const session of unpaidSessions) {
+      // Check if deposit payment already exists
+      const { data: existingPayment } = await supabase
+        .from('payments')
+        .select('id')
+        .eq('session_id', session.id)
+        .eq('type', 'deposit')
+        .maybeSingle();
+
+      if (!existingPayment) {
+        // Insert $0 deposit to settle the account
+        await supabase.from('payments').insert({
+          session_id: session.id,
+          type: 'deposit',
+          method: session.intended_payment_method || 'check',
+          amount_cents: 0,
+          status: 'paid',
+          paid_at: new Date().toISOString(),
+        });
+        console.log(`Auto-settled $0 deposit for session ${session.id}`);
+      }
+    }
+  }
 
   // Find expired draft sessions
   const { data: expiredDrafts } = await supabase
