@@ -134,8 +134,8 @@ export async function POST(request: NextRequest) {
     try {
       const { createAccessToken } = await import('@/lib/access-token');
       const butcherDate = animal?.butcher_date
-        ? new Date(animal.butcher_date)
-        : new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+        ? new Date(new Date(animal.butcher_date).getTime() + 60 * 24 * 60 * 60 * 1000)
+        : new Date(Date.now() + 150 * 24 * 60 * 60 * 1000);
       const accessToken = await createAccessToken(session_id, butcherDate);
       const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.legacylandandcattleco.com';
       const accessLink = `${APP_URL}/api/token/${accessToken}`;

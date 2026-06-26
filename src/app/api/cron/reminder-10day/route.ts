@@ -47,7 +47,9 @@ export async function POST(request: NextRequest) {
     const customer = Array.isArray(session.customers) ? session.customers[0] : session.customers;
     if (!animal || !customer) continue;
 
-    const token = await createAccessToken(session.id, new Date(animal.butcher_date));
+    const tokenExpiry = new Date(animal.butcher_date);
+      tokenExpiry.setDate(tokenExpiry.getDate() + 60);
+      const token = await createAccessToken(session.id, tokenExpiry);
     const firstName = customer.name?.split(' ')[0] ?? 'there';
     const incompleteCount = (session.cut_sheet_answers || []).filter(a => !a.completed).length;
     const incompleteList = incompleteCount > 0
