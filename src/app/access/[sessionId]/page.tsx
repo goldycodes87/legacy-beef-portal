@@ -31,8 +31,11 @@ export default function AccessPage() {
         const sessionRes = await fetch(`/api/session/${sessionId}`);
         const sessionData = await sessionRes.json();
         const status = sessionData?.status || '';
+        const hasBalance = sessionData?.hanging_weight_lbs && !sessionData?.balance_paid;
         if (status === 'beef_ready') {
           router.push(`/session/${sessionId}/pickup`);
+        } else if (status === 'locked' && hasBalance) {
+          router.push(`/session/${sessionId}/balance`);
         } else if (status === 'locked') {
           router.push(`/session/${sessionId}/review`);
         } else {
