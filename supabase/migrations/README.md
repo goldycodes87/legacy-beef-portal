@@ -11,6 +11,7 @@ from the live database after a change rather than editing it by hand.
 | `20260823_atomic_inventory_and_payment_guards.sql` | `adjust_animal_units` for atomic capacity; partial unique indexes allowing one real paid deposit and one real paid balance per reservation |
 | `20260824_allow_archived_animal_status.sql` | Added `archived` to the `animals.status` check. Archiving had never worked — the app wrote a value the constraint refused |
 | `20260824b_schema_cleanup.sql` | Cut-sheet unique constraint, missing indexes, RLS policies, `deposit_amount` widened to numeric, dead Chet-VPS tables moved to `graveyard` |
+| `20260824c_remove_legacy_flat_price_keys.sql` | Removed `price_whole` / `price_half` / `price_quarter`. Settings never wrote them, so they froze at the old prices while the marketing pages read them — customers were quoted a price checkout did not charge |
 
 ## Schemas other than `public`
 
