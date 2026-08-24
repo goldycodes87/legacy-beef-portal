@@ -15,6 +15,18 @@ import SiteFooter from '@/components/SiteFooter';
 import type { ShownPrices } from '@/lib/display-prices';
 import type { SizeOffer } from '@/lib/shown-data';
 
+/**
+ * Ranch photography for the home page. These four also appear in the
+ * how-it-works steps, but that is an accordion — only the open step's photo is
+ * on screen — so without this strip the page shows almost no cattle.
+ */
+const GALLERY = [
+  { src: '/images/20250406_133350.jpg', alt: 'Cattle on the Black Forest pasture' },
+  { src: '/images/Rocko.jpg', alt: 'One of our steers' },
+  { src: '/images/FB_IMG_1775754831097.jpg', alt: 'The herd at the fence line' },
+  { src: '/images/FB_IMG_1775754857081.jpg', alt: 'Pasture at the ranch' },
+];
+
 export default function HomeClient({
   prices,
   sizes,
@@ -314,7 +326,7 @@ export default function HomeClient({
       <section className="py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <FadeIn>
-            <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="grid md:grid-cols-2 gap-10 items-center mb-10">
               <div className="relative rounded-2xl overflow-hidden aspect-[4/3]">
                 <Image
                   src="/images/IMG_9286.jpg"
@@ -341,6 +353,22 @@ export default function HomeClient({
                   One herd, one butcher, and a phone number that a person answers.
                 </p>
               </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {GALLERY.map((g) => (
+                <div key={g.src} className="relative aspect-square rounded-xl overflow-hidden">
+                  <Image
+                    src={g.src}
+                    alt={g.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                </div>
+              ))}
             </div>
           </FadeIn>
         </div>
