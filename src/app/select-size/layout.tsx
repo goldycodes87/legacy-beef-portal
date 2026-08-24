@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Whole, Half, or Quarter Beef',
     description: 'Compare shares by price, estimated total, and freezer space.',
     url: '/select-size',
+    // Next replaces the parent openGraph wholesale, so the image must repeat.
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
 };
 

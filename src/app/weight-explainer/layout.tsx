@@ -10,6 +10,8 @@ export const metadata: Metadata = {
     description:
       'Hanging weight explained, with a live calculator for what a whole, half, or quarter beef actually costs.',
     url: '/weight-explainer',
+    // Next replaces the parent openGraph wholesale, so the image must repeat.
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
 };
 

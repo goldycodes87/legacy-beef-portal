@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'American Wagyu Waitlist',
     description: '50% Japanese Wagyu × Black Angus, raised in Black Forest, Colorado.',
     url: '/wagyu-waitlist',
+    // Next replaces the parent openGraph wholesale, so the image must repeat.
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
 };
 

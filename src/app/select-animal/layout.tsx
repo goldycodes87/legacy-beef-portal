@@ -9,6 +9,8 @@ export const metadata: Metadata = {
     title: 'Grass-Fed, Grain-Finished, or Wagyu',
     description: 'Choose how your beef was raised on our Black Forest, Colorado ranch.',
     url: '/select-animal',
+    // Next replaces the parent openGraph wholesale, so the image must repeat.
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
   },
 };
 
