@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
     const unitCost = purchase_type === 'whole' ? 1.0 : purchase_type === 'half' ? 0.5 : 0.25;
     const remaining = (animal.total_animals || 1) - (animal.units_used || 0);
 
+    // Fast feedback before we create records. The real guarantee is the
+    // atomic claim below — this check alone would let two simultaneous
+    // bookings both pass and oversell the animal.
     if (remaining < unitCost) {
       return NextResponse.json({
         error: 'No spots remaining for this selection. Please go back and choose another.',
@@ -110,6 +113,24 @@ export async function POST(request: NextRequest) {
     // Generate group_id for split bookings
     const group_id = is_splitting ? crypto.randomUUID() : null;
 
+    // Claim capacity atomically before creating the reservation. The database
+    // locks the animal row, so simultaneous bookings queue instead of both
+    // claiming the last slot.
+    const { error: claimError } = await supabaseAdmin.rpc('adjust_animal_units', {
+      p_animal_id: animal_id,
+      p_delta: unitCost,
+    });
+
+    if (claimError) {
+      if (claimError.message?.includes('insufficient_capacity')) {
+        return NextResponse.json({
+          error: 'That spot was just taken. Please go back and choose another date.',
+        }, { status: 409 });
+      }
+      console.error('Error claiming animal capacity:', claimError);
+      return NextResponse.json({ error: 'Failed to reserve this spot' }, { status: 500 });
+    }
+
     const { data: sessionData, error: sessionError } = await supabaseAdmin
       .from('sessions')
       .insert({
@@ -137,21 +158,15 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !sessionData) {
       console.error('Error creating session:', sessionError);
+      // Give the capacity back rather than stranding it forever.
+      await supabaseAdmin.rpc('adjust_animal_units', {
+        p_animal_id: animal_id,
+        p_delta: -unitCost,
+      });
       return NextResponse.json({ error: 'Failed to create session' }, { status: 500 });
     }
 
     const sessionId = sessionData.id;
-
-    // 4. Increment units_used on the animal (optimistic — race condition handled by check above)
-    const { error: updateError } = await supabaseAdmin
-      .from('animals')
-      .update({ units_used: (animal.units_used || 0) + unitCost })
-      .eq('id', animal_id);
-
-    if (updateError) {
-      console.error('Error updating animal slots_used:', updateError);
-      // Non-fatal — log but continue
-    }
 
     // Send Grant new reservation notification
     try {

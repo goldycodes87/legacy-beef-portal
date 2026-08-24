@@ -50,15 +50,22 @@ export default function BalancePage() {
       setError('Card tokenization failed. Please try again.');
       return;
     }
+    if (paying) return; // guard against a double submit
     setPaying(true);
     setError(null);
     try {
+      // One key per attempt so Square treats a retry of this attempt as the
+      // same charge rather than a second one.
+      const idempotencyKey =
+        globalThis.crypto?.randomUUID?.() ?? `${uuid}-${Date.now()}`;
+
       const res = await fetch(`/api/payments/balance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: uuid,
           source_id: token.token,
+          idempotency_key: idempotencyKey,
         }),
       });
       const data = await res.json();

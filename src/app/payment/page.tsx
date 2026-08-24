@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PaymentForm as SquarePaymentFormWrapper, CreditCard, ApplePay, GooglePay } from 'react-square-web-payments-sdk';
+import { PaymentForm as SquarePaymentFormWrapper, CreditCard } from 'react-square-web-payments-sdk';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -186,9 +186,15 @@ function SquarePaymentForm({
       setError('Card tokenization failed. Please try again.');
       return;
     }
+    if (paying) return; // guard against a double submit
     setPaying(true);
     setError(null);
     try {
+      // One key per attempt so Square treats a retry of this attempt as the
+      // same charge rather than a second one.
+      const idempotencyKey =
+        globalThis.crypto?.randomUUID?.() ?? `${session.id}-${Date.now()}`;
+
       const res = await fetch('/api/payments/create-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,6 +202,7 @@ function SquarePaymentForm({
           session_id: session.id,
           source_id: token.token,
           coupon_code: couponCode || null,
+          idempotency_key: idempotencyKey,
         }),
       });
       const data = await res.json();
@@ -214,7 +221,6 @@ function SquarePaymentForm({
 
   return (
     <div>
-      {/* TODO: Add /.well-known/apple-developer-merchantid-domain-association to public for Apple Pay domain verification */}
       <SquarePaymentFormWrapper
         applicationId={process.env.NEXT_PUBLIC_SQUARE_APP_ID!}
         locationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!}
@@ -228,15 +234,19 @@ function SquarePaymentForm({
           },
         })}
       >
-        <div className="space-y-3 mb-4">
-          <GooglePay />
-          <ApplePay />
-        </div>
-        <div className="relative flex items-center my-4">
-          <div className="flex-grow border-t border-[#E5E7EB]"></div>
-          <span className="flex-shrink mx-4 text-[#9CA3AF] text-xs">or pay with card</span>
-          <div className="flex-grow border-t border-[#E5E7EB]"></div>
-        </div>
+        {/*
+          Apple Pay and Google Pay are hidden until the domain is registered
+          with Square and the association file is served from
+          /.well-known/apple-developer-merchantid-domain-association.
+          Without it the buttons render but cannot complete a payment.
+          To re-enable: register the domain in Square (Developer > Apple Pay),
+          drop the file into public/.well-known/, then restore the block below.
+
+          <div className="space-y-3 mb-4">
+            <GooglePay />
+            <ApplePay />
+          </div>
+        */}
         <CreditCard
           style={{
             '.input-container': {

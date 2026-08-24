@@ -13,13 +13,13 @@ const squareClient = new SquareClient({
 });
 
 export async function POST(request: NextRequest) {
-  const { session_id, source_id } = await request.json();
+  const { session_id, source_id, idempotency_key } = await request.json();
   const supabase = getSupabaseAdmin();
 
   const { data: session } = await supabase
     .from('sessions')
     .select(`
-      id, balance_due, purchase_type,
+      id, balance_due, balance_paid, purchase_type,
       customers (id, name, email),
       animals (name, butcher_date)
     `)
@@ -28,6 +28,23 @@ export async function POST(request: NextRequest) {
 
   if (!session) {
     return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+  }
+
+  // Never charge a balance twice.
+  if ((session as any).balance_paid) {
+    return NextResponse.json({ success: true, already_paid: true });
+  }
+
+  const { data: existingBalance } = await supabase
+    .from('payments')
+    .select('id')
+    .eq('session_id', session_id)
+    .eq('type', 'balance')
+    .eq('status', 'paid')
+    .maybeSingle();
+
+  if (existingBalance) {
+    return NextResponse.json({ success: true, already_paid: true });
   }
 
   const balanceDue = (session as any).balance_due || 0;
@@ -46,7 +63,10 @@ export async function POST(request: NextRequest) {
   try {
     const { payment } = await squareClient.payments.create({
       sourceId: source_id,
-      idempotencyKey: randomUUID(),
+      // One key per payment attempt, so Square collapses retries.
+      idempotencyKey: typeof idempotency_key === 'string' && idempotency_key
+        ? idempotency_key.slice(0, 45)
+        : randomUUID(),
       amountMoney: {
         amount: BigInt(totalCents),
         currency: 'USD',

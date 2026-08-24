@@ -22,10 +22,29 @@ const squareClient = new SquareClient({
 });
 
 export async function POST(request: NextRequest) {
-  const { session_id, source_id, coupon_code } = await request.json();
+  const { session_id, source_id, coupon_code, idempotency_key } = await request.json();
 
   if (!session_id || !source_id) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  }
+
+  // Never charge a deposit twice. A double-click, a browser retry, or a
+  // network timeout followed by a retry all land here.
+  const { data: existingDeposit } = await supabaseAdmin
+    .from('payments')
+    .select('id, amount_cents')
+    .eq('session_id', session_id)
+    .eq('type', 'deposit')
+    .eq('status', 'paid')
+    .maybeSingle();
+
+  if (existingDeposit) {
+    return NextResponse.json({
+      success: true,
+      already_paid: true,
+      session_id,
+      amount_cents: existingDeposit.amount_cents,
+    });
   }
 
   const { data: session } = await supabaseAdmin
@@ -93,7 +112,11 @@ export async function POST(request: NextRequest) {
   try {
     const { payment } = await squareClient.payments.create({
       sourceId: source_id,
-      idempotencyKey: randomUUID(),
+      // The client sends one key per payment attempt, so Square collapses
+      // retries of the same attempt into a single charge.
+      idempotencyKey: typeof idempotency_key === 'string' && idempotency_key
+        ? idempotency_key.slice(0, 45)
+        : randomUUID(),
       amountMoney: {
         amount: BigInt(totalCents),
         currency: 'USD',
@@ -107,8 +130,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
     }
 
-    // Record payment
-    await supabaseAdmin.from('payments').insert({
+    // Record payment. The card has been charged by this point, so a failure
+    // here means money moved with no record — log loudly with the Square id so
+    // it can be reconciled by hand.
+    const { error: paymentInsertError } = await supabaseAdmin.from('payments').insert({
       session_id,
       type: 'deposit',
       method: 'card',
@@ -119,10 +144,26 @@ export async function POST(request: NextRequest) {
       square_payment_id: payment.id,
     });
 
+    if (paymentInsertError) {
+      console.error(
+        `PAYMENT RECORDED IN SQUARE BUT NOT IN DATABASE. square_payment_id=${payment.id} ` +
+        `session_id=${session_id} amount_cents=${totalCents}`,
+        paymentInsertError
+      );
+    }
+
     // Update session
     const sessionUpdate: Record<string, unknown> = { status: 'deposit_paid' };
     if (session.purchase_type === 'quarter') sessionUpdate.cut_sheet_complete = true;
-    await supabaseAdmin.from('sessions').update(sessionUpdate).eq('id', session_id);
+    const { error: sessionUpdateError } = await supabaseAdmin
+      .from('sessions').update(sessionUpdate).eq('id', session_id);
+
+    if (sessionUpdateError) {
+      console.error(
+        `Deposit charged but session not advanced. square_payment_id=${payment.id} session_id=${session_id}`,
+        sessionUpdateError
+      );
+    }
 
     // Mark coupon redeemed
     if (couponId) {
