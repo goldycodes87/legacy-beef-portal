@@ -183,43 +183,31 @@ export async function POST(request: NextRequest) {
       const accessLink = `${APP_URL}/api/token/${accessToken}`;
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY!);
-      const { emailBase, ctaButton, orderCard } = await import('@/lib/email-templates');
+      const { build, depositConfirmation } = await import('@/lib/email-content');
       const firstName = customer?.name?.split(' ')[0] ?? 'there';
       const pricePerLb = Number((session as any).price_per_lb) || Number(animal?.price_per_lb) || 0;
       const depositPaid = totalCents / 100;
 
-      const content = `
-        <table role="presentation" width="100%" style="border-radius:12px;margin:0 0 28px;">
-        <tr><td bgcolor="#1A3D2B" style="background:linear-gradient(135deg,#1A3D2B 0%,#2d6a4f 100%);border-radius:12px;padding:28px 24px;text-align:center;">
-          <div style="font-size:40px;margin-bottom:8px;">🎉</div>
-          <h2 style="font-family:Georgia,serif;color:white;font-size:26px;margin:0 0 8px;font-weight:normal;">
-            You're in, ${firstName}.
-          </h2>
-          <p style="color:#C4A46B;font-size:14px;margin:0;font-family:Arial,sans-serif;">
-            Your spot is locked. Your beef is coming.
-          </p>
-        </td></tr></table>
-        <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 24px;">
-          We've got your deposit and your reservation is officially on the books.
-        </p>
-        ${orderCard([
-          { label: 'Order Type', value: purchaseTypeLabel(session.purchase_type) },
-          { label: 'Animal', value: animal?.name || 'TBD' },
-          { label: 'Butcher Date', value: animal?.butcher_date ? new Date(animal.butcher_date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD' },
-          { label: 'Price/lb', value: `$${pricePerLb.toFixed(2)}` },
-          { label: 'Deposit Paid', value: `$${depositPaid.toFixed(2)}` },
-        ])}
-        <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:0 0 16px;">
-          <strong style="color:#1A3D2B;">Your next step:</strong> Fill out your cut sheet.
-        </p>
-        ${ctaButton('Build My Cut Sheet →', accessLink)}
-      `;
+      const { subject: depositSubject, html: depositHtml } = build(depositConfirmation, {
+        firstName,
+        purchaseLabel: purchaseTypeLabel(session.purchase_type),
+        animalName: animal?.name || 'TBD',
+        butcherDate: animal?.butcher_date
+          ? new Date(animal.butcher_date + 'T00:00:00').toLocaleDateString('en-US', {
+              year: 'numeric', month: 'long', day: 'numeric',
+            })
+          : 'TBD',
+        estimatedReady: null,
+        pricePerLb,
+        depositPaid,
+        cutSheetUrl: accessLink,
+      });
 
       await resend.emails.send({
         from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
         to: customer.email,
-        subject: 'Your Legacy Land & Cattle Reservation is Confirmed',
-        html: emailBase(content, 'Your spot is locked. Your beef is coming.'),
+        subject: depositSubject,
+        html: depositHtml,
       });
 
       await resend.emails.send({
