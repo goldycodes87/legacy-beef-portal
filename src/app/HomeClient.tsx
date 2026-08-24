@@ -71,7 +71,7 @@ export default function HomeClient({
           }}
         />
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 pb-14">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-5 pt-12 pb-14">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -137,8 +137,8 @@ export default function HomeClient({
 
       {/* ── Returning customers ──────────────────────────────────────────── */}
       <section className="bg-brand-dark border-t border-white/10">
-        <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-4">
-          <p className="font-body text-white/70 text-base sm:text-lg m-0 leading-relaxed">
+        <div className="max-w-5xl mx-auto px-5 py-5 flex flex-wrap items-center justify-between gap-4">
+          <p className="font-body text-white/70 text-base m-0 leading-relaxed max-w-[52ch]">
             <strong className="text-white">Bought from us before?</strong> Pick up where you left
             off — your details and last cut sheet are saved.
           </p>
