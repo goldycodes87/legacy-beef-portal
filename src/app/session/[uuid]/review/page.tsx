@@ -109,6 +109,7 @@ export default function ReviewPage() {
   const [answers, setAnswers] = useState<CutSheetAnswer[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [locking, setLocking] = useState(false);
+  const [lockError, setLockError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshData = useCallback(async () => {
@@ -160,7 +161,13 @@ export default function ReviewPage() {
   async function handleLock() {
     setLocking(true);
     try {
-      await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
+      const res = await fetch(`/api/cut-sheet/${uuid}/lock`, { method: 'POST' });
+      if (!res.ok) {
+        // Sending them to the celebration page after a failed lock meant they
+        // believed the butcher had their instructions when nobody did.
+        setLockError('We could not lock your cut sheet. Please try again, or call (719) 258-1777.');
+        return;
+      }
       router.push(`/session/${uuid}/wrapped`);
     } finally {
       setLocking(false);
@@ -282,6 +289,11 @@ export default function ReviewPage() {
 
         {renderDualSectionCards()}
         <div className="space-y-3 pb-8">
+          {lockError && (
+            <p className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+              {lockError}
+            </p>
+          )}
           <button
             onClick={handleLock}
             disabled={locking || !allComplete}

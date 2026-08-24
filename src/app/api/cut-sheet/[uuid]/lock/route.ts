@@ -214,6 +214,19 @@ export async function POST(
       .update({ locked: true })
       .eq('session_id', session.cut_sheet_partner_session_id);
 
+    // A split shares one cut sheet, so when it locks the partner is done too.
+    // Without this their reservation stayed on "Cut sheet open" in the admin
+    // for good, and nothing the partner did could clear it.
+    await supabase
+      .from('sessions')
+      .update({
+        status: 'locked',
+        cut_sheet_complete: true,
+        cut_sheet_locked_at: now,
+      })
+      .eq('id', session.cut_sheet_partner_session_id)
+      .eq('cut_sheet_complete', false);
+
     // Fetch partner session + customer for email
     const { data: partnerSession } = await supabase
       .from('sessions')
@@ -246,12 +259,14 @@ export async function POST(
       const { Resend } = await import('resend');
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      await resend.emails.send({
-        from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-        to: partnerCustomer.email,
-        subject: halfValue ? 'Both halves are locked 🔒' : 'Your cut sheet is locked in 🔒',
-        html: htmlEmail,
-      });
+      await resend.emails
+        .send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: partnerCustomer.email,
+          subject: halfValue ? 'Both halves are locked 🔒' : 'Your cut sheet is locked in 🔒',
+          html: htmlEmail,
+        })
+        .catch((err) => console.error('Partner cut sheet lock email error:', err));
     }
   }
 

@@ -101,3 +101,10 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ reminded: sessionsToRemind.length });
 }
+/**
+ * Vercel Cron invokes the path with GET. This route only exported POST, so the
+ * daily run answered 405 and this job has never actually fired in production.
+ */
+export async function GET(request: NextRequest) {
+  return POST(request);
+}

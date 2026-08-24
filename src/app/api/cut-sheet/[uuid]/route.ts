@@ -36,7 +36,8 @@ export async function POST(
   const { uuid } = await params;
   const supabase = getSupabaseAdmin();
   const body = await request.json();
-  const { section, answers, completed, custom_request } = body;
+  const { section, answers, completed } = body;
+  const hasCustomRequest = Object.prototype.hasOwnProperty.call(body, 'custom_request');
   const half = body.half === 'A' || body.half === 'B' ? body.half : null;
 
   if (!section) return NextResponse.json({ error: 'section required' }, { status: 400 });
@@ -44,7 +45,7 @@ export async function POST(
   // Check if record exists
   let existQuery = supabase
     .from('cut_sheet_answers')
-    .select('id')
+    .select('id, locked')
     .eq('session_id', uuid)
     .eq('section', section);
   if (half !== null) {
@@ -54,6 +55,15 @@ export async function POST(
   }
   const { data: existing } = await existQuery.maybeSingle();
 
+  // The lock was only ever enforced in the UI, so a stale tab could overwrite
+  // instructions already printed and handed to the butcher.
+  if (existing?.locked) {
+    return NextResponse.json(
+      { error: 'cut_sheet_locked', message: 'This cut sheet is locked and can no longer be changed.' },
+      { status: 409 }
+    );
+  }
+
   let data, error;
   if (existing?.id) {
     ({ data, error } = await supabase
@@ -61,7 +71,7 @@ export async function POST(
       .update({
         answers: answers ?? {},
         completed: completed ?? false,
-        custom_request: custom_request ?? null,
+        ...(hasCustomRequest ? { custom_request: body.custom_request ?? null } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq('id', existing.id)
@@ -76,7 +86,7 @@ export async function POST(
         half,
         answers: answers ?? {},
         completed: completed ?? false,
-        custom_request: custom_request ?? null,
+        ...(hasCustomRequest ? { custom_request: body.custom_request ?? null } : {}),
         updated_at: new Date().toISOString(),
       })
       .select()

@@ -1473,6 +1473,7 @@ export default function CutsPage() {
   const [showWrapped, setShowWrapped] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [halfModes, setHalfModes] = useState<Record<string, HalfMode>>({});
   const [showChoice, setShowChoice] = useState(false);
 
@@ -1575,7 +1576,18 @@ export default function CutsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ section: sectionId, answers: sectionAnswers, completed, half }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.id) {
+        // Writing the error body into state used to make the customer's
+        // answers disappear with nothing on screen to explain it.
+        setSaveError(
+          data?.error === 'cut_sheet_locked'
+            ? 'This cut sheet is locked, so that change was not saved.'
+            : 'We could not save that. Check your connection and try again.'
+        );
+        return;
+      }
+      setSaveError(null);
       setAnswers(prev => {
         const existing = prev.findIndex(a =>
           a.section === sectionId && (a.half ?? null) === (half ?? null)
@@ -1678,6 +1690,11 @@ export default function CutsPage() {
         <Image src="/images/LLC_Logo_white.svg" alt="Legacy Land & Cattle" width={160} height={72} className="h-14 w-auto"/>
         <div className="flex items-center gap-3">
           {saving && <span className="text-xs text-white/60 animate-pulse">Saving…</span>}
+          {saveError && (
+            <span className="text-xs text-red-300 font-semibold max-w-[220px] text-right">
+              {saveError}
+            </span>
+          )}
           <button
             onClick={() => router.push(`/session/${uuid}`)}
             className="text-white/70 hover:text-white text-sm font-medium"
@@ -1693,7 +1710,7 @@ export default function CutsPage() {
             const sections = ['chuck','brisket','skirt','rib','short_ribs','sirloin',
               'round','short_loin','flank','stew_meat','tenderized_round',
               'organs','bones','packing'];
-            await Promise.all(sections.map(section =>
+            const results = await Promise.all(sections.map(section =>
               fetch(`/api/cut-sheet/${uuid}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1705,6 +1722,10 @@ export default function CutsPage() {
                 }),
               })
             ));
+            if (results.some(r => !r.ok)) {
+              setSaveError('We could not fill in the house cut sheet. Please try again.');
+              return;
+            }
             router.push(`/session/${uuid}/review`);
           } else {
             setShowIntro(false);
