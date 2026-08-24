@@ -78,6 +78,15 @@ export default function HomeClient({
             transition={{ duration: 0.7, ease: 'easeOut' }}
             className="max-w-[660px]"
           >
+            <Image
+              src="/images/LLC_Logo_white.svg"
+              alt="Legacy Land &amp; Cattle"
+              width={520}
+              height={300}
+              className="h-28 sm:h-36 md:h-44 w-auto mb-6 -ml-1"
+              priority
+            />
+
             {nextButcherDate && (
               <div className="inline-flex items-center gap-2.5 rounded-full px-4 py-1.5 mb-5 bg-white/10 border border-white/20 backdrop-blur-sm">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400" aria-hidden="true" />
@@ -128,14 +137,14 @@ export default function HomeClient({
 
       {/* ── Returning customers ──────────────────────────────────────────── */}
       <section className="bg-brand-dark border-t border-white/10">
-        <div className="max-w-5xl mx-auto px-5 py-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="font-body text-white/70 text-sm m-0">
+        <div className="max-w-5xl mx-auto px-5 py-7 flex flex-wrap items-center justify-between gap-4">
+          <p className="font-body text-white/70 text-base sm:text-lg m-0 leading-relaxed">
             <strong className="text-white">Bought from us before?</strong> Pick up where you left
             off — your details and last cut sheet are saved.
           </p>
           <Link
             href="/returning"
-            className="font-body text-[#C4A46B] hover:text-white text-sm font-semibold whitespace-nowrap transition-colors"
+            className="font-body bg-white/10 hover:bg-white/20 border border-[#C4A46B]/50 hover:border-[#C4A46B] text-[#C4A46B] hover:text-white text-base font-semibold whitespace-nowrap px-6 py-3 rounded-xl transition-colors"
           >
             Sign in with your email →
           </Link>
@@ -143,7 +152,7 @@ export default function HomeClient({
       </section>
 
       {/* ── Education first ──────────────────────────────────────────────── */}
-      <section id="know-your-beef" className="scroll-mt-16 py-16 px-4">
+      <section id="know-your-beef" className="scroll-mt-24 py-16 px-4">
         <div className="max-w-[760px] mx-auto">
           <FadeIn>
             <div className="text-center mb-10">
@@ -237,7 +246,7 @@ export default function HomeClient({
       </section>
 
       {/* ── Pricing ──────────────────────────────────────────────────────── */}
-      <section id="pricing" className="scroll-mt-16 bg-white py-16 px-4">
+      <section id="pricing" className="scroll-mt-24 bg-white py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <FadeIn>
             <div className="text-center mb-10">

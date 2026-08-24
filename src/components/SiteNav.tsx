@@ -13,15 +13,15 @@ export default function SiteNav() {
     <header className="sticky top-0 z-40 bg-brand-dark/95 backdrop-blur supports-[backdrop-filter]:bg-brand-dark/80">
       <nav
         aria-label="Main"
-        className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3"
+        className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between gap-3"
       >
         <Link href="/" className="flex items-center" aria-label="Legacy Land &amp; Cattle home">
           <Image
             src="/images/LLC_Logo_white.svg"
             alt="Legacy Land &amp; Cattle"
-            width={140}
-            height={80}
-            className="h-9 w-auto"
+            width={260}
+            height={150}
+            className="h-14 w-auto"
             priority
           />
         </Link>
@@ -34,13 +34,13 @@ export default function SiteNav() {
             (719) 258-1777
           </a>
           <Link
-            href="/weight-explainer"
+            href="/#how-it-works"
             className="hidden sm:inline text-white/75 hover:text-white text-sm font-body transition-colors"
           >
             How it works
           </Link>
           <Link
-            href="/select-animal"
+            href="/weight-explainer"
             className="bg-brand-orange hover:bg-brand-orange-hover text-white font-body font-semibold text-sm px-4 py-2 rounded-full transition-colors"
           >
             Reserve

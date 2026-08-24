@@ -60,12 +60,12 @@ export default function SiteFooter() {
             </h2>
             <ul className="space-y-2 text-sm font-body">
               <li>
-                <Link href="/weight-explainer" className="hover:text-white transition-colors">
+                <Link href="/#how-it-works" className="hover:text-white transition-colors">
                   How it works
                 </Link>
               </li>
               <li>
-                <Link href="/select-animal" className="hover:text-white transition-colors">
+                <Link href="/weight-explainer" className="hover:text-white transition-colors">
                   Reserve your beef
                 </Link>
               </li>

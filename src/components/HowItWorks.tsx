@@ -13,7 +13,7 @@ const steps = [
     icon: '🐄',
     image: '/images/20250406_133350.jpg',
     short: 'Choose your size and pay your deposit.',
-    detail: `Pick a whole, half, or quarter beef. Not sure how much you need? Use our calculator on the next page to find your perfect size.
+    detail: `Pick a whole, half, or quarter beef. Not sure how much you need? Use our calculator above to find your perfect size.
 
 Pay your deposit to lock in your spot and choose the butcher date that works best for you. Our prices are all-inclusive and include your transportation, processing, and pickup.`,
   },
@@ -77,7 +77,7 @@ export default function HowItWorks() {
   };
 
   return (
-    <section id="how-it-works" className="relative bg-brand-dark py-24 px-4 overflow-hidden" style={{overflowAnchor: "none"}}>
+    <section id="how-it-works" className="relative scroll-mt-24 bg-brand-dark py-24 px-4 overflow-hidden" style={{overflowAnchor: "none"}}>
       <GlassFilter />
 
       {/* Illuminated glow behind headline */}

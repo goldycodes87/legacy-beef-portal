@@ -1,13 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import WeightExplainer from '@/components/WeightExplainer';
 import ReservationProgress from '@/components/ReservationProgress';
-import BeefCalculator from '@/components/BeefCalculator';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
-import { Timeline } from '@/components/ui/modern-timeline';
 import SiteFooter from '@/components/SiteFooter';
 import type { ShownPrices } from '@/lib/display-prices';
 
@@ -99,112 +97,28 @@ export default function WeightExplainerClient({
           </div>
         </div>
 
-        {/* Helper Text */}
-        <p className="font-body text-brand-gray text-sm text-center mb-4">
-          👇 Adjust the slider below to estimate your cost based on animal size.
+        {/* The slider, the size calculator and the freezer video all live on
+            the home page. Repeating them here made this read as the same page
+            twice, so point at the one copy instead. */}
+        <p className="font-body text-brand-gray text-sm text-center">
+          Want the full walkthrough — the weight slider, the size calculator and the
+          freezer video?{' '}
+          <Link
+            href="/#know-your-beef"
+            className="text-brand-orange font-semibold underline underline-offset-2"
+          >
+            It&apos;s all on the home page
+          </Link>
+          .
         </p>
 
-        {/* Weight Explainer */}
-        <section className="mb-16">
-          <div className="overflow-x-auto max-w-full">
-            <WeightExplainer prices={prices} />
-          </div>
-        </section>
-
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 2: Tools */}
-        {/* ═══════════════════════════════════════════════════════════════ */}
-        <div className="mt-16 mb-8 text-center">
-          <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">
-            Find Your Size
-          </h2>
-          <p className="font-body text-brand-gray text-sm">
-            Use these tools to figure out what's right for your household.
-          </p>
-        </div>
-
-        <div className="space-y-10 mb-16">
-          {/* Beef Calculator */}
-          <BeefCalculator />
-
-          {/* Freezer Video */}
-          <div>
-            <h3 className="font-display font-bold text-xl text-brand-dark mb-2 text-center">
-              Will It Fit In My Freezer?
-            </h3>
-            <p className="font-body text-brand-gray text-sm mb-4 text-center">
-              Watch this quick video to see exactly how much freezer space you'll need.
-            </p>
-            <video
-              controls
-              preload="metadata"
-              poster="/images/hero_pasture.jpg"
-              className="w-full max-w-[750px] mx-auto block"
-              style={{ borderRadius: '12px' }}
-            >
-              <source src="/videos/Freezervideo.mp4" type="video/mp4" />
-              Your browser does not support video playback.
-            </video>
-          </div>
-        </div>
-
-        {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 3: Beef Journey Timeline */}
-        {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="mb-12">
-          <h2 className="font-display font-bold text-2xl text-brand-dark text-center mb-2">
-            Your Beef Journey
-          </h2>
-          <p className="font-body text-brand-gray text-center text-sm mb-6">
-            From our ranch to your freezer — here's exactly what happens.
-          </p>
-          <Timeline items={[
-            {
-              icon: '🐄',
-              title: 'Reserve Your Spot',
-              date: 'Day 1',
-              description: 'Pay your deposit to lock in your slot. Choose a whole, half, or quarter. Your price per pound is set at this point.',
-            },
-            {
-              icon: '✂️',
-              title: 'Fill Out Your Cut Sheet',
-              date: 'Before butcher date',
-              description: 'Tell the butcher exactly how you want your beef cut from steak thickness, roast size, ground beef ratio, and more. You have until 1 week before butcher day to get it done.',
-            },
-            {
-              icon: '🚛',
-              title: 'We Transport to T-K Processing',
-              date: 'Butcher day',
-              description: 'We transport the cattle to T-K Processing in Cañon City and drop off your cut sheet in person.',
-            },
-            {
-              icon: '🥩',
-              title: 'Dry Age 21–24 Days',
-              date: '3 weeks later',
-              description: 'Your beef is dry-aged for 21–24 days for maximum tenderness and flavor.',
-            },
-            {
-              icon: '📦',
-              title: 'Cut, Vacuum-Sealed & Labeled',
-              date: 'After aging',
-              description: 'Everything is cut to your specs, vacuum-sealed, labeled, and frozen.',
-            },
-            {
-              icon: '❄️',
-              title: 'You Pick It Up',
-              date: 'Est. 4–5 weeks after butcher',
-              description: 'Schedule your pickup via email. Pay your remaining balance and load up. Your beef is frozen solid and ready to go.',
-            },
-          ]} />
-        </section>
-
-        {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 5: 3-Step Conversational Flow */}
+        {/* SECTION 2: 3-Step Conversational Flow */}
         {/* ═══════════════════════════════════════════════════════════════ */}
 
         {/* ── Step A: Ready prompt ── */}
         {step === 'idle' && (
-          <section className="mb-12 text-center">
+          <section className="mt-12 mb-12 text-center">
             <h2 className="font-display font-bold text-3xl text-brand-dark mb-4">
               Ready to reserve your beef?
             </h2>
@@ -219,7 +133,7 @@ export default function WeightExplainerClient({
                 Yes, let&apos;s do it! →
               </button>
               <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => router.push('/#know-your-beef')}
                 className="border-2 border-brand-gray-light text-brand-gray font-body font-semibold text-lg px-8 py-4 rounded-xl hover:border-brand-dark hover:text-brand-dark transition-all"
               >
                 Not yet

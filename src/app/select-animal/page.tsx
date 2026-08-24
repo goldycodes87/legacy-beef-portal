@@ -78,7 +78,14 @@ export default function SelectAnimalPage() {
   };
 
   useEffect(() => {
-    const selectedSize = sessionStorage.getItem('selectedSize') || 'half';
+    // Landing here without a size means the funnel was skipped — the nav used
+    // to link straight to this page. Defaulting to 'half' silently booked a
+    // size the customer never chose, so send them back to step one instead.
+    const selectedSize = sessionStorage.getItem('selectedSize');
+    if (!selectedSize) {
+      router.replace('/weight-explainer');
+      return;
+    }
 
     async function checkWagyu() {
       try {
