@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import SiteNav from '@/components/SiteNav';
 import SiteFooter from '@/components/SiteFooter';
 
-export default function ReturningPage() {
+function ReturningForm() {
+  const params = useSearchParams();
+  const expired = params.get('expired') === '1';
   const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +69,12 @@ export default function ReturningPage() {
             <h1 className="font-display font-bold text-3xl text-brand-dark mb-3">
               Welcome back
             </h1>
+
+            {expired && (
+              <p className="font-body text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 mb-4">
+                Your last link expired. Enter your email and we&apos;ll send a fresh one.
+              </p>
+            )}
             <p className="font-body text-brand-gray mb-8 leading-relaxed">
               Enter the email you used before and we&apos;ll send you a link straight into your
               order — your details and your last cut sheet are saved. No password to remember.
@@ -112,5 +121,13 @@ export default function ReturningPage() {
 
       <SiteFooter />
     </div>
+  );
+}
+
+export default function ReturningPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReturningForm />
+    </Suspense>
   );
 }

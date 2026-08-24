@@ -52,6 +52,8 @@ export default function WrappedPage() {
   const [answers, setAnswers] = useState<CutSheetAnswer[]>([]);
   const [currentCard, setCurrentCard] = useState(-1); // -1 = intro
   const [loading, setLoading] = useState(true);
+  /** How many orders this customer has placed, null while unknown. */
+  const [orderCount, setOrderCount] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -64,6 +66,12 @@ export default function WrappedPage() {
       setSession(sessionData);
       setAnswers(Array.isArray(answersData) ? answersData : []);
       setLoading(false);
+
+      // Only affects the copy, so a failure here is not worth blocking on.
+      fetch('/api/account/summary')
+        .then((r) => r.json())
+        .then((d) => setOrderCount(typeof d?.orderCount === 'number' ? d.orderCount : null))
+        .catch(() => {});
     }
     load();
   }, [uuid]);
@@ -83,6 +91,7 @@ export default function WrappedPage() {
   const weightRange = WEIGHT_RANGES[session.purchase_type] || '195–235';
   const animalTypeLabel = ANIMAL_TYPE_LABELS[session.animal?.animal_type || 'grass_fed'];
   const isDual = session.dual_cut_sheet === true;
+  const isRepeat = orderCount !== null && orderCount > 1;
 
   // Estimate ground beef lbs (rough: 30% of finished weight goes to grind)
   const avgWeight = session.purchase_type === 'whole' ? 427 : session.purchase_type === 'half' ? 215 : 108;
@@ -91,7 +100,32 @@ export default function WrappedPage() {
   const funFact = DID_YOU_KNOW[didYouKnowIndex](avgWeight);
 
   // Cards to show in sequence
+  // A repeat customer gets thanked for coming back, not welcomed as if we
+  // had never met.
   const cards = [
+    ...(isRepeat
+      ? [
+          {
+            bg: 'from-brand-green to-[#0d2518]',
+            image: CARD_IMAGES[0],
+            content: (
+              <div className="text-center space-y-4">
+                <p className="text-6xl">🤝</p>
+                <p className="text-white/60 text-sm uppercase tracking-widest font-semibold">
+                  Order number {orderCount}
+                </p>
+                <p className="text-white text-3xl font-display font-bold leading-tight">
+                  Thank you for coming back.
+                </p>
+                <p className="text-white/70 text-base leading-relaxed">
+                  You could buy beef anywhere. That you keep buying it from our
+                  family is the whole reason we do this.
+                </p>
+              </div>
+            ),
+          },
+        ]
+      : []),
     {
       bg: 'from-brand-green to-[#0d2518]',
       image: CARD_IMAGES[0],
@@ -157,7 +191,11 @@ export default function WrappedPage() {
             <p className="text-white text-2xl font-display font-bold">
               {isDual ? 'Both cut sheets are locked!' : 'Your beef is locked in.'}
             </p>
-            <p className="text-white/70 text-base">We&apos;ll take it from here.</p>
+            <p className="text-white/70 text-base">
+              {isRepeat
+                ? 'Same as always — we&rsquo;ll take it from here.'
+                : 'We&rsquo;ll take it from here.'}
+            </p>
           </div>
           <div className="bg-brand-green rounded-2xl p-5 text-left space-y-2">
             <p className="text-white font-semibold text-sm">What happens next?</p>

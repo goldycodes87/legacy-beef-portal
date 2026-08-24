@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       const { subject, html } = build(returningLink, {
         firstName,
         mostRecentOrder: animal?.name ?? null,
-        orderUrl: `${APP_URL}/api/token/${token}`,
+        orderUrl: `${APP_URL}/api/token/${token}?to=account`,
       });
 
       await resend.emails.send({

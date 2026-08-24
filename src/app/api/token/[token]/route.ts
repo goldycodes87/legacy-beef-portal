@@ -18,7 +18,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.redirect(new URL('/access-expired', request.url));
   }
 
+  // A returning-customer sign-in link asks for the account page; order links
+  // from reminders and receipts still deep-link to whatever needs doing.
+  const requested = request.nextUrl.searchParams.get('to');
   const destination =
+    requested === 'account' ? '/account' :
     session.status === 'beef_ready' ? `/session/${session.id}/pickup` :
     (session.status === 'locked' && session.hanging_weight_lbs && !session.balance_paid) ? `/session/${session.id}/balance` :
     session.status === 'locked' ? `/session/${session.id}/review` :

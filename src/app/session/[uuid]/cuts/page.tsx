@@ -246,6 +246,85 @@ function DualCutSheetChoice({ onChoose }: { onChoose: (dual: boolean) => void })
   );
 }
 
+interface PreviousSheet {
+  sourceSessionId: string;
+  sections: number;
+  label: string;
+  butcherDateLabel: string;
+}
+
+/**
+ * Shown to a returning customer before they build a cut sheet from scratch.
+ * "Same as last time" copies it and locks the decision in one tap; walking
+ * through it again starts every section on what they chose last time rather
+ * than the house default, so they are comparing rather than starting over.
+ */
+function ReuseCutSheetScreen({
+  previous,
+  busy,
+  onChoose,
+  onStartFresh,
+}: {
+  previous: PreviousSheet;
+  busy: 'same' | 'walk' | null;
+  onChoose: (mode: 'same' | 'walk') => void;
+  onStartFresh: () => void;
+}) {
+  return (
+    <div className="max-w-[600px] mx-auto px-4 py-10 text-center">
+      <div className="text-6xl mb-4">📋</div>
+      <h1 className="font-display font-bold text-3xl text-brand-dark mb-3">
+        Use your same cut sheet?
+      </h1>
+      <p className="text-brand-gray text-base mb-8 leading-relaxed">
+        You already told us how you like your beef cut. We can use those exact
+        instructions again, or walk through them with you so you can change
+        anything.
+      </p>
+
+      <div className="bg-white border-2 border-brand-dark rounded-2xl p-6 mb-4 text-left">
+        <p className="font-body text-xs font-semibold uppercase tracking-wider text-brand-gray mb-1">
+          Your last cut sheet
+        </p>
+        <p className="font-display font-bold text-xl text-brand-dark">{previous.label}</p>
+        <p className="font-body text-sm text-brand-gray mt-0.5">
+          Butcher date {previous.butcherDateLabel} · {previous.sections} sections
+        </p>
+
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => onChoose('same')}
+          className="w-full mt-5 bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-40 text-white font-body font-bold text-lg py-4 rounded-xl transition-colors"
+        >
+          {busy === 'same' ? 'Copying…' : 'Yes — use my same cut sheet'}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        disabled={busy !== null}
+        onClick={() => onChoose('walk')}
+        className="w-full bg-white border-2 border-brand-gray-light hover:border-brand-dark disabled:opacity-40 text-brand-dark font-body font-semibold text-base py-4 rounded-xl transition-colors"
+      >
+        {busy === 'walk' ? 'Loading your choices…' : 'Walk me through it again'}
+      </button>
+      <p className="font-body text-brand-gray text-xs mt-2">
+        Every section starts on what you picked last time, so you can compare.
+      </p>
+
+      <button
+        type="button"
+        disabled={busy !== null}
+        onClick={onStartFresh}
+        className="mt-6 font-body text-sm text-brand-gray hover:text-brand-dark underline underline-offset-4 disabled:opacity-40"
+      >
+        Start from scratch instead
+      </button>
+    </div>
+  );
+}
+
 function IntroScreen({ session, onStart }: { session: Session; onStart: (useHouse?: boolean) => void }) {
   const [useHouseSheet, setUseHouseSheet] = useState(false);
   const [upchargeAgreed, setUpchargeAgreed] = useState(false);
@@ -1476,6 +1555,10 @@ export default function CutsPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [halfModes, setHalfModes] = useState<Record<string, HalfMode>>({});
   const [showChoice, setShowChoice] = useState(false);
+  // Offered to returning customers before they start from scratch.
+  const [reuse, setReuse] = useState<PreviousSheet | null>(null);
+  const [showReuse, setShowReuse] = useState(false);
+  const [reuseBusy, setReuseBusy] = useState<'same' | 'walk' | null>(null);
 
   const isDual = session?.dual_cut_sheet === true;
 
@@ -1538,6 +1621,20 @@ export default function CutsPage() {
       setSession(normalizedSession);
       setShowChoice(shouldShowChoice);
       setAnswers(normalizedAnswers);
+
+      // Only worth asking before they have answered anything here.
+      if (!hasExistingAnswers) {
+        try {
+          const prevRes = await fetch(`/api/account/previous-cut-sheet?exclude=${uuid}`);
+          const prev = await prevRes.json();
+          if (prev?.available) {
+            setReuse(prev as PreviousSheet);
+            setShowReuse(true);
+          }
+        } catch {
+          // Not being able to offer it is fine — they just build a new one.
+        }
+      }
       // Track last viewed
       fetch(`/api/cut-sheet/${uuid}/viewed`, {
         method: 'POST',
@@ -1704,7 +1801,45 @@ export default function CutsPage() {
         </div>
       </header>
 
-      {showIntro ? (
+      {showReuse && reuse ? (
+        <ReuseCutSheetScreen
+          previous={reuse}
+          busy={reuseBusy}
+          onChoose={async (mode) => {
+            setReuseBusy(mode);
+            try {
+              const res = await fetch(`/api/cut-sheet/${uuid}/copy-from`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sourceSessionId: reuse.sourceSessionId,
+                  markComplete: mode === 'same',
+                }),
+              });
+              if (!res.ok) {
+                setSaveError('We could not copy that cut sheet. Please build this one instead.');
+                setShowReuse(false);
+                return;
+              }
+              if (mode === 'same') {
+                router.push(`/session/${uuid}/review`);
+                return;
+              }
+              const fresh = await fetch(`/api/cut-sheet/${uuid}`).then((r) => r.json());
+              setAnswers(Array.isArray(fresh) ? fresh : []);
+              setShowReuse(false);
+              setShowIntro(false);
+              setShowChoice(false);
+              setCurrentIndex(0);
+            } finally {
+              setReuseBusy(null);
+            }
+          }}
+          onStartFresh={() => {
+            setShowReuse(false);
+          }}
+        />
+      ) : showIntro ? (
         <IntroScreen session={session} onStart={async (useHouse) => {
           if (useHouse) {
             const sections = ['chuck','brisket','skirt','rib','short_ribs','sirloin',
