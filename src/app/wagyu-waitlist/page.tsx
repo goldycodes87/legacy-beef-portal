@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { InfoBox } from '@/components/ui/InfoBox';
+import SiteFooter from '@/components/SiteFooter';
 
 type SizeOption = 'whole' | 'half' | 'quarter';
 
@@ -179,6 +180,8 @@ export default function WagyuWaitlistPage() {
           </Button>
         </form>
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

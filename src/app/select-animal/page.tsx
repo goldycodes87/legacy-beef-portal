@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
+import SiteFooter from '@/components/SiteFooter';
 
 type AnimalType = 'grass_fed' | 'grain_finished' | 'wagyu' | 'no_preference';
 
@@ -396,6 +397,8 @@ export default function SelectAnimalPage() {
           </div>
         </div>
       )}
+
+      <SiteFooter />
     </div>
   );
 }

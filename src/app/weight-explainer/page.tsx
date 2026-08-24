@@ -8,6 +8,7 @@ import BeefCalculator from '@/components/BeefCalculator';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Timeline } from '@/components/ui/modern-timeline';
+import SiteFooter from '@/components/SiteFooter';
 
 export default function WeightExplainerPage() {
   const router = useRouter();
@@ -409,6 +410,8 @@ export default function WeightExplainerPage() {
           </section>
         )}
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

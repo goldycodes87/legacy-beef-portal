@@ -7,6 +7,8 @@ import HowItWorks from '@/components/HowItWorks';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import FadeIn from '@/components/ui/FadeIn';
+import SiteFooter from '@/components/SiteFooter';
+import SiteNav from '@/components/SiteNav';
 
 export default function HomePage() {
   const heroRef = useRef(null);
@@ -17,6 +19,8 @@ export default function HomePage() {
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
   return (
     <main className="min-h-screen bg-brand-warm">
+      <SiteNav />
+
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
         <motion.div style={{ y: heroY }} className="absolute inset-0 scale-110">
@@ -139,6 +143,8 @@ export default function HomePage() {
       </section>
 
       <HowItWorks />
+
+      <SiteFooter />
     </main>
   );
 }

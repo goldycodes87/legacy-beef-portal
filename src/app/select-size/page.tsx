@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import ReservationProgress from '@/components/ReservationProgress';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
+import SoldOutWaitlist from '@/components/SoldOutWaitlist';
+import SiteFooter from '@/components/SiteFooter';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,8 +87,10 @@ export default function SelectSizePage() {
         setInventoryLoading(false);
       })
       .catch(() => {
-        // Safe fallback so page still works
-        setInventory({ whole_available: 5, half_available: 10, quarter_available: 8 });
+        // Do not invent availability — showing "5 available" when the server is
+        // unreachable sends customers into a booking that will fail. Treat it
+        // as nothing available; the waitlist gives them a real next step.
+        setInventory({ whole_available: 0, half_available: 0, quarter_available: 0 });
         setInventoryLoading(false);
       });
 
@@ -147,6 +151,12 @@ export default function SelectSizePage() {
   function isSoldOut(size: SizeOption): boolean {
     return !inventoryLoading && getAvailable(size) === 0;
   }
+
+  const everythingSoldOut =
+    !inventoryLoading &&
+    isSoldOut('whole') &&
+    isSoldOut('half') &&
+    isSoldOut('quarter');
 
   // ── CTA disabled logic ───────────────────────────────────────────────────
   const ctaDisabled: boolean = (() => {
@@ -246,6 +256,11 @@ export default function SelectSizePage() {
         {inventoryLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-8 h-8 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : everythingSoldOut ? (
+          /* Every share is claimed — offer the next date instead of a wall. */
+          <div className="max-w-xl mx-auto mb-8">
+            <SoldOutWaitlist animalType="any" />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
@@ -485,16 +500,20 @@ export default function SelectSizePage() {
         </div>
 
         {/* ── CTA Button ── */}
-        <Button
-          onClick={handleReserve}
-          disabled={ctaDisabled || submitting}
-          loading={submitting}
-          fullWidth
-          size="lg"
-        >
-          {submitting ? 'Checking availability…' : 'Reserve My Slot →'}
-        </Button>
+        {!everythingSoldOut && (
+          <Button
+            onClick={handleReserve}
+            disabled={ctaDisabled || submitting}
+            loading={submitting}
+            fullWidth
+            size="lg"
+          >
+            {submitting ? 'Checking availability…' : 'Reserve My Slot →'}
+          </Button>
+        )}
       </main>
+
+      <SiteFooter />
 
       {/* Toast */}
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
