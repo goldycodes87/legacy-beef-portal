@@ -66,9 +66,10 @@ const localBusiness = {
   telephone: "+1-719-258-1777",
   email: "orders@legacylandandcattleco.com",
   image: `${SITE_URL}/og-image.png`,
+  // Locality only. The street address is given to customers directly rather
+  // than published, so it is deliberately absent here too.
   address: {
     "@type": "PostalAddress",
-    streetAddress: "6105 Burgess Rd",
     addressLocality: "Colorado Springs",
     addressRegion: "CO",
     postalCode: "80908",

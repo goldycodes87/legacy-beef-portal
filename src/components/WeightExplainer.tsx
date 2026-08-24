@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 
+// The stage labels wrap to two lines on a phone, which left the second line
+// almost touching the number underneath. Tight leading on the label plus a real
+// gap below it keeps the two readable as separate things at any width.
+const STAGE_LABEL =
+  'text-[11px] sm:text-xs font-semibold uppercase tracking-wide leading-[1.15] mb-2.5';
+const STAGE_NUMBER = 'text-3xl font-bold leading-none';
+
 interface WeightExplainerProps {
   /** Price per lb by size, from the config table. */
   prices?: { whole: number; half: number; quarter: number };
@@ -33,14 +40,14 @@ export default function WeightExplainer({
       <div className="flex items-center justify-between gap-2 mb-8">
         {/* Live Weight */}
         <div className="flex-1 bg-brand-gray-light rounded-xl p-4 text-center">
-          <div className="text-xs font-semibold text-brand-gray uppercase tracking-wider mb-1">Live Weight</div>
+          <div className={STAGE_LABEL + ' text-brand-gray'}>Live Weight</div>
           <div
-            className="text-3xl font-bold text-brand-dark"
+            className={STAGE_NUMBER + ' text-brand-dark'}
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {liveWeight}
           </div>
-          <div className="text-sm text-brand-gray">lbs</div>
+          <div className="text-sm text-brand-gray mt-0.5">lbs</div>
         </div>
 
         {/* Arrow 1 */}
@@ -53,14 +60,14 @@ export default function WeightExplainer({
 
         {/* Hanging Weight */}
         <div className="flex-1 bg-[#F0F7F3] border border-brand-green rounded-xl p-4 text-center">
-          <div className="text-xs font-semibold text-brand-green uppercase tracking-wider mb-1">Hanging Wt.</div>
+          <div className={STAGE_LABEL + ' text-brand-green'}>Hanging Wt.</div>
           <div
-            className="text-3xl font-bold text-brand-green"
+            className={STAGE_NUMBER + ' text-brand-green'}
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {hangingWeight}
           </div>
-          <div className="text-sm text-brand-green opacity-75">lbs</div>
+          <div className="text-sm text-brand-green opacity-75 mt-0.5">lbs</div>
         </div>
 
         {/* Arrow 2 */}
@@ -73,14 +80,14 @@ export default function WeightExplainer({
 
         {/* Finished Cuts */}
         <div className="flex-1 bg-brand-dark rounded-xl p-4 text-center">
-          <div className="text-xs font-semibold text-white opacity-60 uppercase tracking-wider mb-1">Finished Cuts</div>
+          <div className={STAGE_LABEL + ' text-white opacity-60'}>Finished Cuts</div>
           <div
-            className="text-3xl font-bold text-white"
+            className={STAGE_NUMBER + ' text-white'}
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {finishedCuts}
           </div>
-          <div className="text-sm text-white opacity-60">lbs</div>
+          <div className="text-sm text-white opacity-60 mt-0.5">lbs</div>
         </div>
       </div>
 

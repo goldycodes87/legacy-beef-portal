@@ -45,10 +45,11 @@ export default function SiteFooter() {
                   orders@legacylandandcattleco.com
                 </a>
               </li>
+              {/* Region only — the pickup address goes to customers by email. */}
               <li className="pt-1 leading-relaxed">
-                6105 Burgess Rd
+                Black Forest, Colorado
                 <br />
-                Colorado Springs, CO 80908
+                <span className="text-white/50">Pickup address shared with customers</span>
               </li>
             </ul>
           </div>
@@ -71,6 +72,11 @@ export default function SiteFooter() {
               <li>
                 <Link href="/wagyu-waitlist" className="hover:text-white transition-colors">
                   Wagyu waitlist
+                </Link>
+              </li>
+              <li>
+                <Link href="/returning" className="hover:text-white transition-colors">
+                  Returning customer sign in
                 </Link>
               </li>
             </ul>
