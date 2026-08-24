@@ -133,7 +133,7 @@ export default function HomePage() {
                   <div className="text-4xl mb-4">❄️</div>
                   <h3 className="font-display font-bold text-xl text-brand-dark mb-2">Bulk Value</h3>
                   <p className="font-body text-brand-gray">
-                    Whole, half, or quarter beef at $8.00–$8.50/lb hanging weight. Fill your freezer for months.
+                    Whole, half, or quarter beef priced by hanging weight. Fill your freezer for months.
                   </p>
                 </div>
               </FadeIn>

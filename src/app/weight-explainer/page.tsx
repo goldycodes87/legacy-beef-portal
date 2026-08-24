@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Timeline } from '@/components/ui/modern-timeline';
 import SiteFooter from '@/components/SiteFooter';
+import { readShownPrices, FALLBACK_SHOWN_PRICES } from '@/lib/display-prices';
 
 export default function WeightExplainerPage() {
   const router = useRouter();
@@ -20,24 +21,14 @@ export default function WeightExplainerPage() {
   const [emailError, setEmailError] = useState('');
 
   // Prices
-  const [prices, setPrices] = useState({
-    whole: 8.00,
-    half: 8.25,
-    quarter: 8.50,
-  });
+  const [prices, setPrices] = useState(FALLBACK_SHOWN_PRICES);
   const [nextButcherDate, setNextButcherDate] = useState<string | null>(null);
 
   // Fetch prices on mount
   useEffect(() => {
     fetch('/api/config')
       .then(r => r.json())
-      .then(data => {
-        setPrices({
-          whole: parseFloat(data.price_whole || '8.00'),
-          half: parseFloat(data.price_half || '8.25'),
-          quarter: parseFloat(data.price_quarter || '8.50'),
-        });
-      })
+      .then(data => setPrices(readShownPrices(data)))
       .catch(() => {}); // keep defaults on error
   }, []);
 

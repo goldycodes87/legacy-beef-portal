@@ -66,19 +66,25 @@ export async function POST(request: NextRequest) {
     // Fill in missing/incomplete sections with house defaults
     for (const [section, defaults] of Object.entries(HOUSE_DEFAULTS)) {
       if (!completedSections.has(section)) {
-        // Upsert to fill in the gap
-        await supabase
+        // The unique constraint covers (session_id, section, half); naming only
+        // two of the three columns meant this upsert always errored.
+        const { error: upsertError } = await supabase
           .from('cut_sheet_answers')
           .upsert(
             {
               session_id: session.id,
               section,
+              half: null,
               answers: { ...defaults, house_default: true },
               completed: true,
               locked: true,
             },
-            { onConflict: 'session_id,section' }
+            { onConflict: 'session_id,section,half' }
           );
+
+        if (upsertError) {
+          console.error(`Auto-lock could not fill section ${section} for ${session.id}:`, upsertError);
+        }
       }
     }
 

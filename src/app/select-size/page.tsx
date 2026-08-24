@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
 import SoldOutWaitlist from '@/components/SoldOutWaitlist';
 import SiteFooter from '@/components/SiteFooter';
+import { readShownPrices, FALLBACK_SHOWN_PRICES } from '@/lib/display-prices';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,11 +62,7 @@ export default function SelectSizePage() {
   const [partnerNames4, setPartnerNames4] = useState(['', '', '']);
 
   // Prices
-  const [prices, setPrices] = useState({
-    whole: 8.00,
-    half: 8.25,
-    quarter: 8.50,
-  });
+  const [prices, setPrices] = useState(FALLBACK_SHOWN_PRICES);
 
   // UI state
   const [splitVisible, setSplitVisible] = useState(false);
@@ -101,13 +98,7 @@ export default function SelectSizePage() {
   useEffect(() => {
     fetch('/api/config')
       .then(r => r.json())
-      .then(data => {
-        setPrices({
-          whole: parseFloat(data.price_whole || '8.00'),
-          half: parseFloat(data.price_half || '8.25'),
-          quarter: parseFloat(data.price_quarter || '8.50'),
-        });
-      })
+      .then(data => setPrices(readShownPrices(data)))
       .catch(() => {}); // keep defaults on error
   }, []);
 
