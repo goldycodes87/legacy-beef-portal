@@ -17,6 +17,7 @@ export default function BalancePage() {
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [surchargePct, setSurchargePct] = useState(3);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -31,6 +32,18 @@ export default function BalancePage() {
     };
     fetchSession();
   }, [uuid, router]);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        const pct = parseFloat(cfg?.card_surcharge_pct);
+        if (!Number.isNaN(pct)) setSurchargePct(pct);
+      })
+      .catch(() => {
+        // Keep the default; the server is authoritative at charge time.
+      });
+  }, []);
 
   const handleCardPayment = async (token: any) => {
     if (!token?.token) {
@@ -73,6 +86,7 @@ export default function BalancePage() {
   if (!session) return <div className="text-center py-12">Session not found</div>;
 
   const balanceDue = session.balance_due || 0;
+  const cardTotal = balanceDue * (1 + surchargePct / 100);
 
   return (
     <div className="min-h-screen bg-brand-warm">
@@ -137,7 +151,7 @@ export default function BalancePage() {
             >
               <div className="text-xl mb-1">💳</div>
               <p className="text-xs font-semibold text-[#0F0F0F]">Credit/Debit Card</p>
-              <p className="text-xs text-[#6B7280]">3% fee applies</p>
+              <p className="text-xs text-[#6B7280]">{surchargePct}% fee applies</p>
             </button>
             <button
               onClick={() => setPaymentMethod('cash')}
@@ -156,8 +170,8 @@ export default function BalancePage() {
           {paymentMethod === 'card' && (
             <div>
               <p className="text-sm text-[#6B7280] mb-3">
-                Total with 3% card fee: <strong className="text-[#0F0F0F]">
-                  ${(balanceDue * 1.03).toFixed(2)}
+                Total with {surchargePct}% card fee: <strong className="text-[#0F0F0F]">
+                  ${cardTotal.toFixed(2)}
                 </strong>
               </p>
               <PaymentForm
@@ -173,7 +187,7 @@ export default function BalancePage() {
                     input: { color: '#111827', fontSize: '15px' },
                   }}
                 >
-                  {paying ? 'Processing…' : `Pay $${(balanceDue * 1.03).toFixed(2)}`}
+                  {paying ? 'Processing…' : `Pay $${cardTotal.toFixed(2)}`}
                 </CreditCard>
               </PaymentForm>
               {error && <p className="text-red-600 text-sm mt-3">{error}</p>}

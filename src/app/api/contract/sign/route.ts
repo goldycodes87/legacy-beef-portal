@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getDepositAmount } from '@/lib/config';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,15 +28,6 @@ function purchaseTypeLabel(type: string): string {
     case 'half':    return 'Half Beef';
     case 'quarter': return 'Quarter Beef';
     default:        return type;
-  }
-}
-
-function depositForType(type: string): number {
-  switch (type) {
-    case 'whole':   return 850;
-    case 'half':    return 500;
-    case 'quarter': return 250;
-    default:        return 500;
   }
 }
 
@@ -307,10 +299,9 @@ export async function POST(request: NextRequest) {
     const ipAddress = getClientIp(request);
 
     // 1. Load session
-    // Note: deposit_amount column requires Block 8 DB migration; fallback to purchase_type
     const { data: session, error: sessionError } = await supabaseAdmin
       .from('sessions')
-      .select('id, customer_id, animal_id, purchase_type, contract_signed')
+      .select('id, customer_id, animal_id, purchase_type, contract_signed, deposit_amount, is_splitting')
       .eq('id', session_id)
       .single();
 
@@ -340,7 +331,7 @@ export async function POST(request: NextRequest) {
     // 3. Load animal
     const { data: animal, error: animalError } = await supabaseAdmin
       .from('animals')
-      .select('id, name, butcher_date, estimated_ready_date, price_per_lb')
+      .select('id, name, animal_type, butcher_date, estimated_ready_date, price_per_lb')
       .eq('id', session.animal_id)
       .single();
 
@@ -348,8 +339,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Animal not found' }, { status: 404 });
     }
 
-    // deposit_amount column requires Block 8 migration; use purchase_type fallback until then
-    const depositAmount = depositForType(session.purchase_type);
+    // The deposit quoted at booking is what the contract must state.
+    const depositAmount =
+      session.deposit_amount ??
+      getDepositAmount(
+        await getConfig(),
+        session.purchase_type,
+        session.is_splitting || false,
+        animal.animal_type
+      );
     const now = new Date();
     const signedAt = now.toISOString();
     const signedAtFormatted = now.toLocaleDateString('en-US', {

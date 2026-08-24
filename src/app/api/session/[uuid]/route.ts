@@ -36,8 +36,18 @@ export async function GET(
     .eq('session_id', uuid)
     .single();
 
+  // Never expose the magic-link token or the signing record to the browser —
+  // the token grants access to this order for 60 days.
+  const {
+    access_token: _accessToken,
+    access_token_expires_at: _accessTokenExpiry,
+    contract_signature: _contractSignature,
+    contract_ip: _contractIp,
+    ...safeSession
+  } = session as Record<string, unknown>;
+
   return NextResponse.json({
-    ...session,
+    ...safeSession,
     customer: customer || null,
     animal: animal || null,
     pickup_appointment: pickup_appointment || null,

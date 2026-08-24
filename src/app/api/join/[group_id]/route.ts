@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getDepositAmount } from '@/lib/config';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ group_id: string }> }) {
   const supabase = getSupabaseAdmin();
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .select(`
       id, animal_id, purchase_type, group_size, price_per_lb, invite_expires_at,
       customers (id, name, email),
-      animals (id, name, butcher_date)
+      animals (id, name, animal_type, butcher_date)
     `)
     .eq('group_id', group_id)
     .eq('group_role', 'owner')
@@ -29,11 +30,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .eq('group_role', 'partner')
     .neq('status', 'cancelled');
 
-  const depositMap: Record<string, number> = { whole: 500, half: 250, quarter: 250 };
-  const depositAmount = depositMap[ownerSession.purchase_type] || 250;
-
   const customers = ownerSession.customers as unknown as { id: string; name: string; email: string };
-  const animals = ownerSession.animals as unknown as { id: string; name: string; butcher_date: string };
+  const animals = ownerSession.animals as unknown as { id: string; name: string; animal_type: string; butcher_date: string };
+
+  // Partners join a split, so always price the split deposit from config.
+  const depositAmount = getDepositAmount(
+    await getConfig(),
+    ownerSession.purchase_type,
+    true,
+    animals?.animal_type
+  );
 
   return NextResponse.json({
     owner_name: customers.name,

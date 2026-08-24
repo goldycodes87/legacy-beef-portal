@@ -2,25 +2,30 @@
 
 import { useState } from 'react';
 
-export default function WeightExplainer() {
+interface WeightExplainerProps {
+  /** Price per lb by size, from the config table. */
+  prices?: { whole: number; half: number; quarter: number };
+}
+
+export default function WeightExplainer({
+  prices = { whole: 8.0, half: 8.25, quarter: 8.5 },
+}: WeightExplainerProps) {
   const [liveWeight, setLiveWeight] = useState(1200);
 
   const hangingWeight = Math.round(liveWeight * 0.60);
   const finishedCuts = Math.round(hangingWeight * 0.52);
 
-  // Prices are charged on hanging weight
-  // Range reflects ±5% natural variation in hanging weight yield
-  // Whole Beef: $8.00/lb hanging weight
-  const wholeLow = Math.round(hangingWeight * 0.95 * 8.00);
-  const wholeHigh = Math.round(hangingWeight * 1.05 * 8.00);
+  // Prices are charged on hanging weight.
+  // Range reflects ±5% natural variation in hanging weight yield.
+  const wholeLow = Math.round(hangingWeight * 0.95 * prices.whole);
+  const wholeHigh = Math.round(hangingWeight * 1.05 * prices.whole);
 
-  // Half Beef: $8.25/lb hanging weight (half the animal)
-  const halfLow = Math.round((hangingWeight / 2) * 0.95 * 8.25);
-  const halfHigh = Math.round((hangingWeight / 2) * 1.05 * 8.25);
+  // Half beef is half the animal, quarter is a quarter.
+  const halfLow = Math.round((hangingWeight / 2) * 0.95 * prices.half);
+  const halfHigh = Math.round((hangingWeight / 2) * 1.05 * prices.half);
 
-  // Quarter Beef: $8.50/lb hanging weight (quarter of the animal)
-  const quarterLow = Math.round((hangingWeight / 4) * 0.95 * 8.50);
-  const quarterHigh = Math.round((hangingWeight / 4) * 1.05 * 8.50);
+  const quarterLow = Math.round((hangingWeight / 4) * 0.95 * prices.quarter);
+  const quarterHigh = Math.round((hangingWeight / 4) * 1.05 * prices.quarter);
 
   return (
     <div className="w-full">

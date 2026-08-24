@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getPricePerLb, getDepositAmount } from '@/lib/config';
 
 // Compute spots remaining based on purchaseType
 function computeSpotsRemaining(animal: any, purchaseType: string): number {
@@ -11,82 +12,6 @@ function computeSpotsRemaining(animal: any, purchaseType: string): number {
     case 'quarter': return Math.floor(remaining / 0.25);
     default: return 0;
   }
-}
-
-// Fetch deposit amounts from the config table
-async function fetchDepositAmounts(): Promise<Record<string, number>> {
-  const { data, error } = await supabaseAdmin
-    .from('config')
-    .select('key, value')
-    .in('key', ['deposit_half', 'deposit_whole_single', 'deposit_whole_split', 'deposit_quarter']);
-
-  if (error || !data) {
-    console.error('Error fetching deposit config:', error);
-    // Fallback to known values if config fetch fails
-    return {
-      deposit_half: 500,
-      deposit_whole_single: 850,
-      deposit_whole_split: 500,
-      deposit_quarter: 250,
-    };
-  }
-
-  return Object.fromEntries(data.map((row) => [row.key, Number(row.value)]));
-}
-
-// Resolve deposit amount for a purchase type using config values
-function resolveDepositAmount(purchaseType: string, config: Record<string, number>): number {
-  switch (purchaseType) {
-    case 'whole':   return config['deposit_whole_single'] ?? 850;
-    case 'half':    return config['deposit_half']         ?? 500;
-    case 'quarter': return config['deposit_quarter']      ?? 250;
-    default:        return config['deposit_half']         ?? 500;
-  }
-}
-
-// Fetch per-size prices from the config table
-async function fetchPriceConfig(): Promise<Record<string, number>> {
-  const { data, error } = await supabaseAdmin
-    .from('config')
-    .select('key, value')
-    .like('key', 'price_%');
-
-  const result: Record<string, number> = {
-    price_whole_grass_fed: 8.00,
-    price_half_grass_fed: 8.25,
-    price_quarter_grass_fed: 8.50,
-    price_whole_grain_finished: 8.00,
-    price_half_grain_finished: 8.25,
-    price_quarter_grain_finished: 8.50,
-    price_whole_wagyu: 9.50,
-    price_half_wagyu: 9.75,
-    price_quarter_wagyu: 10.00,
-  };
-
-  if (!error && data) {
-    for (const row of data) {
-      result[row.key] = Number(row.value);
-    }
-  }
-  return result;
-}
-
-// Resolve price per lb for a purchase type and animal type from config
-function resolvePricePerLb(purchaseType: string, animalType: string, priceConfig: Record<string, number>): number {
-  const type = animalType === 'wagyu' ? 'wagyu' : animalType === 'grain_finished' ? 'grain_finished' : 'grass_fed';
-  const key = `price_${purchaseType}_${type}`;
-  const fallbacks: Record<string, number> = {
-    price_whole_grass_fed: 8.00,
-    price_half_grass_fed: 8.25,
-    price_quarter_grass_fed: 8.50,
-    price_whole_grain_finished: 8.00,
-    price_half_grain_finished: 8.25,
-    price_quarter_grain_finished: 8.50,
-    price_whole_wagyu: 9.50,
-    price_half_wagyu: 9.75,
-    price_quarter_wagyu: 10.00,
-  };
-  return priceConfig[key] ?? fallbacks[key] ?? 8.00;
 }
 
 // Estimated total range based on hanging weight ranges (rounded to nearest $50)
@@ -135,10 +60,9 @@ export async function GET(request: NextRequest) {
       query = query.eq('animal_type', animalType);
     }
 
-    const [{ data: animals, error }, depositConfig, priceConfig] = await Promise.all([
+    const [{ data: animals, error }, config] = await Promise.all([
       query,
-      fetchDepositAmounts(),
-      fetchPriceConfig(),
+      getConfig(),
     ]);
 
     if (error) {
@@ -152,7 +76,7 @@ export async function GET(request: NextRequest) {
       .map((animal) => {
         const spotsRemaining = computeSpotsRemaining(animal, purchaseType);
         // Use per-size price from config (with fallback), not animal-level price
-        const pricePerLb = resolvePricePerLb(purchaseType, animal.animal_type, priceConfig);
+        const pricePerLb = getPricePerLb(config, purchaseType, animal.animal_type);
         const estRange = estimatedTotalRange(purchaseType, pricePerLb);
         return {
           id:                    animal.id,
@@ -163,7 +87,7 @@ export async function GET(request: NextRequest) {
           price_per_lb:          pricePerLb,
           hanging_weight_lbs:    animal.hanging_weight_lbs,
           spots_remaining:       spotsRemaining,
-          deposit_amount:        resolveDepositAmount(purchaseType, depositConfig),
+          deposit_amount:        getDepositAmount(config, purchaseType, false, animal.animal_type),
           est_total_low:         estRange.low,
           est_total_high:        estRange.high,
           purchase_type:         purchaseType,

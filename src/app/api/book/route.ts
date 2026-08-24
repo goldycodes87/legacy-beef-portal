@@ -103,9 +103,8 @@ export async function POST(request: NextRequest) {
 
     // 3. Create session record (slot_id is nullable per block7 migration)
     const config = await getConfig();
-    const price_per_lb = getPricePerLb(config, purchase_type, animal.animal_type, is_splitting, group_size);
-    const deposit = getDepositAmount(config, purchase_type, is_splitting, group_size);
-    void deposit; // stored for reference; Stripe uses create-intent
+    const price_per_lb = getPricePerLb(config, purchase_type, animal.animal_type);
+    const deposit = getDepositAmount(config, purchase_type, is_splitting, animal.animal_type);
     const effective_price = price_per_lb;
 
     // Generate group_id for split bookings
@@ -118,6 +117,7 @@ export async function POST(request: NextRequest) {
         animal_id:       animal_id,
         purchase_type:   purchase_type,
         price_per_lb:    effective_price,
+        deposit_amount:  deposit,
         status:          'draft',
         partner_approved: false,
         owner_approved:   false,

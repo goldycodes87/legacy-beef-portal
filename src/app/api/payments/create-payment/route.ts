@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SquareClient, SquareEnvironment } from 'square';
 import { randomUUID } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { getConfig, getDepositAmount } from '@/lib/config';
+import { getConfig, getDepositAmount, getSurchargeCents } from '@/lib/config';
 
 function purchaseTypeLabel(type: string): string {
   switch (type) {
@@ -31,10 +31,10 @@ export async function POST(request: NextRequest) {
   const { data: session } = await supabaseAdmin
     .from('sessions')
     .select(`
-      id, purchase_type, is_splitting, group_size,
+      id, purchase_type, is_splitting, group_size, deposit_amount,
       price_per_lb, animal_id,
       customers (id, name, email),
-      animals (name, butcher_date, estimated_ready_date, price_per_lb)
+      animals (name, animal_type, butcher_date, estimated_ready_date, price_per_lb)
     `)
     .eq('id', session_id)
     .single();
@@ -50,10 +50,11 @@ export async function POST(request: NextRequest) {
 
   const config = await getConfig();
   const isSplitting = (session as any).is_splitting || false;
-  const groupSize = (session as any).group_size || 1;
-  const baseDepositDollars = getDepositAmount(
-    config, session.purchase_type, isSplitting, groupSize
-  );
+  // The deposit quoted at booking wins, so a later price change never
+  // re-prices an existing reservation.
+  const baseDepositDollars =
+    (session as any).deposit_amount ??
+    getDepositAmount(config, session.purchase_type, isSplitting, animal?.animal_type);
 
   let depositCents = Math.round(baseDepositDollars * 100);
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ waived: true, session_id, coupon_id: couponId });
   }
 
-  const surchargeCents = Math.round(depositCents * 0.03);
+  const surchargeCents = getSurchargeCents(depositCents, config);
   const totalCents = depositCents + surchargeCents;
 
   console.log('Square charge - depositCents:', depositCents, 'surchargeCents:', surchargeCents, 'totalCents:', totalCents);

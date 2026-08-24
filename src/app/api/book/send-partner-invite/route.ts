@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { emailBase, ctaButton, orderCard } from '@/lib/email-templates';
+import { getConfig, getDepositAmount } from '@/lib/config';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.legacylandandcattleco.com';
 
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
     .select(`
       id, group_id, animal_id, purchase_type, group_size, invite_expires_at, partner_emails, partner_names,
       customers (id, name, email),
-      animals (id, name, butcher_date)
+      animals (id, name, animal_type, butcher_date)
     `)
     .eq('id', session_id)
     .single();
@@ -34,9 +35,14 @@ export async function POST(request: NextRequest) {
   }
 
   const owner = session.customers as unknown as { id: string; name: string; email: string };
-  const animal = session.animals as unknown as { id: string; name: string; butcher_date: string };
-  const depositMap: Record<string, number> = { whole: 500, half: 250, quarter: 250 };
-  const depositAmount = depositMap[session.purchase_type] || 250;
+  const animal = session.animals as unknown as { id: string; name: string; animal_type: string; butcher_date: string };
+  // Partners always take the split deposit.
+  const depositAmount = getDepositAmount(
+    await getConfig(),
+    session.purchase_type,
+    true,
+    animal?.animal_type
+  );
   const purchaseLabel = session.purchase_type.charAt(0).toUpperCase() + session.purchase_type.slice(1);
 
   // Send invitation email to each partner
@@ -64,10 +70,10 @@ export async function POST(request: NextRequest) {
         Hey ${partnerFirstName} — ${ownerFirstName} just reserved a ${purchaseLabel} Beef from Legacy Land & Cattle here in Colorado Springs and wants you to split it. That means ranch-direct, custom-cut beef in your freezer for months — at a better price than buying solo.
       </p>
       ${orderCard([
-        { label: 'Your Share', value: '${purchaseLabel} Beef' },
-        { label: 'Animal Type', value: '${animal.name}' },
-        { label: 'Butcher Date', value: '${formatDate(animal.butcher_date)}' },
-        { label: 'Your Deposit', value: '$${depositAmount}.00' },
+        { label: 'Your Share', value: `${purchaseLabel} Beef` },
+        { label: 'Animal Type', value: `${animal.name}` },
+        { label: 'Butcher Date', value: `${formatDate(animal.butcher_date)}` },
+        { label: 'Your Deposit', value: `$${depositAmount}.00` },
       ])}
       <p style="color:#374151;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;margin:24px 0 16px;">
         Your spot is held for <strong>48 hours</strong>. After that it will be released and ${ownerFirstName} will need to find another partner or adjust their order.

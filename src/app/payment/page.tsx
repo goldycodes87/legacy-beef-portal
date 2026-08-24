@@ -39,15 +39,6 @@ type PageState =
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function depositForType(type: string): number {
-  switch (type) {
-    case 'whole': return 850;
-    case 'half': return 500;
-    case 'quarter': return 250;
-    default: return 500;
-  }
-}
-
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'long',
@@ -293,6 +284,19 @@ function PaymentForm({
   const [couponError, setCouponError] = useState<string | null>(null);
   const [finalAmount, setFinalAmount] = useState(depositAmount);
   const [surcharge, setSurcharge] = useState(0);
+  const [surchargePct, setSurchargePct] = useState(3);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        const pct = parseFloat(cfg?.card_surcharge_pct);
+        if (!Number.isNaN(pct)) setSurchargePct(pct);
+      })
+      .catch(() => {
+        // Keep the default label; the server is authoritative at charge time.
+      });
+  }, []);
 
   async function applyCoupon() {
     setCouponError(null);
@@ -309,29 +313,18 @@ function PaymentForm({
     setCouponApplied({ discount: data.discount_amount, message: data.message });
   }
 
+  // One source of the displayed amount. Keyed on the *applied* coupon so
+  // typing in the coupon field can't fire a request per keystroke, and two
+  // responses can't race to set a different total than the server will charge.
   useEffect(() => {
-    async function calcAmount() {
-      const config = await fetch('/api/config/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: session.id, coupon_code: couponCode || null }),
-      });
-      const data = await config.json();
-      if (data.waived) { onSuccess(); return; }
-      setFinalAmount(Math.round(data.amount_cents / 100));
-      setSurcharge(Math.round(data.surcharge_cents / 100));
-    }
-    if (paymentMethod === 'card') {
-      calcAmount();
-    } else {
+    if (paymentMethod !== 'card') {
       setFinalAmount(depositAmount);
       setSurcharge(0);
+      return;
     }
-  }, [paymentMethod, couponCode, depositAmount, session.id]);
 
-  useEffect(() => {
-    if (paymentMethod !== 'card') return;
-    async function recalc() {
+    let cancelled = false;
+    (async () => {
       const res = await fetch('/api/config/deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -341,12 +334,17 @@ function PaymentForm({
         }),
       });
       const data = await res.json();
+      if (cancelled) return;
       if (data.waived) { onSuccess(); return; }
       setFinalAmount(Math.round(data.amount_cents / 100));
       setSurcharge(Math.round(data.surcharge_cents / 100));
-    }
-    recalc();
-  }, [couponApplied, paymentMethod, couponCode, session.id, onSuccess]);
+    })();
+
+    return () => { cancelled = true; };
+    // couponCode is read only when couponApplied flips, so it is intentionally
+    // not a dependency — including it would restore the per-keystroke fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentMethod, couponApplied, depositAmount, session.id, onSuccess]);
 
   return (
     <main className="max-w-[600px] mx-auto px-4 py-12">
@@ -373,7 +371,7 @@ function PaymentForm({
           <OrderRow label="Butcher Date" value={animal.butcher_date ? formatDate(animal.butcher_date) : 'TBD'} />
           <OrderRow label="Est. Ready" value={animal.estimated_ready_date ? formatDate(animal.estimated_ready_date) : 'TBD'} />
           {couponApplied && <OrderRow label="Coupon discount" value={`-$${couponApplied.discount}`} />}
-          {surcharge > 0 && <OrderRow label="Card processing fee (3%)" value={`+$${surcharge}`} />}
+          {surcharge > 0 && <OrderRow label={`Card processing fee (${surchargePct}%)`} value={`+$${surcharge}`} />}
           <OrderRow label="Deposit Due Today" value={`$${finalAmount}`} highlight />
           <p className="text-xs text-[#6B7280]">Balance due at pickup based on hanging weight</p>
         </div>
@@ -407,7 +405,7 @@ function PaymentForm({
         <div className="grid grid-cols-2 gap-3">
           {(
             [
-              ['card', '💳', 'Credit/Debit Card', '3% fee applies'],
+              ['card', '💳', 'Credit/Debit Card', `${surchargePct}% fee applies`],
               ['cash', '💵', 'Cash or Check', 'Pay at pickup'],
             ] as const
           ).map(([method, icon, label, note]) => (
@@ -520,7 +518,29 @@ export default function PaymentPage() {
         return;
       }
 
-      const depositAmount = depositForType(sessionData.purchase_type);
+      // Deposit comes from the session (locked in at booking); older sessions
+      // fall back to the server's config-driven amount.
+      let depositAmount: number | null = data.deposit_amount ?? null;
+      if (depositAmount === null) {
+        try {
+          const depRes = await fetch('/api/config/deposit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          const dep = await depRes.json();
+          if (depRes.ok && typeof dep.original_cents === 'number') {
+            depositAmount = Math.round(dep.original_cents / 100);
+          }
+        } catch {
+          // Handled by the null check below.
+        }
+      }
+
+      if (!depositAmount) {
+        setState({ status: 'error', message: 'Could not load your deposit amount. Please try again or call us at 719.258.1777.' });
+        return;
+      }
 
       setState({
         status: 'ready',

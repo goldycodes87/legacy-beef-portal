@@ -65,14 +65,24 @@ export default function ContractPage() {
       const res = await fetch(`/api/session/${sessionId}`);
       const data = await res.json();
 
-      const depositAmount = data.deposit_amount ?? (() => {
-        switch (data.purchase_type) {
-          case 'whole': return 850;
-          case 'half': return 500;
-          case 'quarter': return 250;
-          default: return 500;
+      // Sessions booked before deposit_amount was persisted fall back to the
+      // server's config-driven amount — never a hardcoded figure.
+      let depositAmount: number | null = data.deposit_amount ?? null;
+      if (depositAmount === null) {
+        try {
+          const depRes = await fetch('/api/config/deposit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          const dep = await depRes.json();
+          if (depRes.ok && typeof dep.original_cents === 'number') {
+            depositAmount = Math.round(dep.original_cents / 100);
+          }
+        } catch {
+          // Leave null — handled as an error state below.
         }
-      })();
+      }
 
       if (!res.ok || !data.id) {
         console.error('Failed to load session:', data);
@@ -110,6 +120,11 @@ export default function ContractPage() {
       }
 
       const finalDepositAmount = sessionData.deposit_amount ?? depositAmount;
+
+      if (!finalDepositAmount) {
+        setState({ status: 'error', errorMessage: 'Could not load your deposit amount. Please try again or call us at 719.258.1777.' });
+        return;
+      }
 
       setState({
         status: 'ready',

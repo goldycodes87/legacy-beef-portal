@@ -100,6 +100,31 @@ function formatPhone(value: string): string {
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
+/**
+ * Price per lb from the config table. The literals are a first-paint fallback
+ * only — the authoritative price rides on the selected slot.
+ */
+const PRICE_FALLBACK: Record<string, Record<string, number>> = {
+  grass_fed:       { whole: 8.0,  half: 8.25, quarter: 8.5 },
+  grain_finished:  { whole: 8.0,  half: 8.25, quarter: 8.5 },
+  wagyu:           { whole: 9.5,  half: 9.75, quarter: 10.0 },
+};
+
+function configPrice(
+  config: Record<string, string> | null,
+  size: string,
+  animalType: string
+): number {
+  const type = animalType === 'wagyu'
+    ? 'wagyu'
+    : animalType === 'grain_finished'
+      ? 'grain_finished'
+      : 'grass_fed';
+  const parsed = parseFloat(config?.[`price_${size}_${type}`] ?? '');
+  if (!Number.isNaN(parsed)) return parsed;
+  return PRICE_FALLBACK[type][size] ?? PRICE_FALLBACK.grass_fed.half;
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function BookPage() {
@@ -117,11 +142,22 @@ export default function BookPage() {
   const [groupSize, setGroupSize] = useState(1);
   const [cutSheetChoice, setCutSheetChoice] = useState('none');
 
-  // Per-size pricing (matches API config, with hardcoded fallback)
+  // Price matrix from the config table, so a Settings change propagates here.
+  const [priceConfig, setPriceConfig] = useState<Record<string, string> | null>(null);
+
+  useEffect(() => {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => setPriceConfig(cfg))
+      .catch(() => {
+        // Fall back to PRICE_FALLBACK below; the slot carries the real price.
+      });
+  }, []);
+
   const PRICE_PER_LB: Record<string, number> = {
-    whole:   8.00,
-    half:    8.25,
-    quarter: 8.50,
+    whole:   configPrice(priceConfig, 'whole', animalType),
+    half:    configPrice(priceConfig, 'half', animalType),
+    quarter: configPrice(priceConfig, 'quarter', animalType),
   };
 
   // Est total ranges computed from price/lb × hanging weight ranges
@@ -134,9 +170,9 @@ export default function BookPage() {
     return { low: Math.round(low * ppl / 50) * 50, high: Math.round(high * ppl / 50) * 50 };
   };
   const EST_TOTAL: Record<string, { low: number; high: number }> = {
-    whole:   computeEstTotal('whole',   PRICE_PER_LB['whole']   ?? 8.00),
-    half:    computeEstTotal('half',    PRICE_PER_LB['half']    ?? 8.25),
-    quarter: computeEstTotal('quarter', PRICE_PER_LB['quarter'] ?? 8.50),
+    whole:   computeEstTotal('whole',   PRICE_PER_LB['whole']),
+    half:    computeEstTotal('half',    PRICE_PER_LB['half']),
+    quarter: computeEstTotal('quarter', PRICE_PER_LB['quarter']),
   };
 
   // Dynamic price from selected slot
@@ -147,6 +183,13 @@ export default function BookPage() {
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+
+  // The mount guard runs before the config request lands, so re-price once it
+  // arrives. A selected slot always wins — it carries the server's price.
+  useEffect(() => {
+    if (!priceConfig || !selectedSize || animalType === 'no_preference' || selectedSlot) return;
+    setPricePerLb(configPrice(priceConfig, selectedSize, animalType));
+  }, [priceConfig, selectedSize, animalType, selectedSlot]);
 
   // Form
   const [form, setForm] = useState<FormState>({ name: '', email: '', phone: '', address: '', city: '', state: '', zip: '' });
@@ -185,15 +228,11 @@ export default function BookPage() {
     setGroupSize(gSize);
     setCutSheetChoice(cutSheetChoice);
 
-    // Set initial price based on animal type preference
-    const wagyuPrices: Record<string, number> = { whole: 9.50, half: 9.75, quarter: 10.00 };
-    const standardPrices: Record<string, number> = { whole: 8.00, half: 8.25, quarter: 8.50 };
-    if (aType === 'wagyu') {
-      setPricePerLb(wagyuPrices[size] ?? 9.50);
-    } else if (aType !== 'no_preference') {
-      setPricePerLb(standardPrices[size] ?? 8.00);
+    // Set initial price based on animal type preference.
+    // no_preference: leave pricePerLb null until a slot is selected.
+    if (aType !== 'no_preference') {
+      setPricePerLb(configPrice(priceConfig, size, aType));
     }
-    // no_preference: leave pricePerLb null until slot selected
 
     // Load customer info from sessionStorage (weight-explainer funnel)
     const savedFirst = sessionStorage.getItem('customerFirstName') || '';
@@ -288,9 +327,14 @@ export default function BookPage() {
     const errs = validate(form);
     setFieldErrors(errs);
 
-    if (Object.keys(errs).length > 0) return;
+    // Release the guard on every early return, or the form is dead until reload.
+    if (Object.keys(errs).length > 0) {
+      submitRef.current = false;
+      return;
+    }
     if (!selectedSlot) {
       setSubmitError('Please select a slot above before submitting.');
+      submitRef.current = false;
       return;
     }
 

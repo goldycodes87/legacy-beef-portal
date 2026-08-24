@@ -81,13 +81,15 @@ export async function POST(
   const balanceDue = Math.max(0, totalCost - depositPaid / 100);
 
   // Generate balance payment link (stub)
-  const balanceLink = `${APP_URL}/pay-balance/${uuid}`;
+  // There is no /pay-balance route — the balance page lives under /session.
+  const balanceLink = `${APP_URL}/session/${uuid}/balance`;
 
   const firstName = customer.name?.split(' ')[0] ?? 'there';
   const preheader = `${firstName}, your beef is ready. Time to celebrate.`;
   const accessToken = (session as any)?.access_token;
+  // /api/token/<token> is the only route that consumes an access token.
   const pickupLink = accessToken
-    ? `${APP_URL}/access/${accessToken}`
+    ? `${APP_URL}/api/token/${accessToken}`
     : `${APP_URL}/session/${uuid}/pickup`;
 
   const balancePaidContent = balanceDue <= 0

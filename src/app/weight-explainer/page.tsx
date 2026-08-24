@@ -24,6 +24,7 @@ export default function WeightExplainerPage() {
     half: 8.25,
     quarter: 8.50,
   });
+  const [nextButcherDate, setNextButcherDate] = useState<string | null>(null);
 
   // Fetch prices on mount
   useEffect(() => {
@@ -37,6 +38,26 @@ export default function WeightExplainerPage() {
         });
       })
       .catch(() => {}); // keep defaults on error
+  }, []);
+
+  // Next butcher date comes from live inventory — never hardcode it.
+  useEffect(() => {
+    fetch('/api/slots?purchaseType=half')
+      .then((r) => r.json())
+      .then((data) => {
+        const next = (data?.slots || [])
+          .map((s: { butcher_date: string | null }) => s.butcher_date)
+          .filter(Boolean)
+          .sort()[0];
+        if (next) {
+          setNextButcherDate(
+            new Date(next + 'T00:00:00').toLocaleDateString('en-US', {
+              year: 'numeric', month: 'long', day: 'numeric',
+            })
+          );
+        }
+      })
+      .catch(() => {}); // the sentence simply omits the date
   }, []);
 
   function validateEmail(e: string): boolean {
@@ -114,7 +135,7 @@ export default function WeightExplainerPage() {
         {/* Weight Explainer */}
         <section className="mb-16">
           <div className="overflow-x-auto max-w-full">
-            <WeightExplainer />
+            <WeightExplainer prices={prices} />
           </div>
         </section>
 
@@ -216,7 +237,7 @@ export default function WeightExplainerPage() {
               Ready to reserve your beef?
             </h2>
             <p className="font-body text-brand-gray mb-8 max-w-sm mx-auto">
-              Slots are limited. Our next butcher date is May 15, 2026.
+              Slots are limited.{nextButcherDate ? ` Our next butcher date is ${nextButcherDate}.` : ''}
             </p>
             <div className="flex gap-4 justify-center">
               <button
@@ -306,24 +327,21 @@ export default function WeightExplainerPage() {
                       setEmailError('Please enter a valid email address.');
                       return;
                     }
-                    // Check if returning customer
+                    // Note whether this is a returning customer. Their saved
+                    // details are not prefilled — see /api/customers/lookup.
                     try {
-                      const res = await fetch(`/api/customers/lookup?email=${encodeURIComponent(email)}`);
+                      const res = await fetch('/api/customers/lookup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email }),
+                      });
                       if (res.ok) {
                         const data = await res.json();
-                        if (data.customer) {
-                          const nameParts = (data.customer.name || '').split(' ');
-                          setFirstName(nameParts[0] || firstName);
-                          setLastName(nameParts.slice(1).join(' ') || lastName);
-                          // Store all their info for /book prefill
-                          sessionStorage.setItem('customerPhone', data.customer.phone || '');
-                          sessionStorage.setItem('customerAddress', data.customer.address || '');
-                          sessionStorage.setItem('customerCity', data.customer.city || '');
-                          sessionStorage.setItem('customerState', data.customer.state || '');
-                          sessionStorage.setItem('customerZip', data.customer.zip || '');
-                        }
+                        sessionStorage.setItem('customerReturning', data.known ? 'true' : 'false');
                       }
-                    } catch (_) {}
+                    } catch {
+                      // Not knowing is fine — the booking form collects everything.
+                    }
                     setStep('ready');
                   }}
                   disabled={!firstName.trim() || !email.trim()}

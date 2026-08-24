@@ -88,8 +88,9 @@ export async function POST(
       })
     : 'your scheduled date';
   const accessToken = (session as any)?.access_token;
+  // /api/token/<token> is the only route that consumes an access token.
   const reviewLink = accessToken
-    ? `${APP_URL}/access/${accessToken}`
+    ? `${APP_URL}/api/token/${accessToken}`
     : `${APP_URL}`;
 
   const { data: answers } = await supabase

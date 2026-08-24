@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
           No problem — our Legacy House Cut is a well-rounded selection that works great for most families. You can choose it with one click inside the cut sheet wizard.
         </p>
       </div>
-      ${ctaButton('Build My Cut Sheet →', `${APP_URL}/token/${token}`, '#1A3D2B')}
+      ${ctaButton('Build My Cut Sheet →', `${APP_URL}/api/token/${token}`, '#1A3D2B')}
       <p style="font-size:12px;color:#9CA3AF;text-align:center;font-family:Arial,sans-serif;margin-top:8px;">
         This link goes straight to your order — no login needed.
       </p>

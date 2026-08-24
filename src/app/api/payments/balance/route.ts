@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SquareClient, SquareEnvironment } from 'square';
 import { randomUUID } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { getConfig, getSurchargeCents } from '@/lib/config';
 
 const squareClient = new SquareClient({
   token: process.env.SQUARE_ACCESS_TOKEN!,
@@ -34,8 +35,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No balance due' }, { status: 400 });
   }
 
-  const surchargeCents = Math.round(balanceDue * 100 * 0.03);
-  const totalCents = Math.round(balanceDue * 100) + surchargeCents;
+  const config = await getConfig();
+  const balanceCents = Math.round(balanceDue * 100);
+  const surchargeCents = getSurchargeCents(balanceCents, config);
+  const totalCents = balanceCents + surchargeCents;
 
   const customer = Array.isArray((session as any).customers)
     ? (session as any).customers[0] : (session as any).customers;

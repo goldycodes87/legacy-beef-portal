@@ -38,14 +38,19 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Allow access if customer just completed payment for this session
-  const paymentCookie = request.cookies.get('payment_just_completed');
-  if (paymentCookie && pathname.startsWith('/session/') && pathname.includes(paymentCookie.value)) {
+  // The session id this request is for, e.g. /session/<uuid>/cuts
+  const requestedSessionId = pathname.match(/^\/session\/([^/]+)/)?.[1] ?? null;
+
+  // A cookie grants access only to its own session. Exact match — a substring
+  // check would let an empty cookie value unlock every order.
+  const grantsAccess = (value: string | undefined) =>
+    !!value && !!requestedSessionId && value === requestedSessionId;
+
+  if (grantsAccess(request.cookies.get('payment_just_completed')?.value)) {
     return NextResponse.next();
   }
 
-  const orderAccessCookie = request.cookies.get('order_access');
-  if (orderAccessCookie && pathname.startsWith('/session/') && pathname.includes(orderAccessCookie.value)) {
+  if (grantsAccess(request.cookies.get('order_access')?.value)) {
     return NextResponse.next();
   }
   // Also allow the /access/* routes through
