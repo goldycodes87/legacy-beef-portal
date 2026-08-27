@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
           : 'TBD';
         await resend.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-          to: 'orders@legacylandandcattleco.com',
+          to: 'grant@legacylandandcattleco.com',
           subject: `New Reservation: ${purchaseLabel} ${animalType} — ${name}`,
           html: `<ul>
             <li><strong>Customer:</strong> ${name}</li>

@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         : (session as any).purchase_type === 'half' ? 'Half Beef' : 'Quarter Beef';
       await resend.emails.send({
         from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-        to: 'orders@legacylandandcattleco.com',
+        to: 'grant@legacylandandcattleco.com',
         subject: `Balance Paid — ${purchaseLabel} — ${customer?.name}`,
         html: `<ul>
           <li><strong>Customer:</strong> ${customer?.name} (${customer?.email})</li>

@@ -65,7 +65,7 @@ export async function POST(
 
         await resend.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-          to: 'orders@legacylandandcattleco.com',
+          to: 'grant@legacylandandcattleco.com',
           subject: `Spot Locked (${methodLabel}) — ${purchaseLabel} ${animalType} — ${customer.name}`,
           html: `<ul>
             <li><strong>Customer:</strong> ${customer.name} (${customer.email})</li>

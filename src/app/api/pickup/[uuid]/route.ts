@@ -82,7 +82,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const animal = Array.isArray(session?.animals) ? session.animals[0] : session?.animals;
         await resendG.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-          to: 'orders@legacylandandcattleco.com',
+          to: 'grant@legacylandandcattleco.com',
           subject: `Pickup Confirmed — ${customer.name}`,
           html: `
             <ul>

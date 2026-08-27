@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
 
       await resend.emails.send({
         from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-        to: 'orders@legacylandandcattleco.com',
+        to: 'grant@legacylandandcattleco.com',
         subject: `New Order: ${purchaseTypeLabel(session.purchase_type)} — ${customer?.name}`,
         html: `<ul>
           <li><strong>Customer:</strong> ${customer?.name} (${customer?.email})</li>

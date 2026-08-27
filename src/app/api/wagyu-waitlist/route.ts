@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(resendKey);
         await resend.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-          to: 'orders@legacylandandcattleco.com',
+          to: 'grant@legacylandandcattleco.com',
           subject: `Waitlist: ${customer_name} — ${label} ${size}`,
           html: `<ul>
             <li><strong>Name:</strong> ${customer_name}</li>

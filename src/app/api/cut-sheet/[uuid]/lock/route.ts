@@ -128,7 +128,7 @@ export async function POST(
         const resendG = new ResendGrant(resendKey);
         await resendG.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
-          to: 'orders@legacylandandcattleco.com',
+          to: 'grant@legacylandandcattleco.com',
           subject: `Cut Sheet Locked — ${mainCustomer.name} (${mainAnimal?.name || 'Order'})`,
           html: `
             <ul>
