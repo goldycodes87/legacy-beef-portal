@@ -201,6 +201,7 @@ export async function POST(request: NextRequest) {
         pricePerLb,
         depositPaid,
         cutSheetUrl: accessLink,
+        cutSheetDone: session.purchase_type === 'quarter',
       });
 
       await resend.emails.send({
