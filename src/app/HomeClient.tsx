@@ -214,6 +214,14 @@ export default function HomeClient({
             <WeightExplainer prices={prices} />
           </div>
 
+          <p className="font-body text-brand-gray text-sm text-center mb-16">
+            Wondering what you&apos;ll get to choose?{' '}
+            <Link href="/sample-cut-sheet" className="text-brand-orange font-semibold underline underline-offset-2">
+              See a sample cut sheet
+            </Link>{' '}
+            — every section, every option.
+          </p>
+
           <div className="text-center mb-8">
             <h2 className="font-display font-bold text-2xl text-brand-dark mb-2">Find Your Size</h2>
             <p className="font-body text-brand-gray text-sm">

@@ -192,10 +192,12 @@ export async function POST(request: NextRequest) {
           to: 'orders@legacylandandcattleco.com',
           subject: `New Reservation: ${purchaseLabel} ${animalType} — ${name}`,
           html: `<ul>
-            <li><strong>Customer:</strong> ${name} (${email})</li>
-            <li><strong>Order:</strong> ${purchaseLabel} — ${animalType}</li>
+            <li><strong>Customer:</strong> ${name}</li>
+            <li><strong>Phone:</strong> ${phone || 'not given'}</li>
+            <li><strong>Email:</strong> ${email}</li>
+            <li><strong>Reserved:</strong> ${purchaseLabel} — ${animalType}${is_splitting ? ' (splitting)' : ''}</li>
             <li><strong>Butcher Date:</strong> ${butcherDate}</li>
-            <li><strong>Status:</strong> Reservation created — payment method not yet chosen</li>
+            <li><strong>Deposit Due:</strong> ${Number(deposit).toFixed(2)} — payment method not yet chosen</li>
             <li><strong>Session ID:</strong> ${sessionId}</li>
           </ul>`,
         });
@@ -203,6 +205,12 @@ export async function POST(request: NextRequest) {
     } catch (notifyErr) {
       console.error('Grant reservation notify error:', notifyErr);
     }
+
+    // Text alert too, when Twilio is configured.
+    const { sendAdminSms } = await import('@/lib/sms');
+    await sendAdminSms(
+      `🐄 New reservation: ${name}, ${purchaseTypeLabel(purchase_type)}, deposit ${Number(deposit).toFixed(2)}. ${phone || 'no phone'}`
+    );
 
     return NextResponse.json({
       success:     true,

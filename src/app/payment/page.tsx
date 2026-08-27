@@ -440,7 +440,8 @@ function PaymentForm({
       {paymentMethod === 'cash' && (
         <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
           <p className="font-semibold mb-1">Cash or Check</p>
-          <p>Your spot is reserved but not confirmed until payment is received. Make checks payable to Legacy Land & Cattle.</p>
+          <p>Your spot is held, but not confirmed until we receive your deposit. Make checks payable to <strong>Legacy Land &amp; Cattle</strong>.</p>
+          <p className="mt-2">We&apos;ll email you the mailing address and everything you need the moment you reserve.</p>
           <button
             onClick={async () => {
               // Store intended payment method on session

@@ -33,6 +33,8 @@ const QUESTIONS: { q: string; a: string }[] = [
   },
 ];
 
+const SAMPLE_LINK_QUESTION = "What if I don't want a cut, like liver or soup bones?";
+
 export default function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
@@ -69,6 +71,17 @@ export default function Faq() {
               {isOpen && (
                 <p className="font-body text-brand-gray text-sm leading-relaxed pb-5 max-w-[64ch]">
                   {item.a}
+                  {item.q === SAMPLE_LINK_QUESTION && (
+                    <>
+                      {' '}
+                      <a
+                        href="/sample-cut-sheet"
+                        className="text-brand-orange font-semibold underline underline-offset-2"
+                      >
+                        See the full sample cut sheet →
+                      </a>
+                    </>
+                  )}
                 </p>
               )}
             </div>

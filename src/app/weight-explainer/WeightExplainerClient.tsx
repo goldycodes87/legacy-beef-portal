@@ -109,6 +109,13 @@ export default function WeightExplainerClient({
           >
             It&apos;s all on the home page
           </Link>
+          {' '}— and you can{' '}
+          <Link
+            href="/sample-cut-sheet"
+            className="text-brand-orange font-semibold underline underline-offset-2"
+          >
+            preview the cut sheet
+          </Link>
           .
         </p>
 

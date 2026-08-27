@@ -222,6 +222,30 @@ export async function POST(request: NextRequest) {
         </ul>`,
       });
 
+      // Phone notification too — the email alone was easy to miss, and the
+      // deposit is the moment that matters.
+      try {
+        await fetch(`${request.nextUrl.origin}/api/notify-admin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-notify-secret': process.env.ADMIN_NOTIFY_SECRET || '',
+          },
+          body: JSON.stringify({
+            title: '💰 Deposit Paid',
+            body: `${customer?.name} paid ${depositPaid.toFixed(2)} — ${purchaseTypeLabel(session.purchase_type)}`,
+            url: '/slots',
+          }),
+        });
+      } catch (pushErr) {
+        console.error('Deposit push failed:', pushErr);
+      }
+
+      const { sendAdminSms } = await import('@/lib/sms');
+      await sendAdminSms(
+        `💰 Deposit paid: ${customer?.name} — ${depositPaid.toFixed(2)} (${purchaseTypeLabel(session.purchase_type)})`
+      );
+
       await supabaseAdmin.from('notifications').insert({
         session_id,
         type: 'payment_confirmation',
