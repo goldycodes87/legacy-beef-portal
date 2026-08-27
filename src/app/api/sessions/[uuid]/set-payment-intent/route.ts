@@ -22,7 +22,7 @@ export async function POST(
     try {
       const { data: session } = await supabase
         .from('sessions')
-        .select(`id, purchase_type, deposit_amount, customers (name, email, phone), animals (name, butcher_date, animal_type)`)
+        .select(`id, purchase_type, deposit_amount, cut_sheet_complete, customers (name, email, phone), animals (name, butcher_date, animal_type)`)
         .eq('id', uuid)
         .single();
       const customer = Array.isArray((session as any)?.customers)
@@ -55,6 +55,7 @@ export async function POST(
           butcherDate,
           depositAmount,
           method: safeMethod as 'cash' | 'check',
+          cutSheetDone: !!(session as any)?.cut_sheet_complete,
         });
         await resend.emails.send({
           from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',

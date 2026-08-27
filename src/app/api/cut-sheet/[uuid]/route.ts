@@ -37,6 +37,22 @@ export async function POST(
   const supabase = getSupabaseAdmin();
   const body = await request.json();
   const { section, answers, completed } = body;
+
+  const { data: gateSession } = await supabase
+    .from('sessions')
+    .select('status, intended_payment_method')
+    .eq('id', uuid)
+    .maybeSingle();
+  if (
+    gateSession?.status === 'draft' &&
+    (gateSession.intended_payment_method === 'cash' || gateSession.intended_payment_method === 'check')
+  ) {
+    return NextResponse.json(
+      { error: 'deposit_pending', message: 'Your cut sheet opens once we receive your deposit.' },
+      { status: 403 }
+    );
+  }
+
   const hasCustomRequest = Object.prototype.hasOwnProperty.call(body, 'custom_request');
   const half = body.half === 'A' || body.half === 'B' ? body.half : null;
 

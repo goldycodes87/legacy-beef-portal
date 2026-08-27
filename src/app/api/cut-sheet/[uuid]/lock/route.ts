@@ -31,6 +31,21 @@ export async function POST(
     return NextResponse.json({ error: 'session_not_found' }, { status: 404 });
   }
 
+  const { data: gateSession } = await supabase
+    .from('sessions')
+    .select('status, intended_payment_method')
+    .eq('id', uuid)
+    .maybeSingle();
+  if (
+    gateSession?.status === 'draft' &&
+    (gateSession.intended_payment_method === 'cash' || gateSession.intended_payment_method === 'check')
+  ) {
+    return NextResponse.json(
+      { error: 'deposit_pending', message: 'Your cut sheet opens once we receive your deposit.' },
+      { status: 403 }
+    );
+  }
+
   if (halfValue) {
     await supabase
       .from('cut_sheet_answers')

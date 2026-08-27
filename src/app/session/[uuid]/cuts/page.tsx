@@ -17,6 +17,7 @@ interface Session {
   is_splitting: boolean;
   cut_sheet_complete: boolean;
   dual_cut_sheet?: boolean | null;
+  intended_payment_method?: string | null;
   half_a_complete?: boolean;
   half_b_complete?: boolean;
   half_a_locked_at?: string | null;
@@ -242,6 +243,39 @@ function DualCutSheetChoice({ onChoose }: { onChoose: (dual: boolean) => void })
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Cash/check customers see this until Grant marks their deposit received.
+ * The server refuses cut sheet writes for them too — this screen is the
+ * explanation, not the enforcement.
+ */
+function DepositHoldScreen() {
+  return (
+    <div className="max-w-[600px] mx-auto px-4 py-14 text-center">
+      <div className="text-6xl mb-4">✉️</div>
+      <h1 className="font-display font-bold text-3xl text-brand-dark mb-3">
+        Almost there — we&apos;re waiting on your deposit.
+      </h1>
+      <p className="text-brand-gray text-base mb-6 leading-relaxed max-w-md mx-auto">
+        Your spot is reserved. Your cut sheet opens the moment we receive your
+        deposit — we emailed you everything you need, including where to send
+        your check.
+      </p>
+      <div className="bg-white border border-brand-gray-light rounded-2xl p-5 text-left max-w-md mx-auto mb-6">
+        <p className="font-body font-semibold text-brand-dark text-sm mb-1">In the meantime</p>
+        <p className="font-body text-brand-gray text-sm leading-relaxed">
+          Checks payable to <strong>Legacy Land &amp; Cattle</strong>. Paying cash, or
+          didn&apos;t get the email? Call us at{' '}
+          <a href="tel:+17192581777" className="text-brand-orange font-semibold">(719) 258-1777</a>{' '}
+          and we&apos;ll sort it out on the spot.
+        </p>
+      </div>
+      <p className="font-body text-brand-gray text-sm">
+        Already sent it? Sit tight — we&apos;ll confirm by email the day it arrives.
+      </p>
     </div>
   );
 }
@@ -1561,6 +1595,9 @@ export default function CutsPage() {
   const [reuseBusy, setReuseBusy] = useState<'same' | 'walk' | null>(null);
 
   const isDual = session?.dual_cut_sheet === true;
+  const depositGated =
+    session?.status === 'draft' &&
+    (session?.intended_payment_method === 'cash' || session?.intended_payment_method === 'check');
 
   const getHalfModeForSection = useCallback(
     (sectionId: string, modes: Record<string, HalfMode> = halfModes) => modes[sectionId] || 'both',
@@ -1801,7 +1838,9 @@ export default function CutsPage() {
         </div>
       </header>
 
-      {showReuse && reuse ? (
+      {depositGated ? (
+        <DepositHoldScreen />
+      ) : showReuse && reuse ? (
         <ReuseCutSheetScreen
           previous={reuse}
           busy={reuseBusy}
