@@ -726,6 +726,11 @@ export default function BookPage() {
               {touched.phone && fieldErrors.phone && (
                 <p className="text-red-600 text-xs mt-1">{fieldErrors.phone}</p>
               )}
+              <p className="text-xs text-brand-gray mt-1">
+                By providing your number, you agree to receive order-related texts from Legacy
+                Land &amp; Cattle (deposit confirmations, pickup scheduling). Message frequency
+                varies; message &amp; data rates may apply. Reply STOP to opt out.
+              </p>
             </div>
 
             {/* Street Address */}
