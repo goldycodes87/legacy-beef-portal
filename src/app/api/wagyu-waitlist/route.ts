@@ -53,7 +53,12 @@ export async function POST(request: NextRequest) {
 
     const label = animalType === 'wagyu' ? 'Wagyu' : animalType === 'any' ? 'Any type' : animalType.replace('_', '-');
 
-    // Notify Grant. Email is the reliable channel; Telegram is optional.
+    const sizeLabel =
+      size === 'whole' ? 'Whole Beef' : size === 'half' ? 'Half Beef' : size === 'quarter' ? 'Quarter Beef' : 'Any size';
+    const wantsLabel = `${label} — ${sizeLabel}`;
+
+    // Notify Grant, and confirm to the customer so joining the list doesn't
+    // feel like shouting into the void.
     try {
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey && resendKey !== 're_placeholder_set_in_vercel') {
@@ -67,29 +72,22 @@ export async function POST(request: NextRequest) {
             <li><strong>Name:</strong> ${customer_name}</li>
             <li><strong>Email:</strong> ${email}</li>
             <li><strong>Phone:</strong> ${phone || 'Not given'}</li>
-            <li><strong>Wants:</strong> ${label} — ${size}</li>
+            <li><strong>Wants:</strong> ${wantsLabel}</li>
           </ul>`,
+        });
+
+        const { build, waitlistConfirmation } = await import('@/lib/email-content');
+        const firstName = String(customer_name).split(' ')[0] || 'there';
+        const { subject, html } = build(waitlistConfirmation, { firstName, wantsLabel });
+        await resend.emails.send({
+          from: 'Legacy Land & Cattle <orders@legacylandandcattleco.com>',
+          to: String(email).toLowerCase().trim(),
+          subject,
+          html,
         });
       }
     } catch (emailErr) {
       console.error('Waitlist notification email failed:', emailErr);
-    }
-
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_GRANT_CHAT_ID;
-    if (botToken && chatId) {
-      try {
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: `🥩 Waitlist: ${customer_name} wants a ${label} ${size} — ${email} / ${phone || 'no phone'}`,
-          }),
-        });
-      } catch (telegramError) {
-        console.error('Telegram notification failed:', telegramError);
-      }
     }
 
     return NextResponse.json({ success: true, id: data.id });

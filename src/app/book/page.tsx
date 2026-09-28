@@ -145,6 +145,32 @@ export default function BookPage() {
   // Price matrix from the config table, so a Settings change propagates here.
   const [priceConfig, setPriceConfig] = useState<Record<string, string> | null>(null);
 
+  // Waitlist capture for the sold-out state, so "no slots" is never a dead end.
+  const [waitlistForm, setWaitlistForm] = useState({ name: '', email: '', phone: '' });
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistDone, setWaitlistDone] = useState(false);
+
+  async function joinWaitlist() {
+    if (!waitlistForm.name.trim() || !waitlistForm.email.trim() || waitlistSubmitting) return;
+    setWaitlistSubmitting(true);
+    try {
+      const res = await fetch('/api/wagyu-waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: waitlistForm.name,
+          email: waitlistForm.email,
+          phone: waitlistForm.phone || null,
+          size_preference: selectedSize || 'any',
+          animal_type: animalType === 'no_preference' ? 'any' : animalType,
+        }),
+      });
+      if (res.ok) setWaitlistDone(true);
+    } finally {
+      setWaitlistSubmitting(false);
+    }
+  }
+
   useEffect(() => {
     fetch('/api/config')
       .then((r) => r.json())
@@ -481,11 +507,47 @@ export default function BookPage() {
           )}
 
           {!slotsLoading && !slotsError && slots.length === 0 && (
-            <div className="text-center py-12 border-2 border-dashed border-[#E5E7EB] rounded-2xl">
+            <div className="text-center py-10 px-6 border-2 border-dashed border-[#E5E7EB] rounded-2xl">
               <p className="text-brand-dark font-semibold mb-1">No slots currently available for your selection</p>
-              <p className="text-sm text-brand-gray mb-4">
-                Please check back soon — we add new animals regularly.
+              <p className="text-sm text-brand-gray mb-5">
+                Join the waitlist and you&rsquo;ll hear from us the moment a date opens up — before it goes on the website.
               </p>
+              {waitlistDone ? (
+                <p className="font-semibold text-brand-green text-sm mb-4">
+                  ✓ You&rsquo;re on the list — check your inbox for a confirmation.
+                </p>
+              ) : (
+                <div className="max-w-sm mx-auto space-y-2 mb-4 text-left">
+                  <input
+                    type="text"
+                    placeholder="Your name"
+                    value={waitlistForm.name}
+                    onChange={(e) => setWaitlistForm({ ...waitlistForm, name: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Your email"
+                    value={waitlistForm.email}
+                    onChange={(e) => setWaitlistForm({ ...waitlistForm, email: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone (optional)"
+                    value={waitlistForm.phone}
+                    onChange={(e) => setWaitlistForm({ ...waitlistForm, phone: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                  />
+                  <button
+                    onClick={joinWaitlist}
+                    disabled={waitlistSubmitting || !waitlistForm.name.trim() || !waitlistForm.email.trim()}
+                    className="w-full py-2.5 rounded-xl bg-brand-orange hover:bg-brand-orange-hover disabled:opacity-50 text-white font-semibold text-sm transition-colors"
+                  >
+                    {waitlistSubmitting ? 'Saving…' : 'Join the Waitlist →'}
+                  </button>
+                </div>
+              )}
               <button
                 onClick={() => router.replace('/select-animal')}
                 className="text-brand-orange hover:underline text-sm font-medium"
