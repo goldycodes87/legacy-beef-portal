@@ -4,7 +4,7 @@ import SiteFooter from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Legacy Land & Cattle',
-  description: 'How Legacy Land & Cattle, LLC collects, uses, and protects your information.',
+  description: 'How Legacy Land & Cattle LLC collects, uses, and protects your information.',
 };
 
 /**
@@ -19,14 +19,14 @@ export default function PrivacyPolicyPage() {
       <main className="flex-1 max-w-[720px] mx-auto px-5 py-14 w-full">
         <h1 className="font-display font-bold text-4xl text-brand-dark mb-2">Privacy Policy</h1>
         <p className="text-sm text-brand-gray mb-10">
-          Legacy Land &amp; Cattle, LLC · Effective September 28, 2026
+          Legacy Land &amp; Cattle LLC · Effective September 28, 2026
         </p>
 
         <div className="space-y-8 font-body text-brand-dark text-[15px] leading-relaxed">
           <section>
             <h2 className="font-display font-bold text-xl mb-2">Who we are</h2>
             <p>
-              Legacy Land &amp; Cattle, LLC (&ldquo;Legacy Land &amp; Cattle,&rdquo;
+              Legacy Land &amp; Cattle LLC (&ldquo;Legacy Land &amp; Cattle,&rdquo;
               &ldquo;we,&rdquo; &ldquo;us&rdquo;) is a family ranch in Black Forest, Colorado
               selling whole, half, and quarter beef shares directly to customers through this
               website, www.legacylandandcattleco.com.
@@ -73,7 +73,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="font-display font-bold text-xl mb-2">Text messaging (SMS)</h2>
             <p>
               When you provide your phone number in our reservation form, you agree to receive
-              order-related text messages from Legacy Land &amp; Cattle, LLC. Message frequency
+              order-related text messages from Legacy Land &amp; Cattle LLC. Message frequency
               varies with your order&rsquo;s progress; message and data rates may apply. Reply
               STOP at any time to opt out, or HELP for help.
             </p>
@@ -115,7 +115,7 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="font-display font-bold text-xl mb-2">Contact</h2>
             <p>
-              Legacy Land &amp; Cattle, LLC · Black Forest, Colorado
+              Legacy Land &amp; Cattle LLC · Black Forest, Colorado
               <br />
               <a className="text-brand-orange underline" href="mailto:orders@legacylandandcattleco.com">
                 orders@legacylandandcattleco.com

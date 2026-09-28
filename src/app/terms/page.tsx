@@ -4,7 +4,7 @@ import SiteFooter from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions — Legacy Land & Cattle',
-  description: 'Terms and conditions for ordering beef from Legacy Land & Cattle, LLC, including our SMS terms.',
+  description: 'Terms and conditions for ordering beef from Legacy Land & Cattle LLC, including our SMS terms.',
 };
 
 /**
@@ -20,14 +20,14 @@ export default function TermsPage() {
           Terms &amp; Conditions
         </h1>
         <p className="text-sm text-brand-gray mb-10">
-          Legacy Land &amp; Cattle, LLC · Effective September 28, 2026
+          Legacy Land &amp; Cattle LLC · Effective September 28, 2026
         </p>
 
         <div className="space-y-8 font-body text-brand-dark text-[15px] leading-relaxed">
           <section>
             <h2 className="font-display font-bold text-xl mb-2">Orders and deposits</h2>
             <p>
-              Reserving a whole, half, or quarter beef share from Legacy Land &amp; Cattle, LLC
+              Reserving a whole, half, or quarter beef share from Legacy Land &amp; Cattle LLC
               requires a deposit, which holds your share for a specific butcher date. Your
               deposit is credited toward your final balance. Reservations started but not paid
               within 24 hours may be released.
@@ -67,7 +67,7 @@ export default function TermsPage() {
             <ul className="list-disc pl-5 space-y-1.5">
               <li>
                 By providing your phone number in our reservation form, you consent to receive
-                order-related text messages from Legacy Land &amp; Cattle, LLC — for example
+                order-related text messages from Legacy Land &amp; Cattle LLC — for example
                 deposit confirmations, cut sheet reminders, and pickup scheduling.
               </li>
               <li>Message frequency varies with your order&rsquo;s progress.</li>
@@ -99,7 +99,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display font-bold text-xl mb-2">Questions</h2>
             <p>
-              Legacy Land &amp; Cattle, LLC · Black Forest, Colorado
+              Legacy Land &amp; Cattle LLC · Black Forest, Colorado
               <br />
               <a className="text-brand-orange underline" href="mailto:orders@legacylandandcattleco.com">
                 orders@legacylandandcattleco.com

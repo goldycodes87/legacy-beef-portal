@@ -84,7 +84,7 @@ export default function SiteFooter() {
         </div>
 
         <p className="mt-10 pt-6 border-t border-white/10 text-xs font-body">
-          © {year} Legacy Land &amp; Cattle, LLC. Processed at T-K Processing,
+          © {year} Legacy Land &amp; Cattle LLC. Processed at T-K Processing,
           Cañon City, Colorado.
           <span className="block sm:inline sm:float-right mt-2 sm:mt-0">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">
