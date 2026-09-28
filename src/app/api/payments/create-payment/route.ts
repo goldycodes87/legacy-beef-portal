@@ -30,13 +30,17 @@ export async function POST(request: NextRequest) {
 
   // Never charge a deposit twice. A double-click, a browser retry, or a
   // network timeout followed by a retry all land here.
-  const { data: existingDeposit } = await supabaseAdmin
+  // limit(1) rather than maybeSingle(): maybeSingle() errors when a session
+  // somehow has two paid deposits, which would read as "not paid" and charge
+  // the card again.
+  const { data: existingDeposits } = await supabaseAdmin
     .from('payments')
     .select('id, amount_cents')
     .eq('session_id', session_id)
     .eq('type', 'deposit')
     .eq('status', 'paid')
-    .maybeSingle();
+    .limit(1);
+  const existingDeposit = existingDeposits?.[0];
 
   if (existingDeposit) {
     return NextResponse.json({

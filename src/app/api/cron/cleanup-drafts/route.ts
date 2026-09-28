@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       const firstName = customer.name?.split(' ')[0] ?? 'there';
       const purchaseLabel = session.purchase_type === 'whole' ? 'Whole Beef'
         : session.purchase_type === 'half' ? 'Half Beef' : 'Quarter Beef';
-      const paymentUrl = `${APP_URL}/payment?session=${session.id}`;
+      const paymentUrl = `${APP_URL}/payment?session_id=${session.id}`;
       const { subject, html } = build(lostCart, {
         firstName,
         purchaseLabel,
@@ -61,11 +61,15 @@ export async function GET(request: NextRequest) {
   // Auto-settle $0 deposits for sessions past butcher date with no deposit payment record
   const today = new Date().toISOString().split('T')[0];
 
+  // animals!inner makes the butcher-date filter actually exclude sessions.
+  // With a plain embed the .lte() only nulls the embedded object and every
+  // locked/deposit_paid session came back — which is how future reservations
+  // were getting nightly $0 "deposits".
   const { data: unpaidSessions } = await supabase
     .from('sessions')
     .select(`
       id, purchase_type, is_splitting, intended_payment_method,
-      animals (butcher_date)
+      animals!inner (butcher_date)
     `)
     .in('status', ['locked', 'deposit_paid'])
     .not('intended_payment_method', 'in', '(card)')
@@ -73,15 +77,17 @@ export async function GET(request: NextRequest) {
 
   if (unpaidSessions && unpaidSessions.length > 0) {
     for (const session of unpaidSessions) {
-      // Check if deposit payment already exists
-      const { data: existingPayment } = await supabase
+      // Check if deposit payment already exists. limit(1), not maybeSingle():
+      // maybeSingle() errors when two rows exist, which read as "no payment"
+      // and inserted another $0 row every night.
+      const { data: existingPayments } = await supabase
         .from('payments')
         .select('id')
         .eq('session_id', session.id)
         .eq('type', 'deposit')
-        .maybeSingle();
+        .limit(1);
 
-      if (!existingPayment) {
+      if (!existingPayments || existingPayments.length === 0) {
         // Insert $0 deposit to settle the account
         await supabase.from('payments').insert({
           session_id: session.id,

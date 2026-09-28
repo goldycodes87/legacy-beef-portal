@@ -483,7 +483,9 @@ export default function PaymentPage() {
   useEffect(() => {
     async function init() {
       const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('session_id') || sessionStorage.getItem('session_id');
+      // ?session= is accepted too — lost-cart emails already in inboxes used it.
+      const sessionId =
+        urlParams.get('session_id') || urlParams.get('session') || sessionStorage.getItem('session_id');
       if (!sessionId) {
         router.replace('/select-size?error=session_not_found');
         return;
