@@ -145,6 +145,9 @@ export default function BookPage() {
   // Price matrix from the config table, so a Settings change propagates here.
   const [priceConfig, setPriceConfig] = useState<Record<string, string> | null>(null);
 
+  // Explicit SMS opt-in (A2P): unchecked by default, stored on the customer.
+  const [smsConsent, setSmsConsent] = useState(false);
+
   // Waitlist capture for the sold-out state, so "no slots" is never a dead end.
   const [waitlistForm, setWaitlistForm] = useState({ name: '', email: '', phone: '' });
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
@@ -379,6 +382,7 @@ export default function BookPage() {
           city:          form.city,
           state:         form.state,
           zip:           form.zip,
+          sms_consent:   smsConsent,
           animal_id:     selectedSlot.id,
           purchase_type: selectedSize,
           is_splitting:  isSplitting,
@@ -726,11 +730,23 @@ export default function BookPage() {
               {touched.phone && fieldErrors.phone && (
                 <p className="text-red-600 text-xs mt-1">{fieldErrors.phone}</p>
               )}
-              <p className="text-xs text-brand-gray mt-1">
-                By providing your number, you agree to receive order-related texts from Legacy
-                Land &amp; Cattle (deposit confirmations, pickup scheduling). Message frequency
-                varies; message &amp; data rates may apply. Reply STOP to opt out.
-              </p>
+              <label className="flex items-start gap-2.5 mt-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={smsConsent}
+                  onChange={(e) => setSmsConsent(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-brand-orange flex-shrink-0"
+                />
+                <span className="text-xs text-brand-gray leading-relaxed">
+                  I agree to receive order-related text messages from Legacy Land &amp; Cattle
+                  LLC (deposit confirmations, cut sheet reminders, pickup scheduling). Message
+                  frequency varies; message &amp; data rates may apply. Reply STOP to opt out,
+                  HELP for help. See our{' '}
+                  <a href="/privacy-policy" target="_blank" className="underline">Privacy Policy</a>{' '}
+                  and <a href="/terms" target="_blank" className="underline">Terms</a>. Optional —
+                  we&rsquo;ll use email if unchecked.
+                </span>
+              </label>
             </div>
 
             {/* Street Address */}

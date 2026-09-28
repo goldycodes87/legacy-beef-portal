@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, phone, address, city, state, zip, animal_id, purchase_type,
       is_splitting, partner_emails, partner_names, group_size, cut_sheet_choice } = body;
+    const smsConsent = body.sms_consent === true;
 
     // Validate required fields
     if (!name || !email || !phone || !address || !animal_id || !purchase_type) {
@@ -61,15 +62,17 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingCustomer) {
+      // sms_consent only ever turns ON here — an unchecked box on a later
+      // order must not revoke consent they gave before.
       await supabaseAdmin
         .from('customers')
-        .update({ name, phone, address, city, state, zip })
+        .update({ name, phone, address, city, state, zip, ...(smsConsent ? { sms_consent: true } : {}) })
         .eq('id', existingCustomer.id);
       customerId = existingCustomer.id;
     } else {
       const { data: newCustomer, error: customerError } = await supabaseAdmin
         .from('customers')
-        .insert({ name, email, phone, address, city, state, zip })
+        .insert({ name, email, phone, address, city, state, zip, sms_consent: smsConsent })
         .select('id')
         .single();
 

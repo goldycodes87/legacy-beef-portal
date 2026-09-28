@@ -40,9 +40,9 @@ export default function SmsOptInPage() {
                 form, they enter their contact details, including a required phone number.
               </li>
               <li>
-                The SMS consent disclosure shown below appears directly beneath the phone
-                number field. By providing their number and submitting the reservation, the
-                customer consents to order-related text messages.
+                Beneath the phone number field is an <strong>optional, unchecked consent
+                checkbox</strong> with the full SMS disclosure, shown below. Only customers
+                who check it receive text messages; others get order updates by email.
               </li>
             </ol>
           </section>
@@ -63,12 +63,29 @@ export default function SmsOptInPage() {
               <div className="w-full border border-[#E5E7EB] rounded-xl px-4 py-3 text-sm text-brand-gray bg-white select-none">
                 (555) 555-5555
               </div>
-              <p className="text-xs text-brand-gray mt-1">
-                By providing your number, you agree to receive order-related texts from Legacy
-                Land &amp; Cattle (deposit confirmations, pickup scheduling). Message frequency
-                varies; message &amp; data rates may apply. Reply STOP to opt out.
-              </p>
+              <div className="flex items-start gap-2.5 mt-2">
+                <input
+                  type="checkbox"
+                  readOnly
+                  checked={false}
+                  aria-label="SMS consent checkbox (shown unchecked, as on the live form)"
+                  className="mt-0.5 w-4 h-4 accent-brand-orange flex-shrink-0"
+                />
+                <span className="text-xs text-brand-gray leading-relaxed">
+                  I agree to receive order-related text messages from Legacy Land &amp; Cattle
+                  LLC (deposit confirmations, cut sheet reminders, pickup scheduling). Message
+                  frequency varies; message &amp; data rates may apply. Reply STOP to opt out,
+                  HELP for help. See our{' '}
+                  <Link href="/privacy-policy" className="underline">Privacy Policy</Link> and{' '}
+                  <Link href="/terms" className="underline">Terms</Link>. Optional — we&rsquo;ll
+                  use email if unchecked.
+                </span>
+              </div>
             </div>
+            <p className="text-sm text-brand-gray mt-3">
+              The checkbox is unchecked by default; consent is given only by the customer
+              checking it. Consent is stored with the customer&rsquo;s record.
+            </p>
           </section>
 
           <section>
