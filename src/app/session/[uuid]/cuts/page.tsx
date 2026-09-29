@@ -280,6 +280,48 @@ function DepositHoldScreen() {
   );
 }
 
+/**
+ * Quarters come with the Legacy House Cut — there is no cut sheet to build.
+ * Before this screen existed, a quarter buyer following their order link
+ * landed in the full cut sheet wizard.
+ */
+function QuarterHouseCutScreen({ onViewOrder }: { onViewOrder: () => void }) {
+  const [showHouse, setShowHouse] = useState(false);
+  return (
+    <div className="max-w-[600px] mx-auto px-4 py-14 text-center">
+      <div className="text-6xl mb-4">🥩</div>
+      <h1 className="font-display font-bold text-3xl text-brand-dark mb-3">
+        Your cuts are already taken care of.
+      </h1>
+      <p className="text-brand-gray text-base mb-6 leading-relaxed max-w-md mx-auto">
+        Quarter shares come with our <strong>Legacy House Cut</strong> — the balanced
+        selection of steaks, roasts, and ground beef we recommend to every family.
+        There&apos;s no cut sheet for you to fill out; we handle it.
+      </p>
+      <div className="max-w-md mx-auto space-y-3">
+        <button
+          onClick={() => setShowHouse(true)}
+          className="w-full bg-white border border-brand-gray-light hover:border-brand-orange text-brand-dark py-3.5 rounded-xl font-semibold transition-colors"
+        >
+          See What&apos;s in the Legacy House Cut →
+        </button>
+        <button
+          onClick={onViewOrder}
+          className="w-full bg-brand-orange hover:bg-brand-orange-hover text-white py-3.5 rounded-xl font-semibold transition-colors"
+        >
+          View My Order →
+        </button>
+      </div>
+      <p className="font-body text-brand-gray text-sm mt-6">
+        Special request? Call us at{' '}
+        <a href="tel:+17192581777" className="text-brand-orange font-semibold">(719) 258-1777</a>{' '}
+        and we&apos;ll see what we can do.
+      </p>
+      <HouseCutSheetModal open={showHouse} onClose={() => setShowHouse(false)} />
+    </div>
+  );
+}
+
 interface PreviousSheet {
   sourceSessionId: string;
   sections: number;
@@ -1840,6 +1882,8 @@ export default function CutsPage() {
 
       {depositGated ? (
         <DepositHoldScreen />
+      ) : session.purchase_type === 'quarter' ? (
+        <QuarterHouseCutScreen onViewOrder={() => router.push(`/session/${uuid}`)} />
       ) : showReuse && reuse ? (
         <ReuseCutSheetScreen
           previous={reuse}

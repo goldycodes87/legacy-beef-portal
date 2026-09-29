@@ -40,7 +40,7 @@ export async function POST(
 
   const { data: gateSession } = await supabase
     .from('sessions')
-    .select('status, intended_payment_method')
+    .select('status, intended_payment_method, purchase_type')
     .eq('id', uuid)
     .maybeSingle();
   if (
@@ -49,6 +49,14 @@ export async function POST(
   ) {
     return NextResponse.json(
       { error: 'deposit_pending', message: 'Your cut sheet opens once we receive your deposit.' },
+      { status: 403 }
+    );
+  }
+  // Quarters come with the Legacy House Cut — there is no customer cut sheet
+  // to build, so nothing is ever saved against one.
+  if (gateSession?.purchase_type === 'quarter') {
+    return NextResponse.json(
+      { error: 'house_cut', message: 'Quarter shares come with our Legacy House Cut — no cut sheet needed.' },
       { status: 403 }
     );
   }

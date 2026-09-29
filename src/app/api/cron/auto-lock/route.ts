@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
     `)
     .eq('status', 'deposit_paid')
     .eq('cut_sheet_complete', false)
+    .neq('purchase_type', 'quarter')
     .order('animals.butcher_date', { ascending: true });
 
   const sessionsToLock = (sessions || []).filter(s => {

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const supabase = getSupabaseAdmin();
   const { data: session } = await supabase
     .from('sessions')
-    .select('id, access_token_expires_at, status, balance_due, balance_paid, hanging_weight_lbs')
+    .select('id, access_token_expires_at, status, balance_due, balance_paid, hanging_weight_lbs, purchase_type')
     .eq('access_token', token)
     .single();
 
@@ -26,6 +26,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     session.status === 'beef_ready' ? `/session/${session.id}/pickup` :
     (session.status === 'locked' && session.hanging_weight_lbs && !session.balance_paid) ? `/session/${session.id}/balance` :
     session.status === 'locked' ? `/session/${session.id}/review` :
+    // Quarters have no cut sheet to build — their link is "view my order".
+    session.purchase_type === 'quarter' ? `/session/${session.id}` :
     `/session/${session.id}/cuts`;
   const response = NextResponse.redirect(
     new URL(destination, request.url)
