@@ -4,12 +4,12 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { build, autoLocked } from '@/lib/email-content';
 
 const HOUSE_DEFAULTS = {
-  chuck: { choice: 'steaks', thickness: '1"', steaks_per_pack: 2 },
+  chuck: { choice: 'steaks', thickness: '1"', steaks_per_pack: 1 },
   brisket: { choice: 'half' },
   skirt: { choice: true },
   rib: { choice: 'bone_in_steaks', thickness: '1"', steaks_per_pack: 2 },
   short_ribs: { choice: true },
-  sirloin: { choice: 'steaks', thickness: '1"', steaks_per_pack: 2 },
+  sirloin: { choice: 'steaks', thickness: '3/4"', steaks_per_pack: 1 },
   round: { choice: 'grind' },
   short_loin: { choice: 'tbone', tbone_thickness: '1"', steaks_per_pack: 2 },
   flank: { choice: true },

@@ -625,7 +625,22 @@ function SizeCard({
           {note && (
             <li className="flex items-start gap-2 text-sm font-body text-brand-gray italic">
               <span className="text-brand-orange mt-0.5 flex-shrink-0">✓</span>
-              <span>{note}</span>
+              <span>
+                {note}
+                {title === 'Quarter Beef' && (
+                  <>
+                    {' '}
+                    <a
+                      href="/quarter"
+                      target="_blank"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-brand-orange font-semibold underline underline-offset-2 not-italic"
+                    >
+                      What&apos;s in it? →
+                    </a>
+                  </>
+                )}
+              </span>
             </li>
           )}
         </ul>

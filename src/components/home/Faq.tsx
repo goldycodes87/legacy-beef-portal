@@ -2,7 +2,17 @@
 
 import { useState } from 'react';
 
-const QUESTIONS: { q: string; a: string }[] = [
+const QUESTIONS: { q: string; a: string; link?: { href: string; label: string } }[] = [
+  {
+    q: 'What comes in a quarter beef?',
+    a: 'Every quarter is cut to our Legacy House Cut — roughly 105 to 115 pounds of boxed beef: about 22 steaks (ribeyes, T-bones, top sirloins and chuck steaks), half a brisket, short ribs, skirt and flank steak, 50-plus one-pound packs of 85/15 ground beef, and soup bones.',
+    link: { href: '/quarter', label: 'See the full breakdown →' },
+  },
+  {
+    q: "Why can't I customize a quarter?",
+    a: "A steer doesn't divide into four identical pieces — your quarter shares primal cuts with three other families. If one family took the whole tenderloin as roasts and another wanted theirs as filets, somebody's quarter would come up short. Cutting every quarter to one proven sheet is the only way each family gets a fair, complete share of the best cuts. Want it cut your way, cut for cut? That's exactly what a half beef gives you.",
+    link: { href: '/quarter', label: 'See what a quarter includes →' },
+  },
   {
     q: 'How much freezer space do I actually need?',
     a: 'A half beef needs roughly 8 cubic feet — about a small chest freezer. A quarter fits in most upright freezers alongside your normal food. A whole wants a dedicated chest freezer. The video above shows exactly what it looks like packed.',
@@ -71,6 +81,17 @@ export default function Faq() {
               {isOpen && (
                 <p className="font-body text-brand-gray text-sm leading-relaxed pb-5 max-w-[64ch]">
                   {item.a}
+                  {item.link && (
+                    <>
+                      {' '}
+                      <a
+                        href={item.link.href}
+                        className="text-brand-orange font-semibold underline underline-offset-2"
+                      >
+                        {item.link.label}
+                      </a>
+                    </>
+                  )}
                   {item.q === SAMPLE_LINK_QUESTION && (
                     <>
                       {' '}

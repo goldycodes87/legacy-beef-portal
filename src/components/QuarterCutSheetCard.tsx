@@ -21,7 +21,7 @@ export default function QuarterCutSheetCard() {
         </button>
       </div>
 
-      <HouseCutSheetModal open={open} onClose={() => setOpen(false)} />
+      <HouseCutSheetModal open={open} onClose={() => setOpen(false)} quarter />
     </>
   );
 }
