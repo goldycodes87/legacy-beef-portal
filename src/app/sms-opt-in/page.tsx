@@ -49,11 +49,32 @@ export default function SmsOptInPage() {
 
           <section>
             <h2 className="font-display font-bold text-xl mb-2">
-              The opt-in step, exactly as it appears
+              Screenshot of the live opt-in step
             </h2>
             <p className="mb-4">
-              This is a faithful reproduction of the phone number field on the reservation
-              form (step 4 of 6), which requires starting a reservation to reach:
+              An unedited screenshot of the reservation form&rsquo;s &ldquo;Your
+              Information&rdquo; step (step 4 of 6, reachable only by starting a
+              reservation), showing the phone field and the unchecked SMS consent checkbox
+              with its full disclosure (
+              <a
+                href="/sms-opt-in-screenshot.png"
+                className="text-brand-orange underline"
+              >
+                direct image link
+              </a>
+              ):
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sms-opt-in-screenshot.png"
+              alt="Screenshot of the reservation form showing the phone number field and the unchecked SMS consent checkbox with its full disclosure"
+              className="w-full rounded-2xl border border-[#E5E7EB] shadow-sm mb-8"
+            />
+            <h2 className="font-display font-bold text-xl mb-2">
+              The same step, as accessible markup
+            </h2>
+            <p className="mb-4">
+              A faithful reproduction of that step for automated review:
             </p>
             <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
               <p className="font-display font-bold text-xl mb-4">Your Information</p>
