@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getConfig, getPricePerLb, getDepositAmount } from '@/lib/config';
+import { ranchNow } from '@/lib/pickup';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://legacylandandcattleco.com';
 
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
       .select('id, name, status, total_animals, units_used, animal_type')
       .eq('id', animal_id)
       .eq('status', 'available')
+      .gt('butcher_date', ranchNow().date)
       .single();
 
     if (animalError || !animal) {

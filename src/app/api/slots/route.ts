@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getConfig, getPricePerLb, getDepositAmount } from '@/lib/config';
+import { ranchNow } from '@/lib/pickup';
 
 // Compute spots remaining based on purchaseType
 function computeSpotsRemaining(animal: any, purchaseType: string): number {
@@ -53,6 +54,9 @@ export async function GET(request: NextRequest) {
       .from('animals')
       .select('id, name, animal_type, butcher_date, estimated_ready_date, status, price_per_lb, hanging_weight_lbs, total_animals, units_used, wagyu_active')
       .eq('status', 'available')
+      // Only dates still ahead. A past date stays "available" until it is
+      // archived, so a cancelled share on it was offered to new buyers.
+      .gt('butcher_date', ranchNow().date)
       .order('butcher_date', { ascending: true });
 
     // Filter by animal type unless user has no preference
