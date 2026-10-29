@@ -92,12 +92,13 @@ export async function POST(request: NextRequest) {
       square_payment_id: payment.id,
     });
 
-    // Update session
+    // Paying does not make the beef ready. Customers can pay as soon as the
+    // hanging weight is in, weeks before pickup — moving them to beef_ready
+    // here skipped "mark ready" and its pickup email entirely.
     await supabase.from('sessions').update({
       balance_paid: true,
       balance_paid_at: new Date().toISOString(),
       balance_payment_method: 'card',
-      status: 'beef_ready',
     }).eq('id', session_id);
 
     // Send confirmation email to Grant

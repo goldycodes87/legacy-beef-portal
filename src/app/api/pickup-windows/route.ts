@@ -1,7 +1,9 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { isPickupWindowPast, ranchNow } from '@/lib/pickup';
 
+/** Only windows a customer can actually book: active, not over, not full. */
 export async function GET(request: NextRequest) {
   const supabase = getSupabaseAdmin();
 
@@ -12,14 +14,17 @@ export async function GET(request: NextRequest) {
       pickup_appointments(id)
     `)
     .eq('active', true)
+    .gte('pickup_date', ranchNow().date)
     .order('pickup_date', { ascending: true })
     .order('start_time', { ascending: true });
 
-  const withCounts = (windows || []).map((w: any) => ({
-    ...w,
-    appointment_count: (w.pickup_appointments || []).length,
-    pickup_appointments: undefined,
-  }));
+  const bookable = (windows || [])
+    .map((w: any) => ({
+      ...w,
+      appointment_count: (w.pickup_appointments || []).length,
+      pickup_appointments: undefined,
+    }))
+    .filter((w: any) => !isPickupWindowPast(w) && w.appointment_count < (w.max_slots ?? 999));
 
-  return NextResponse.json(withCounts);
+  return NextResponse.json(bookable);
 }

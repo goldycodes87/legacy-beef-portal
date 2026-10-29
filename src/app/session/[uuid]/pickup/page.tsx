@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
+import { formatPickupDate, formatPickupTimeRange } from '@/lib/pickup';
 
 interface PickupWindow {
   id: string;
@@ -23,6 +25,7 @@ export default function PickupPage() {
   const [windows, setWindows] = useState<PickupWindow[]>([]);
   const [step, setStep] = useState(1);
   const [selectedWindow, setSelectedWindow] = useState<PickupWindow | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [isAlternate, setIsAlternate] = useState(false);
   const [alternateData, setAlternateData] = useState({
     name: '',
@@ -49,20 +52,25 @@ export default function PickupPage() {
         return;
       }
 
-      // Fetch windows
-      const winRes = await fetch('/api/pickup-windows');
-      const winData = await winRes.json();
-      setWindows(winData);
+      await loadWindows();
     };
     checkAccess();
   }, [uuid, router]);
 
+  // The API returns only bookable windows — active, not over, not full.
+  async function loadWindows() {
+    const winRes = await fetch('/api/pickup-windows');
+    setWindows(await winRes.json());
+  }
+
   const handleSelectWindow = (window: PickupWindow) => {
     setSelectedWindow(window);
+    setBookingError(null);
     setStep(2);
   };
 
   const handleConfirm = async () => {
+    setBookingError(null);
     const res = await fetch(`/api/pickup/${uuid}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -78,9 +86,15 @@ export default function PickupPage() {
 
     if (res.ok) {
       setStep(99);
-    } else {
-      const err = await res.json();
-      alert('Failed: ' + (err.error || 'Unknown error'));
+      return;
+    }
+    const err = await res.json().catch(() => ({}));
+    setBookingError(err.error || 'Something went wrong. Please try again or give us a call.');
+    // The window filled or passed while the page was open — offer the current ones.
+    if (res.status === 409) {
+      await loadWindows();
+      setSelectedWindow(null);
+      setStep(1);
     }
   };
 
@@ -89,17 +103,14 @@ export default function PickupPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
-    setSession({ ...session, balance_paid: true, balance_payment_method: 'cash' });
+    setSession({ ...session, balance_payment_method: 'cash' });
   };
 
-  function formatTime(time: string): string {
-    const [h, m] = time.split(':').map(Number);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const hour = h % 12 || 12;
-    return m === 0 ? `${hour}${period}` : `${hour}:${String(m).padStart(2, '0')}${period}`;
-  }
-
   if (!session) return <div className="text-center py-12">Loading...</div>;
+
+  const owesBalance = session.balance_due > 0 && !session.balance_paid;
+  // Paid by card, or chose to bring cash/check — either way they can book.
+  const balanceSettled = !owesBalance || session.balance_payment_method === 'cash';
 
   if (step === 99) {
     return (
@@ -176,27 +187,44 @@ export default function PickupPage() {
       <div className="max-w-2xl mx-auto px-4 mt-6 pb-16">
 
         {/* Balance card — floats over the transition */}
-        {session?.balance_due > 0 && !session?.balance_paid && (
+        {owesBalance && !balanceSettled && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-l-4 border-brand-orange">
             <p className="font-body text-brand-gray text-sm">Balance Due</p>
             <p className="font-display font-bold text-3xl text-brand-dark mb-4">
               ${session.balance_due.toFixed(2)}
             </p>
             <p className="font-body text-brand-gray text-sm mb-4">
-              Your balance must be settled before selecting a pickup time.
+              Choose how you&apos;ll pay, then pick your pickup time.
             </p>
 
-            <div className="bg-brand-green-pale border border-green-200 rounded-xl p-4 mt-2">
-              <p className="font-body font-semibold text-brand-green text-sm mb-3">
-                Please bring ${session.balance_due.toFixed(2)} cash or check to pickup.
-              </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                href={`/session/${uuid}/balance`}
+                className="block text-center py-3 rounded-xl bg-brand-orange text-white font-body font-semibold hover:bg-brand-orange-hover transition-colors"
+              >
+                💳 Pay by Card Now
+              </Link>
               <button
                 onClick={handleCashBalance}
-                className="w-full py-3 rounded-xl bg-brand-orange text-white font-body font-semibold hover:bg-brand-orange-hover transition-colors"
+                className="py-3 rounded-xl border-2 border-brand-dark text-brand-dark font-body font-semibold hover:bg-brand-warm transition-colors"
               >
-                I&apos;ll Pay at Pickup
+                💵 I&apos;ll Pay at Pickup
               </button>
             </div>
+            <p className="font-body text-brand-gray text-xs mt-3 text-center">
+              Card payments include a small processing fee. Cash or check at pickup has none.
+            </p>
+          </div>
+        )}
+
+        {owesBalance && balanceSettled && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-green-500">
+            <p className="font-body font-semibold text-green-700">
+              ✓ Bring ${session.balance_due.toFixed(2)} cash or check to pickup.
+            </p>
+            <Link href={`/session/${uuid}/balance`} className="font-body text-sm text-brand-orange underline mt-1 inline-block">
+              Rather pay by card now?
+            </Link>
           </div>
         )}
 
@@ -208,30 +236,43 @@ export default function PickupPage() {
           </div>
         )}
 
+        {bookingError && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <p className="font-body text-amber-800 text-sm font-semibold">{bookingError}</p>
+          </div>
+        )}
+
         {/* Step 1 — Schedule Selection */}
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="font-display font-bold text-2xl text-brand-dark mb-4">
               Choose Your Pickup Time
             </h2>
-            {session?.balance_due > 0 && !session?.balance_paid && (
+            {!balanceSettled && (
               <p className="font-body text-amber-600 text-sm mb-4 font-semibold">
-                ⚠️ Please confirm your payment plan above before selecting a pickup time.
+                ⚠️ Choose how you&apos;ll pay your balance above before selecting a pickup time.
               </p>
             )}
-            <div className={session?.balance_due > 0 && !session?.balance_paid ? 'opacity-40 pointer-events-none' : ''}>
+            {windows.length === 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-6 text-center">
+                <p className="font-body text-brand-dark font-semibold">No pickup times are open right now.</p>
+                <p className="font-body text-brand-gray text-sm mt-1">
+                  We&apos;re adding more soon — or call us at{' '}
+                  <a href="tel:7192581777" className="text-brand-orange">719.258.1777</a> and we&apos;ll set one up.
+                </p>
+              </div>
+            )}
+            <div className={balanceSettled ? '' : 'opacity-40 pointer-events-none'}>
             {windows.map((w) => (
               <button key={w.id} onClick={() => handleSelectWindow(w)}
                 className="w-full text-left bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-all border-2 border-transparent hover:border-brand-orange group">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-display font-bold text-xl text-brand-dark">
-                      {new Date(w.pickup_date + 'T00:00:00').toLocaleDateString(
-                        'en-US', { weekday: 'long', month: 'long', day: 'numeric' }
-                      )}
+                      {formatPickupDate(w.pickup_date, { weekday: 'long', month: 'long', day: 'numeric' })}
                     </p>
                     <p className="font-body text-brand-gray text-base mt-1">
-                      {formatTime(w.start_time)} – {formatTime(w.end_time)} MST
+                      {formatPickupTimeRange(w)} MT
                     </p>
                     <p className="font-body text-brand-orange font-semibold text-sm mt-1">
                       {w.label}
@@ -368,13 +409,13 @@ export default function PickupPage() {
               <div>
                 <p className="font-body text-brand-gray text-sm">Date</p>
                 <p className="font-display font-bold text-xl text-brand-dark">
-                  {selectedWindow ? new Date(selectedWindow.pickup_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : ''}
+                  {selectedWindow ? formatPickupDate(selectedWindow.pickup_date, { weekday: 'long', month: 'long', day: 'numeric' }) : ''}
                 </p>
               </div>
               <div>
                 <p className="font-body text-brand-gray text-sm">Time</p>
                 <p className="font-display font-bold text-xl text-brand-dark">
-                  {selectedWindow ? `${formatTime(selectedWindow.start_time)} – ${formatTime(selectedWindow.end_time)} MST` : ''}
+                  {selectedWindow ? `${formatPickupTimeRange(selectedWindow)} MT` : ''}
                 </p>
               </div>
               <div>
