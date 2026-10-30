@@ -63,14 +63,39 @@ export async function POST(request: NextRequest) {
       .eq('email', email)
       .single();
 
-    if (existingCustomer) {
+    // A fast-pass link (/start/<id>) carries the prospect record Rusty
+    // created, so this booking claims that row instead of inserting a
+    // duplicate. An email match still wins — if they are secretly a
+    // returning customer, their history stays on the record that has it.
+    const prospectId =
+      typeof body.prospect_customer_id === 'string' &&
+      /^[0-9a-f-]{36}$/i.test(body.prospect_customer_id)
+        ? body.prospect_customer_id
+        : null;
+    let prospectCustomer: { id: string } | null = null;
+    if (!existingCustomer && prospectId) {
+      const { data } = await supabaseAdmin
+        .from('customers')
+        .select('id')
+        .eq('id', prospectId)
+        .maybeSingle();
+      prospectCustomer = data;
+    }
+
+    if (existingCustomer || prospectCustomer) {
+      const claimedId = (existingCustomer || prospectCustomer)!.id;
       // sms_consent only ever turns ON here — an unchecked box on a later
-      // order must not revoke consent they gave before.
+      // order must not revoke consent they gave before. The prospect row
+      // also picks up the real email here, replacing its invite placeholder.
       await supabaseAdmin
         .from('customers')
-        .update({ name, phone, address, city, state, zip, ...(smsConsent ? { sms_consent: true } : {}) })
-        .eq('id', existingCustomer.id);
-      customerId = existingCustomer.id;
+        .update({
+          name, phone, address, city, state, zip,
+          ...(prospectCustomer ? { email } : {}),
+          ...(smsConsent ? { sms_consent: true } : {}),
+        })
+        .eq('id', claimedId);
+      customerId = claimedId;
     } else {
       const { data: newCustomer, error: customerError } = await supabaseAdmin
         .from('customers')

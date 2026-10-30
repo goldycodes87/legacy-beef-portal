@@ -383,6 +383,7 @@ export default function BookPage() {
           state:         form.state,
           zip:           form.zip,
           sms_consent:   smsConsent,
+          prospect_customer_id: sessionStorage.getItem('prospectCustomerId') || null,
           animal_id:     selectedSlot.id,
           purchase_type: selectedSize,
           is_splitting:  isSplitting,
@@ -402,6 +403,7 @@ export default function BookPage() {
       // Clear funnel selection data
       sessionStorage.removeItem('selectedSize');
       sessionStorage.removeItem('animalTypePreference');
+      sessionStorage.removeItem('prospectCustomerId');
       sessionStorage.removeItem('isSplitting');
       sessionStorage.removeItem('partnerEmails');
       sessionStorage.removeItem('partnerNames');
