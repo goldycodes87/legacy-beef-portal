@@ -17,9 +17,26 @@ export default async function StartPage({ params }: { params: Promise<{ id: stri
   if (/^[0-9a-f-]{36}$/i.test(id)) {
     const { data: customer } = await supabaseAdmin
       .from('customers')
-      .select('id, name, email, phone')
+      .select('id, name, email, phone, archived_at')
       .eq('id', id)
+      .is('archived_at', null)
       .maybeSingle();
+
+    // The fast pass is for prospects. Once they have a reservation the link
+    // is spent (they sign in like any customer), and archiving the customer
+    // kills the link outright — that's Grant's revoke switch.
+    if (customer) {
+      const { count } = await supabaseAdmin
+        .from('sessions')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_id', customer.id)
+        .neq('status', 'cancelled');
+      if (count && count > 0) {
+        const { redirect } = await import('next/navigation');
+        redirect('/returning');
+      }
+    }
+
     if (customer) {
       const parts = String(customer.name || '').trim().split(/\s+/);
       const isPlaceholder = String(customer.email || '').endsWith('@invite.legacylandandcattleco.com');
