@@ -14,6 +14,9 @@ export interface SizeOffer {
   spotsRemaining: number;
   estLow: number;
   estHigh: number;
+  /** Take-home boxed beef, ~50% of hanging weight. */
+  boxedLow: number;
+  boxedHigh: number;
 }
 
 export interface HomeOffer {
@@ -48,6 +51,46 @@ export async function getShownPrices(): Promise<ShownPrices> {
  * the price, deposit, remaining spots and estimated total. Prices and deposits
  * come from the same config the booking flow charges from.
  */
+function buildSizes(
+  config: Awaited<ReturnType<typeof getConfig>>,
+  representative: string,
+  spots: (size: SizeOffer['size']) => number
+): SizeOffer[] {
+  return (['whole', 'half', 'quarter'] as const).map((size) => {
+    const pricePerLb = getPricePerLb(config, size, representative);
+    const [lo, hi] = WEIGHT_RANGE[size];
+    const roundTo50 = (n: number) => Math.round(n / 50) * 50;
+    const roundTo5 = (n: number) => Math.round(n / 5) * 5;
+    return {
+      size,
+      label: LABEL[size],
+      pricePerLb,
+      depositAmount: getDepositAmount(config, size, false, representative),
+      spotsRemaining: spots(size),
+      estLow: roundTo50(lo * pricePerLb),
+      estHigh: roundTo50(hi * pricePerLb),
+      boxedLow: roundTo5(lo * 0.5),
+      boxedHigh: roundTo5(hi * 0.5),
+    };
+  });
+}
+
+/**
+ * The home offer, but never empty-handed: with no open butcher date the
+ * pricing section still shows this season's rates from config, with zero
+ * spots so the page reads "join the waitlist" instead of prices vanishing.
+ */
+export async function getStandingOffer(): Promise<HomeOffer> {
+  const offer = await getHomeOffer();
+  if (offer.sizes.length > 0) return offer;
+  try {
+    const config = await getConfig();
+    return { nextButcherDate: null, sizes: buildSizes(config, 'grain_finished', () => 0) };
+  } catch {
+    return offer;
+  }
+}
+
 export async function getHomeOffer(): Promise<HomeOffer> {
   const empty: HomeOffer = { nextButcherDate: null, sizes: [] };
 
@@ -83,20 +126,9 @@ export async function getHomeOffer(): Promise<HomeOffer> {
     const representative =
       onDate.find((a) => a.animal_type !== 'wagyu')?.animal_type ?? onDate[0].animal_type;
 
-    const sizes: SizeOffer[] = (['whole', 'half', 'quarter'] as const).map((size) => {
-      const pricePerLb = getPricePerLb(config, size, representative);
-      const [lo, hi] = WEIGHT_RANGE[size];
-      const roundTo50 = (n: number) => Math.round(n / 50) * 50;
-      return {
-        size,
-        label: LABEL[size],
-        pricePerLb,
-        depositAmount: getDepositAmount(config, size, false, representative),
-        spotsRemaining: Math.floor(remainingUnits / SHARE[size]),
-        estLow: roundTo50(lo * pricePerLb),
-        estHigh: roundTo50(hi * pricePerLb),
-      };
-    });
+    const sizes = buildSizes(config, representative, (size) =>
+      Math.floor(remainingUnits / SHARE[size])
+    );
 
     return {
       nextButcherDate: new Date(nextDate + 'T00:00:00').toLocaleDateString('en-US', {

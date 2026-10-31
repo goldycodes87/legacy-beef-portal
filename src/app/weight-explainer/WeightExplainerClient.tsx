@@ -52,57 +52,38 @@ export default function WeightExplainerClient({
       <main className="max-w-[700px] mx-auto px-4 py-10">
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 1: Know Before You Buy */}
+        {/* SECTION 1: quick recap — the education lives on the home page    */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="mb-10 text-center">
-          <h1 className="font-display font-bold text-3xl md:text-4xl text-brand-dark mb-4">
-            Know Your Beef Before You Buy
+        <section className="mb-8 text-center">
+          <h1 className="font-slab text-3xl md:text-4xl text-brand-dark mb-4">
+            BEFORE YOU RESERVE
           </h1>
           <p className="font-body text-brand-gray text-base leading-relaxed max-w-[560px] mx-auto">
-            One of the most common surprises for first-time bulk beef buyers is yield. Here&apos;s exactly what to expect.
+            Two minutes: confirm the one thing that surprises first-time buyers, tell us who you
+            are, and you&apos;re off to pick your beef.
           </p>
         </section>
 
-        {/* Things to Know Card */}
-        <div className="bg-brand-dark rounded-2xl p-6 mb-8">
-          <h3 className="font-display font-bold text-lg text-white mb-4">
-            📋 Things to Know Before You Buy
-          </h3>
-          <div className="space-y-3">
-            {[
-              {
-                icon: '⚖️',
-                title: 'Price is charged on hanging weight',
-                desc: 'Hanging weight is what remains after the animal is harvested and cleaned.',
-              },
-              {
-                icon: '💰',
-                title: 'Pricing varies by purchase size',
-                desc: `Whole beef: $${prices.whole.toFixed(2)}/lb · Half beef: $${prices.half.toFixed(2)}/lb · Quarter beef: $${prices.quarter.toFixed(2)}/lb. The more you buy, the better the price.`,
-              },
-              {
-                icon: '🚛',
-                title: 'Transportation & processing included',
-                desc: 'Your price covers everything from raising, transport to the butcher, processing, vacuum sealing, and labeling.',
-              },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-4 pb-3 border-b border-white/10 last:border-0 last:pb-0">
-                <span className="text-2xl flex-shrink-0">{item.icon}</span>
-                <div>
-                  <p className="font-body font-semibold text-white text-sm">{item.title}</p>
-                  <p className="font-body text-white/60 text-sm mt-0.5 leading-relaxed">{item.desc}</p>
-                </div>
-              </div>
-            ))}
+        {/* Compact recap — the full walkthrough stays on the home page. */}
+        <div className="bg-white border border-brand-green/15 rounded-2xl shadow-sm p-5 mb-6">
+          <div className="space-y-2.5 font-body text-sm text-brand-dark">
+            <p className="m-0">
+              ⚖️ <strong>Price is charged on hanging weight</strong> — what remains after the
+              animal is harvested and cleaned.
+            </p>
+            <p className="m-0">
+              💰 Whole ${prices.whole.toFixed(2)}/lb · Half ${prices.half.toFixed(2)}/lb · Quarter $
+              {prices.quarter.toFixed(2)}/lb — the more you buy, the better the price.
+            </p>
+            <p className="m-0">
+              🚛 Raising, transport, processing, vacuum sealing, and labeling —{' '}
+              <strong>all included</strong>.
+            </p>
           </div>
         </div>
 
-        {/* The slider, the size calculator and the freezer video all live on
-            the home page. Repeating them here made this read as the same page
-            twice, so point at the one copy instead. */}
         <p className="font-body text-brand-gray text-sm text-center">
-          Want the full walkthrough — the weight slider, the size calculator and the
-          freezer video?{' '}
+          Need the full walkthrough?{' '}
           <Link
             href="/#know-your-beef"
             className="text-brand-orange font-semibold underline underline-offset-2"

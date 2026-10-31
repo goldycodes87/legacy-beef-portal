@@ -20,7 +20,7 @@ export default function WeightExplainer({
   const [liveWeight, setLiveWeight] = useState(1200);
 
   const hangingWeight = Math.round(liveWeight * 0.60);
-  const finishedCuts = Math.round(hangingWeight * 0.52);
+  const finishedCuts = Math.round(hangingWeight * 0.5);
 
   // Prices are charged on hanging weight.
   // Range reflects ±5% natural variation in hanging weight yield.
@@ -75,7 +75,7 @@ export default function WeightExplainer({
           <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M0 12H28M28 12L18 4M28 12L18 20" stroke="#E85D24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="text-[10px] text-brand-orange font-semibold mt-1">52%</span>
+          <span className="text-[10px] text-brand-orange font-semibold mt-1">50%</span>
         </div>
 
         {/* Finished Cuts */}
@@ -170,7 +170,7 @@ export default function WeightExplainer({
             className="text-2xl font-bold text-brand-green"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            52%
+            50%
           </div>
           <div className="text-xs text-brand-gray mt-1 leading-tight">After butchering, trimming, and 21-24 days of dry aging</div>
         </div>

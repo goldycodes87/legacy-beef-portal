@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 
-const QUESTIONS: { q: string; a: string; link?: { href: string; label: string } }[] = [
+const QUESTIONS: { q: string; a: string; link?: { href: string; label: string }; video?: boolean }[] = [
   {
     q: 'What comes in a quarter beef?',
-    a: 'Every quarter is cut to our Legacy House Cut — roughly 105 to 115 pounds of boxed beef: about 22 steaks (ribeyes, T-bones, top sirloins and chuck steaks), half a brisket, short ribs, skirt and flank steak, 50-plus one-pound packs of 85/15 ground beef, and soup bones.',
+    a: 'Every quarter is cut to our Legacy House Cut — roughly 85 to 100 pounds of boxed beef: about 22 steaks (ribeyes, T-bones, top sirloins and chuck steaks), half a brisket, short ribs, skirt and flank steak, 40 to 50 one-pound packs of 85/15 ground beef, and soup bones.',
     link: { href: '/quarter', label: 'See the full breakdown →' },
   },
   {
@@ -15,7 +15,8 @@ const QUESTIONS: { q: string; a: string; link?: { href: string; label: string } 
   },
   {
     q: 'How much freezer space do I actually need?',
-    a: 'A half beef needs roughly 8 cubic feet — about a small chest freezer. A quarter fits in most upright freezers alongside your normal food. A whole wants a dedicated chest freezer. The video above shows exactly what it looks like packed.',
+    a: 'A half beef needs roughly 8 cubic feet — about a small chest freezer. A quarter fits in most upright freezers alongside your normal food. A whole wants a dedicated chest freezer. Want to see it for real? Watch it packed:',
+    video: true,
   },
   {
     q: 'How long will it keep?',
@@ -81,6 +82,17 @@ export default function Faq() {
               {isOpen && (
                 <p className="font-body text-brand-gray text-sm leading-relaxed pb-5 max-w-[64ch]">
                   {item.a}
+                  {item.video && (
+                    <video
+                      controls
+                      preload="metadata"
+                      poster="/images/hero_pasture.jpg"
+                      className="w-full max-w-[520px] block rounded-xl mt-3"
+                    >
+                      <source src="/videos/Freezervideo.mp4" type="video/mp4" />
+                      Your browser does not support video playback.
+                    </video>
+                  )}
                   {item.link && (
                     <>
                       {' '}

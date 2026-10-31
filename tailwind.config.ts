@@ -28,6 +28,8 @@ const config: Config = {
         display: ['"Playfair Display"', 'Georgia', 'serif'],
         body: ['"Inter"', 'system-ui', 'sans-serif'],
         sign: ['"Dancing Script"', 'cursive'],
+        slab: ['"Alfa Slab One"', 'Georgia', 'serif'],
+        type: ['"Special Elite"', 'Courier', 'monospace'],
       },
       borderRadius: {
         card: '16px',

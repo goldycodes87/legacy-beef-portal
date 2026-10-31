@@ -174,7 +174,7 @@ export const depositConfirmation: EmailTemplate<DepositConfirmationParams> = {
     ${
       p.purchaseLabel === 'Quarter Beef'
         ? para(
-            'Wondering what you&rsquo;ll get? Your quarter is cut to our Legacy House Cut — about 110 lbs of boxed beef, ribeyes to ground. <a href="https://www.legacylandandcattleco.com/quarter" style="color:#E85D24;font-weight:bold;">See what a typical quarter looks like →</a>'
+            'Wondering what you&rsquo;ll get? Your quarter is cut to our Legacy House Cut — about 95 lbs of boxed beef, ribeyes to ground. <a href="https://www.legacylandandcattleco.com/quarter" style="color:#E85D24;font-weight:bold;">See what a typical quarter looks like →</a>'
           )
         : ''
     }

@@ -12,8 +12,8 @@ export const QUARTER_YIELD = [
   { cut: 'Skirt Steak', spec: '', count: '1 steak', lbs: '~1 lb' },
   { cut: 'Flank Steak', spec: '', count: '1 steak', lbs: '~1 lb' },
   { cut: 'Short Ribs', spec: '', count: '2 packages', lbs: '3–4 lbs' },
-  { cut: 'Ground Beef', spec: '85/15, 1 lb packs', count: '50–55 packs', lbs: '50–55 lbs' },
+  { cut: 'Ground Beef', spec: '85/15, 1 lb packs', count: '40–50 packs', lbs: '40–50 lbs' },
   { cut: 'Soup Bones', spec: '', count: '2–3 packages', lbs: '4–5 lbs' },
 ];
 
-export const QUARTER_STATS = { boxed: '~110 lbs', steaks: '~22', freezer: '4–5 ft³' };
+export const QUARTER_STATS = { boxed: '~95 lbs', steaks: '~22', freezer: '4–5 ft³' };

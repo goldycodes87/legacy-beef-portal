@@ -6,7 +6,7 @@ import { QUARTER_YIELD, QUARTER_STATS } from '@/lib/quarter-yield';
 export const metadata: Metadata = {
   title: 'What Comes in a Quarter — Legacy Land & Cattle',
   description:
-    'A typical quarter beef from Legacy Land & Cattle: about 110 lbs of boxed beef cut to our Legacy House Cut — ribeyes, T-bones, sirloins, chuck steaks, brisket, and 50+ pounds of ground beef.',
+    'A typical quarter beef from Legacy Land & Cattle: about 95 lbs of boxed beef cut to our Legacy House Cut — ribeyes, T-bones, sirloins, chuck steaks, brisket, and 40+ pounds of ground beef.',
 };
 
 /**
@@ -82,7 +82,7 @@ export default function QuarterPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3 bg-brand-dark text-white font-bold text-right whitespace-nowrap tabular-nums">
-                  ~105–115 lbs
+                  ~85–100 lbs
                 </td>
               </tr>
             </tbody>
