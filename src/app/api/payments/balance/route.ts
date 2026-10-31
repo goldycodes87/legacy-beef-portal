@@ -97,6 +97,9 @@ export async function POST(request: NextRequest) {
     // here skipped "mark ready" and its pickup email entirely.
     await supabase.from('sessions').update({
       balance_paid: true,
+      // The stored column, not just the flag — readers that trust balance_due
+      // (Rusty's finances report once did) otherwise keep showing it as owed.
+      balance_due: 0,
       balance_paid_at: new Date().toISOString(),
       balance_payment_method: 'card',
     }).eq('id', session_id);
