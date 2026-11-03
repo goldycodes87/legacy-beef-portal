@@ -30,6 +30,25 @@ export async function POST(request: NextRequest) {
     const size = SIZES.includes(size_preference) ? size_preference : 'any';
 
     const supabase = getSupabaseAdmin();
+
+    // A banned customer's signup is quietly dropped: they see the normal
+    // confirmation, nothing is stored, and nobody is notified. A visible
+    // refusal would just teach them to sign up under different details.
+    const normEmail = String(email).toLowerCase().trim();
+    const phoneDigits = String(phone || '').replace(/[^\d]/g, '').replace(/^1(?=\d{10}$)/, '');
+    const { data: bannedCustomers } = await supabase
+      .from('customers')
+      .select('email, phone')
+      .not('banned_at', 'is', null);
+    const isBanned = (bannedCustomers || []).some((c: any) => {
+      const cEmail = String(c.email || '').toLowerCase().trim();
+      const cDigits = String(c.phone || '').replace(/[^\d]/g, '').replace(/^1(?=\d{10}$)/, '');
+      return (cEmail && cEmail === normEmail) || (phoneDigits.length === 10 && cDigits === phoneDigits);
+    });
+    if (isBanned) {
+      return NextResponse.json({ success: true, id: null });
+    }
+
     const { data, error } = await supabase
       .from('waitlist')
       .insert({

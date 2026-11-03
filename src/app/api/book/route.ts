@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let customerId: string;
     const { data: existingCustomer } = await supabaseAdmin
       .from('customers')
-      .select('id')
+      .select('id, banned_at')
       .eq('email', email)
       .single();
 
@@ -72,14 +72,23 @@ export async function POST(request: NextRequest) {
       /^[0-9a-f-]{36}$/i.test(body.prospect_customer_id)
         ? body.prospect_customer_id
         : null;
-    let prospectCustomer: { id: string } | null = null;
+    let prospectCustomer: { id: string; banned_at?: string | null } | null = null;
     if (!existingCustomer && prospectId) {
       const { data } = await supabaseAdmin
         .from('customers')
-        .select('id')
+        .select('id, banned_at')
         .eq('id', prospectId)
         .maybeSingle();
       prospectCustomer = data;
+    }
+
+    // A banned customer cannot place a new order — checked before anything is
+    // written. Deliberately vague: the ban itself is between Grant and them.
+    if ((existingCustomer || prospectCustomer)?.banned_at) {
+      return NextResponse.json(
+        { error: 'We are not able to take this order online. Please call the ranch at (719) 258-1777.' },
+        { status: 403 }
+      );
     }
 
     if (existingCustomer || prospectCustomer) {
